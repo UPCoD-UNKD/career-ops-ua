@@ -18,8 +18,22 @@ const TEMPLATE = 'templates/ats-template.html';
 const id = process.argv[2];
 if (!id) {
   console.error("Usage: npm run offer-match -- <job_id>");
-  console.error("   or: npm run oferta -- <job_id>");
-  console.error("\nRun 'npm run offer-list' (or 'npm run ofertas') first to see available Job IDs.");
+  console.error("   or: npm run oferta -- <job_id>\n");
+  
+  try {
+    const recent = await sql`SELECT id, company, title FROM jobs ORDER BY score DESC LIMIT 5`;
+    if (recent && recent.length > 0) {
+      console.log("🌟 Top recommended Job IDs ready for tailoring:");
+      for (const r of recent) {
+        console.log(`   ID: ${r.id.toString().padEnd(4)} | ${r.company.padEnd(20)} | ${r.title}`);
+      }
+      console.log("\nCopy one of the IDs above and run: npm run offer-match -- <id>");
+    } else {
+      console.log("Run 'npm run scan' first to find jobs!");
+    }
+  } catch(e) {
+    console.error("Run 'npm run offer-list' first to see available Job IDs.");
+  }
   process.exit(1);
 }
 
