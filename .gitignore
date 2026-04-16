@@ -1,7 +1,13 @@
 # Personal data (user fills these)
+.env
+.env.local
+data/*.json
 data/applications.md
 data/pipeline.md
 data/scan-history.tsv
+data/*.bak
+dashboard.log
+!data/.gitkeep
 reports/*.md
 !reports/.gitkeep
 output/*

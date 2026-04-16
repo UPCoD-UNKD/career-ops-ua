@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="{{LANG}}">
+<head>
+    <meta charset="UTF-8">
+    <title>Cover Letter - {{NAME}}</title>
+    <style>
+        :root {
+            --primary: #f59e0b; /* amber-500 */
+            --text-main: #111827;
+            --text-muted: #4b5563;
+            --bg: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 80px 100px;
+        }
+        .header { margin-bottom: 60px; }
+        .name { font-size: 28px; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em; }
+        .contact { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
+        
+        .date { margin-bottom: 40px; font-size: 14px; font-weight: 600; }
+        
+        .recipient { margin-bottom: 40px; }
+        .recipient p { font-size: 14px; color: var(--text-main); font-weight: 600; }
+        .recipient span { color: var(--text-muted); font-weight: 400; }
+
+        .greeting { font-size: 16px; font-weight: 700; margin-bottom: 24px; }
+        
+        .content { font-size: 15px; }
+        .content p { margin-bottom: 20px; }
+        
+        .closing { margin-top: 60px; }
+        .signature { margin-top: 10px; font-size: 18px; font-weight: 700; }
+        
+        .accent-bar {
+            width: 40px;
+            height: 4px;
+            background: var(--primary);
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="accent-bar"></div>
+        <div class="name">{{NAME}}</div>
+        <div class="contact">{{LOCATION}} • {{EMAIL}} • {{PHONE}}</div>
+        <div class="contact">{{LINKEDIN_DISPLAY}} • {{PORTFOLIO_DISPLAY}}</div>
+    </div>
+
+    <div class="date">{{DATE}}</div>
+
+    <div class="recipient">
+        <p>Hiring Team</p>
+        <span>{{COMPANY_NAME}}</span>
+    </div>
+
+    <div class="greeting">Dear {{COMPANY_NAME}} Team,</div>
+
+    <div class="content">
+        {{COVER_LETTER_TEXT}}
+    </div>
+
+    <div class="closing">
+        <p>Sincerely,</p>
+        <div class="signature">{{NAME}}</div>
+    </div>
+</body>
+</html>
