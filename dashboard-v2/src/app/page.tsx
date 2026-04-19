@@ -11,9 +11,11 @@ import {
   Play, 
   Search, 
   Settings, 
-  Terminal as TerminalIcon 
+  Terminal as TerminalIcon,
+  LogOut 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { signOut } from 'next-auth/react';
 
 export default function Dashboard() {
   const [data, setData] = useState<any>(null);
@@ -193,8 +195,15 @@ export default function Dashboard() {
           <NavItem icon={<TerminalIcon size={18}/>} label="Terminal" active={activeTab === 'terminal'} onClick={() => setActiveTab('terminal')} />
         </nav>
 
-        <div className="mt-auto pt-6 border-t border-white/5">
+        <div className="mt-auto pt-6 border-t border-white/5 space-y-2">
           <NavItem icon={<Settings size={18}/>} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
+          <button 
+            onClick={() => signOut({ callbackUrl: '/' })}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-red-400 hover:text-red-300 hover:bg-red-500/5 group"
+          >
+            <LogOut size={18} className="transition-transform group-hover:-translate-x-1" />
+            <span className="text-sm font-medium">Log out</span>
+          </button>
         </div>
       </aside>
 
