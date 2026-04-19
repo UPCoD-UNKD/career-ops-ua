@@ -179,29 +179,31 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen bg-[#09090b] text-[#fafafa] font-sans selection:bg-amber-500/30">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-white/5 bg-black/20 backdrop-blur-xl flex flex-col p-6">
-        <div className="flex items-center gap-3 mb-10 px-2">
-          <div className="h-8 w-8 bg-amber-500 rounded-lg flex items-center justify-center">
-            <Briefcase className="h-5 w-5 text-black" />
+      <aside className="w-64 border-r border-white/5 bg-black/20 backdrop-blur-xl flex flex-col h-screen overflow-hidden">
+        <div className="p-6 pb-2">
+          <div className="flex items-center gap-3 mb-10 px-2">
+            <div className="h-8 w-8 bg-amber-500 rounded-lg flex items-center justify-center">
+              <Briefcase className="h-5 w-5 text-black" />
+            </div>
+            <span className="text-xl font-bold tracking-tight">Career-Ops <span className="text-xs text-amber-500 font-mono opacity-60">v2</span></span>
           </div>
-          <span className="text-xl font-bold tracking-tight">Career-Ops <span className="text-xs text-amber-500 font-mono opacity-60">v2</span></span>
+
+          <nav className="space-y-1">
+            <NavItem icon={<LayoutDashboard size={18}/>} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
+            <NavItem icon={<Briefcase size={18}/>} label="Applications" active={activeTab === 'apps'} onClick={() => setActiveTab('apps')} />
+            <NavItem icon={<Search size={18}/>} label="Job Pipeline" active={activeTab === 'pipeline'} onClick={() => setActiveTab('pipeline')} />
+            <NavItem icon={<FileText size={18}/>} label="Resume Manager" active={activeTab === 'cv'} onClick={() => setActiveTab('cv')} />
+            <NavItem icon={<TerminalIcon size={18}/>} label="Terminal" active={activeTab === 'terminal'} onClick={() => setActiveTab('terminal')} />
+          </nav>
         </div>
 
-        <nav className="space-y-2 flex-1">
-          <NavItem icon={<LayoutDashboard size={18}/>} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
-          <NavItem icon={<Briefcase size={18}/>} label="Applications" active={activeTab === 'apps'} onClick={() => setActiveTab('apps')} />
-          <NavItem icon={<Search size={18}/>} label="Job Pipeline" active={activeTab === 'pipeline'} onClick={() => setActiveTab('pipeline')} />
-          <NavItem icon={<FileText size={18}/>} label="Resume Manager" active={activeTab === 'cv'} onClick={() => setActiveTab('cv')} />
-          <NavItem icon={<TerminalIcon size={18}/>} label="Terminal" active={activeTab === 'terminal'} onClick={() => setActiveTab('terminal')} />
-        </nav>
-
-        <div className="mt-auto pt-6 border-t border-white/5 space-y-2">
+        <div className="mt-auto p-6 border-t border-white/5 bg-white/[0.01]">
           <NavItem icon={<Settings size={18}/>} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
           <button 
             onClick={() => signOut({ callbackUrl: '/' })}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-red-400 hover:text-red-300 hover:bg-red-500/5 group"
+            className="w-full mt-2 flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-red-400 hover:text-red-300 hover:bg-red-500/10 group"
           >
-            <LogOut size={18} className="transition-transform group-hover:-translate-x-1" />
+            <LogOut size={18} className="opacity-70 group-hover:opacity-100 transition-opacity" />
             <span className="text-sm font-medium">Log out</span>
           </button>
         </div>
