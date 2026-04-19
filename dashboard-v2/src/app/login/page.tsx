@@ -17,14 +17,16 @@ export default function LoginPage() {
     setError(null);
     
     try {
-      const result = await signIn('credentials', {
+      const result: any = await signIn('credentials', {
         email,
         password,
-        redirect: true,
+        redirect: false,
         callbackUrl: '/'
       });
       if (result?.error) {
         setError("Invalid credentials. Please try again.");
+      } else {
+        window.location.href = '/';
       }
     } catch (err) {
       setError("An unexpected error occurred.");
