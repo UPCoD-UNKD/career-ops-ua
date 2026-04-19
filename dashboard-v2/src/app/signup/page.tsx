@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Briefcase, User, Mail, Key, ArrowRight, Github, Loader2, AlertCircle, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Briefcase, User, Mail, Key, ArrowRight, Github, Loader2, AlertCircle, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
@@ -45,10 +45,12 @@ export default function SignupPage() {
         body: JSON.stringify(formData)
       });
 
-      // Lead Engineer: Safely check Content-Type before parsing JSON
+      // Lead Engineer: Handle non-JSON error pages (like Vercel 500s)
       const contentType = res.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-         throw new Error("Critical Infrastructure Failure: Server returned non-JSON response. Please check your DATABASE_URL connectivity.");
+         const text = await res.text();
+         console.error('Server returned non-JSON:', text.substring(0, 500));
+         throw new Error(`Critical Infrastructure Failure (HTTP ${res.status}). This usually means DATABASE_URL is missing or Neon is unreachable.`);
       }
 
       const data = await res.json();
@@ -191,3 +193,4 @@ export default function SignupPage() {
     </div>
   );
 }
+ Greenland

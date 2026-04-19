@@ -14,6 +14,11 @@ const RegistrationSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    // 0. Vital Infrastructure Check
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json({ error: "DATABASE_URL is missing in environment variables. Critical infrastructure setup required." }, { status: 500 });
+    }
+
     const body = await req.json();
     
     // 1. Validate incoming data
@@ -26,34 +31,49 @@ export async function POST(req: Request) {
 
     const { name, email, password } = validation.data;
 
-    // 2. Check if user already exists
+    // 2. Lead Engineer Schema Guard: Ensure tables exist
+    // This prevents 500 errors if the DB is fresh
+    try {
+      await sql`
+        CREATE TABLE IF NOT EXISTS user_profiles (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER UNIQUE,
+          resume_context JSONB DEFAULT '{}',
+          targeting_keywords JSONB DEFAULT '{"positive": [], "negative": []}',
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        )
+      `;
+    } catch (schemaError) {
+       console.error('Schema Sync Warning:', schemaError);
+       // We continue as the table might already exist but we lack permissions to 'CREATE'
+    }
+
+    // 3. Check if user already exists
     const existingUser = await sql`SELECT id FROM users WHERE email = ${email} LIMIT 1`;
     if (existingUser.length > 0) {
       return NextResponse.json({ error: 'User with this identity record already exists.' }, { status: 400 });
     }
 
-    // 3. Hash password
-    const hashedPassword = await bcrypt.hash(password, 12); // Slightly higher rounds for lead engineer grade security
+    // 4. Hash password with lead engineer grade security
+    const hashedPassword = await bcrypt.hash(password, 12);
 
-    // 4. Create User in DB (Unverified)
+    // 5. Create User in DB (Unverified)
     const [user] = await sql`
       INSERT INTO users (name, email, password)
       VALUES (${name}, ${email}, ${hashedPassword})
       RETURNING id, name, email
     `;
 
-    // 5. Initialize User Profile for Onboarding
+    // 6. Initialize User Profile for Onboarding
     await sql`
       INSERT INTO user_profiles (user_id, resume_context, targeting_keywords)
       VALUES (${user.id}, ${sql.json({})}, ${sql.json({ positive: [], negative: [] })})
       ON CONFLICT (user_id) DO NOTHING
     `;
 
-    // 6. Generate and Send OTP
+    // 7. Generate and Send OTP
     const verificationToken = await generateVerificationToken(email);
     
-    // We attempt to send, but we don't crash if the email gateway is temporarily congested.
-    // The user can always "Resend" from the verify page.
     try {
       await sendVerificationEmail(email, verificationToken.token);
     } catch (mailError) {
@@ -70,7 +90,7 @@ export async function POST(req: Request) {
     console.error('CRITICAL: Registration Breakdown:', error);
     // Lead Engineer: Ensure we ALWAYS return JSON, even in catastrophic failure.
     return NextResponse.json({ 
-      error: "Infrastructure communication breakdown. Please check your DATABASE_URL connectivity." 
+      error: `Infrastructure Error: ${error.message || 'Unknown breakdown'}. Please verify your DATABASE_URL connectivity.` 
     }, { status: 500 });
   }
 }
