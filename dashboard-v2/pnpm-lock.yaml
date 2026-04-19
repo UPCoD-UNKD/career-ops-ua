@@ -11,6 +11,9 @@ importers:
       '@auth/pg-adapter':
         specifier: ^1.11.2
         version: 1.11.2(pg@8.20.0)
+      '@getbrevo/brevo':
+        specifier: ^5.0.4
+        version: 5.0.4
       '@huggingface/inference':
         specifier: ^4.13.15
         version: 4.13.15
@@ -226,6 +229,10 @@ packages:
   '@eslint/plugin-kit@0.4.1':
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@getbrevo/brevo@5.0.4':
+    resolution: {integrity: sha512-wN4mHE6O0Pb/d/Dh3E4MAm2zCHbLLUcFF8/wgwTeMPy9KzHBYLu7S/nsJbzd0AWL09MHn8vwue8ULL9YOzluOQ==}
+    engines: {node: '>=18.0.0'}
 
   '@huggingface/inference@4.13.15':
     resolution: {integrity: sha512-V7B13KFDVhYkQqgx8vpMcmtEG+PoePlh65IUvpphTTItHAq6zRLcsS4torh1QavUaT+6nEwho4wFXzBQNGBwKQ==}
@@ -2317,6 +2324,8 @@ snapshots:
     dependencies:
       '@eslint/core': 0.17.0
       levn: 0.4.1
+
+  '@getbrevo/brevo@5.0.4': {}
 
   '@huggingface/inference@4.13.15':
     dependencies:

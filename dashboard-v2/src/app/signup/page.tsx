@@ -43,13 +43,9 @@ export default function SignupPage() {
       }
 
       setIsSuccess(true);
-      // Automatically log them in after 2 seconds
+      // Redirect to verification page
       setTimeout(() => {
-        signIn('credentials', {
-           email: formData.email,
-           password: formData.password,
-           callbackUrl: '/'
-        });
+        router.push(`/verify?email=${encodeURIComponent(formData.email)}`);
       }, 2000);
 
     } catch (err: any) {

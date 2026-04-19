@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import sql from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { generateVerificationToken } from '@/lib/tokens';
+import { sendVerificationEmail } from '@/lib/mail';
 
 export async function POST(req: Request) {
   try {
@@ -19,7 +21,7 @@ export async function POST(req: Request) {
     // 2. Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 3. Create User in DB
+    // 3. Create User in DB (Unverified)
     const [user] = await sql`
       INSERT INTO users (name, email, password)
       VALUES (${name || null}, ${email}, ${hashedPassword})
@@ -33,9 +35,14 @@ export async function POST(req: Request) {
       ON CONFLICT (user_id) DO NOTHING
     `;
 
+    // 5. Generate and Send OTP
+    const verificationToken = await generateVerificationToken(email);
+    await sendVerificationEmail(email, verificationToken.token);
+
     return NextResponse.json({ 
       success: true, 
-      user: { id: user.id, name: user.name, email: user.email } 
+      user: { id: user.id, name: user.name, email: user.email },
+      message: "Verification email sent"
     });
 
   } catch (error: any) {

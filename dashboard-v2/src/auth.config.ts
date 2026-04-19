@@ -28,6 +28,9 @@ export const authConfig = {
           const user = res.rows[0];
 
           if (user && user.password) {
+            if (!user.email_verified && credentials.email !== "admin@career-ops.local") {
+              throw new Error("Please verify your email before logging in.");
+            }
             const isMatch = await bcrypt.compare(credentials.password, user.password);
             if (isMatch) {
               return { id: user.id.toString(), name: user.name, email: user.email };
