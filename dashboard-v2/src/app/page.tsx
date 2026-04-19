@@ -12,7 +12,8 @@ import {
   Search, 
   Settings, 
   Terminal as TerminalIcon,
-  LogOut 
+  LogOut,
+  ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { signOut } from 'next-auth/react';
