@@ -200,8 +200,6 @@ async function tailorPackage(jd, profile, companyName) {
        hf = new HfInference(profileRow.hf_token);
     }
 
-    const entry = jobRecord;
-
     console.log(`🎯 Target identified: ${entry.company}`);
     const jdText = await scrapeJD(entry.url);
     const result = await tailorPackage(jdText, profile, entry.company);
