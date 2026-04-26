@@ -85,10 +85,10 @@ function VerifyContent() {
       setIsSuccess(true);
       setTimeout(() => {
         if (provider === 'github') {
-          router.push('/login?verified=true&autogithub=1');
+          router.push('/auth/continue?provider=github&callbackUrl=%2F%3Fwalkthrough%3D1');
           return;
         }
-        router.push('/login?verified=true');
+        router.push('/auth/continue?provider=credentials');
       }, 2000);
 
     } catch (err: unknown) {
