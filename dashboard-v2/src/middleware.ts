@@ -5,7 +5,7 @@ const { auth } = NextAuth(authConfig);
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth
-  const publicPages = ["/", "/login", "/signup", "/verify", "/docs", "/privacy", "/status"]
+  const publicPages = ["/", "/login", "/signup", "/verify", "/auth/continue", "/docs", "/privacy", "/status"]
   const isPublicPage = publicPages.includes(req.nextUrl.pathname)
 
   if (isPublicPage) {
