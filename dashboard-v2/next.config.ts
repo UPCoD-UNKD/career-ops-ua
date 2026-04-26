@@ -1,6 +1,8 @@
+import path from "path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: path.join(__dirname, ".."),
   outputFileTracingIncludes: {
     "/*": [
       "./scripts/**/*",
@@ -9,6 +11,9 @@ const nextConfig: NextConfig = {
       "./config/**/*",
       "./data/**/*",
       "./fonts/**/*",
+      "../portals/**/*",
+      "../templates/**/*",
+      "../generate-pdf.mjs",
     ],
   },
 };

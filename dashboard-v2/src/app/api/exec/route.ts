@@ -125,6 +125,8 @@ export async function GET(req: NextRequest) {
           fs.mkdirSync(path.dirname(dest), { recursive: true });
           fs.cpSync(src, dest, { recursive: true });
         };
+        const resolveExistingPath = (candidates: string[]) =>
+          candidates.find((candidate) => fs.existsSync(candidate));
 
         // Write the profile.yml for the script to read
         const profileYaml = yaml.dump(profile.resume_context);
@@ -134,23 +136,45 @@ export async function GET(req: NextRequest) {
         fs.writeFileSync(path.join(configDir, 'keywords.json'), JSON.stringify(profile.targeting_keywords));
 
         // Provide fallback scanner/template assets expected by scripts in cwd.
-        const rootPortalsPath = path.join(process.cwd(), '..', 'portals.yml');
-        if (fs.existsSync(rootPortalsPath)) {
-          fs.copyFileSync(rootPortalsPath, path.join(userTmpDir, 'portals.yml'));
+        const portalsYmlPath = resolveExistingPath([
+          path.join(process.cwd(), '..', 'portals.yml'),
+          path.join(process.cwd(), 'portals.yml'),
+          '/var/task/portals.yml',
+        ]);
+        if (portalsYmlPath) {
+          fs.copyFileSync(portalsYmlPath, path.join(userTmpDir, 'portals.yml'));
         }
-        const rootAtsTemplatePath = path.join(process.cwd(), '..', 'templates', 'ats-template.html');
-        if (fs.existsSync(rootAtsTemplatePath)) {
-          fs.copyFileSync(rootAtsTemplatePath, path.join(templatesDir, 'ats-template.html'));
+        const atsTemplatePath = resolveExistingPath([
+          path.join(process.cwd(), '..', 'templates', 'ats-template.html'),
+          path.join(process.cwd(), 'templates', 'ats-template.html'),
+          '/var/task/templates/ats-template.html',
+        ]);
+        if (atsTemplatePath) {
+          fs.copyFileSync(atsTemplatePath, path.join(templatesDir, 'ats-template.html'));
         }
-        const rootCoverLetterTemplatePath = path.join(process.cwd(), '..', 'templates', 'cover-letter.html');
-        if (fs.existsSync(rootCoverLetterTemplatePath)) {
-          fs.copyFileSync(rootCoverLetterTemplatePath, path.join(templatesDir, 'cover-letter.html'));
+        const coverLetterTemplatePath = resolveExistingPath([
+          path.join(process.cwd(), '..', 'templates', 'cover-letter.html'),
+          path.join(process.cwd(), 'templates', 'cover-letter.html'),
+          '/var/task/templates/cover-letter.html',
+        ]);
+        if (coverLetterTemplatePath) {
+          fs.copyFileSync(coverLetterTemplatePath, path.join(templatesDir, 'cover-letter.html'));
         }
-        const rootScrapersDir = path.join(process.cwd(), '..', 'portals', 'scrapers');
-        copyRecursiveIfExists(rootScrapersDir, path.join(userTmpDir, 'portals', 'scrapers'));
-        const rootGeneratePdfScript = path.join(process.cwd(), '..', 'generate-pdf.mjs');
-        if (fs.existsSync(rootGeneratePdfScript)) {
-          fs.copyFileSync(rootGeneratePdfScript, path.join(userTmpDir, 'generate-pdf.mjs'));
+        const scrapersDir = resolveExistingPath([
+          path.join(process.cwd(), '..', 'portals', 'scrapers'),
+          path.join(process.cwd(), 'portals', 'scrapers'),
+          '/var/task/portals/scrapers',
+        ]);
+        if (scrapersDir) {
+          copyRecursiveIfExists(scrapersDir, path.join(userTmpDir, 'portals', 'scrapers'));
+        }
+        const generatePdfScript = resolveExistingPath([
+          path.join(process.cwd(), '..', 'generate-pdf.mjs'),
+          path.join(process.cwd(), 'generate-pdf.mjs'),
+          '/var/task/generate-pdf.mjs',
+        ]);
+        if (generatePdfScript) {
+          fs.copyFileSync(generatePdfScript, path.join(userTmpDir, 'generate-pdf.mjs'));
         }
 
         // 4. Execute Script from the new 'scripts' location
