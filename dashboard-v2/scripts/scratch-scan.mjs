@@ -7,6 +7,27 @@ const userId = Number.parseInt(String(rawUserId), 10);
 if (!Number.isFinite(userId)) {
   throw new Error(`Invalid SCAN_USER_ID: ${rawUserId}`);
 }
+
+function normalizePortalId(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  if (!raw) return '';
+
+  const noProtocol = raw.replace(/^https?:\/\//, '');
+  const host = noProtocol.split('/')[0].replace(/^www\./, '');
+
+  if (raw.includes('naukri.com') || host === 'naukri.com') return 'naukri';
+  if (raw.includes('indeed.com') || host.endsWith('indeed.com')) return 'indeed';
+  if (raw.includes('japan-dev.com') || host === 'japan-dev.com') return 'japan-dev';
+  if (raw.includes('instahyre.com') || host === 'instahyre.com') return 'instahyre';
+  if (raw.includes('cutshort.io') || host === 'cutshort.io') return 'cutshort';
+  if (raw.includes('linkedin.com') || host === 'linkedin.com') return 'linkedin';
+  if (raw.includes('greenhouse.io') || host.endsWith('greenhouse.io')) return 'greenhouse';
+  if (raw.includes('lever.co') || host.endsWith('lever.co')) return 'lever';
+  if (raw.includes('workday') || host.includes('myworkdayjobs.com')) return 'workday';
+  if (raw.includes('successfactors')) return 'successfactors';
+
+  return raw;
+}
 // Attempt to load distinct profile config
 let config = { title_filter: { positive: [], negative: [] }, tracked_companies: [], search_queries: [] };
 try {
@@ -22,9 +43,10 @@ try {
   if (selectedPortals.length > 0) {
     const primaryKeyword = (config.title_filter?.positive?.[0] || 'software engineer').toLowerCase();
     const location = profile?.resume_context?.candidate?.location || 'India';
-    config.search_queries = selectedPortals.map((portal) => ({
+    const normalizedPortals = [...new Set(selectedPortals.map(normalizePortalId).filter(Boolean))];
+    config.search_queries = normalizedPortals.map((portal) => ({
       name: `${portal} ${primaryKeyword}`,
-      portal: String(portal).toLowerCase(),
+      portal,
       query: primaryKeyword,
       location,
       enabled: true,

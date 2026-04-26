@@ -9,6 +9,7 @@ import sql from './db/client.mjs';
 let hf = null;
 let hfUnavailable = false;
 let hfTokenInUse = '';
+const HF_MODEL = 'mistralai/Mistral-7B-Instruct-v0.3';
 const TARGET_MAP = 'data/current_eval.json';
 const TEMPLATE = 'templates/ats-template.html';
 const require = createRequire(import.meta.url);
@@ -41,7 +42,7 @@ async function getHfClient(token) {
     return hf;
   } catch (e) {
     hfUnavailable = true;
-    console.warn('⚠ HuggingFace SDK unavailable in this runtime. Using fallback tailoring.');
+    console.warn('⚠ Tailoring SDK unavailable in this runtime. Using Hugging Face HTTP/API fallback for text generation.');
     return null;
   }
 }
@@ -55,7 +56,7 @@ async function callHfChatViaHttp(messages) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'MiniMaxAI/MiniMax-M2.7',
+      model: HF_MODEL,
       messages,
       max_tokens: 2000,
       temperature: 0.2,
@@ -197,9 +198,9 @@ async function scrapeJD(url) {
 async function tailorPackage(jd, profile, companyName) {
   const hfClient = await getHfClient();
   if (hfClient) {
-    console.log("🤖 Generating Tailored Package with MiniMaxAI/MiniMax-M2.7...");
+    console.log(`🤖 Generating tailored package with ${HF_MODEL}...`);
   } else if (hfTokenInUse) {
-    console.log("🤖 HuggingFace SDK unavailable; using direct HuggingFace API fallback...");
+    console.log(`🤖 Using direct Hugging Face API with ${HF_MODEL}...`);
   } else {
     return {
       resume: {
@@ -250,7 +251,7 @@ async function tailorPackage(jd, profile, companyName) {
   let response;
   if (hfClient) {
     response = await hfClient.chatCompletion({
-      model: "MiniMaxAI/MiniMax-M2.7",
+      model: HF_MODEL,
       messages,
       max_tokens: 2000,
       temperature: 0.2
