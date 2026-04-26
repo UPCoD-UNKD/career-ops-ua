@@ -120,6 +120,12 @@ export async function GET(req: NextRequest) {
         fs.mkdirSync(outputDir, { recursive: true });
         fs.mkdirSync(templatesDir, { recursive: true });
 
+        const copyRecursiveIfExists = (src: string, dest: string) => {
+          if (!fs.existsSync(src)) return;
+          fs.mkdirSync(path.dirname(dest), { recursive: true });
+          fs.cpSync(src, dest, { recursive: true });
+        };
+
         // Write the profile.yml for the script to read
         const profileYaml = yaml.dump(profile.resume_context);
         fs.writeFileSync(path.join(configDir, 'profile.yml'), profileYaml);
@@ -139,6 +145,12 @@ export async function GET(req: NextRequest) {
         const rootCoverLetterTemplatePath = path.join(process.cwd(), '..', 'templates', 'cover-letter.html');
         if (fs.existsSync(rootCoverLetterTemplatePath)) {
           fs.copyFileSync(rootCoverLetterTemplatePath, path.join(templatesDir, 'cover-letter.html'));
+        }
+        const rootScrapersDir = path.join(process.cwd(), '..', 'portals', 'scrapers');
+        copyRecursiveIfExists(rootScrapersDir, path.join(userTmpDir, 'portals', 'scrapers'));
+        const rootGeneratePdfScript = path.join(process.cwd(), '..', 'generate-pdf.mjs');
+        if (fs.existsSync(rootGeneratePdfScript)) {
+          fs.copyFileSync(rootGeneratePdfScript, path.join(userTmpDir, 'generate-pdf.mjs'));
         }
 
         // 4. Execute Script from the new 'scripts' location

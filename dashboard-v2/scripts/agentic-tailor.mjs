@@ -339,10 +339,15 @@ async function tailorPackage(jd, profile, companyName) {
 
     console.log(`✅ Package ready: ${resumePathHtml} & ${clPathHtml}`);
 
-    console.log("📄 Generating PDFs...");
-    execSync(`"${process.execPath}" generate-pdf.mjs ${resumePathHtml} ${resumePathPdf}`);
-    execSync(`"${process.execPath}" generate-pdf.mjs ${clPathHtml} ${clPathPdf}`);
-    console.log(`✨ SUCCESS! Resume & Cover Letter saved for ${entry.company}`);
+    const generatePdfScript = path.join(process.cwd(), 'generate-pdf.mjs');
+    if (fs.existsSync(generatePdfScript)) {
+      console.log("📄 Generating PDFs...");
+      execSync(`"${process.execPath}" "${generatePdfScript}" ${resumePathHtml} ${resumePathPdf}`);
+      execSync(`"${process.execPath}" "${generatePdfScript}" ${clPathHtml} ${clPathPdf}`);
+      console.log(`✨ SUCCESS! Resume & Cover Letter saved for ${entry.company}`);
+    } else {
+      console.log("⚠ generate-pdf.mjs unavailable in this runtime. HTML artifacts generated successfully.");
+    }
 
   } catch (err) {
     console.error("❌ Agentic Tailor Failed:", err.message);

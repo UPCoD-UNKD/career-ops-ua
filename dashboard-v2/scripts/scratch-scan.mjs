@@ -51,7 +51,8 @@ async function importScraper(moduleName) {
       // try next candidate
     }
   }
-  throw new Error(`Cannot resolve scraper module: ${moduleName}.mjs`);
+  console.warn(`⚠ Scraper module unavailable: ${moduleName}.mjs`);
+  return null;
 }
 
 // load already seen urls from db
@@ -233,13 +234,20 @@ async function run() {
   if (shouldRunDiscovery) {
     console.log('\n🌟 Discovery Phase — Searching all portals from portals.yml');
     try {
-      const { scrapeInstahyre }     = await importScraper('instahyre');
-      const { scrapeFlexiple }      = await importScraper('flexiple');
-      const { scrapeLinkedIn }      = await importScraper('linkedin');
-      const { scrapeNaukri }        = await importScraper('naukri');
-      const { scrapeCutshort }      = await importScraper('cutshort');
-      const { scrapeIndeed }        = await importScraper('indeed');
-      const { discoverJobs }        = await importScraper('discovery');
+      const instahyreMod = await importScraper('instahyre');
+      const flexipleMod = await importScraper('flexiple');
+      const linkedInMod = await importScraper('linkedin');
+      const naukriMod = await importScraper('naukri');
+      const cutshortMod = await importScraper('cutshort');
+      const indeedMod = await importScraper('indeed');
+      const discoveryMod = await importScraper('discovery');
+      const scrapeInstahyre = instahyreMod?.scrapeInstahyre;
+      const scrapeFlexiple = flexipleMod?.scrapeFlexiple;
+      const scrapeLinkedIn = linkedInMod?.scrapeLinkedIn;
+      const scrapeNaukri = naukriMod?.scrapeNaukri;
+      const scrapeCutshort = cutshortMod?.scrapeCutshort;
+      const scrapeIndeed = indeedMod?.scrapeIndeed;
+      const discoverJobs = discoveryMod?.discoverJobs;
       
       // Only process enabled queries
       const queries = (config.search_queries || []).filter(q => q.enabled !== false);
@@ -249,21 +257,24 @@ async function run() {
         console.log(`  🔍 Scanning: ${q.name}...`);
         let results = [];
         try {
-          if (q.portal === 'linkedin') {
+          if (q.portal === 'linkedin' && scrapeLinkedIn) {
             results = await scrapeLinkedIn(q.query, q.location || 'India');
-          } else if (q.portal === 'instahyre') {
+          } else if (q.portal === 'instahyre' && scrapeInstahyre) {
             results = await scrapeInstahyre(q.query, q.locations || ['Pune', 'Bengaluru']);
-          } else if (q.portal === 'flexiple') {
+          } else if (q.portal === 'flexiple' && scrapeFlexiple) {
             results = await scrapeFlexiple(q.query);
-          } else if (q.portal === 'naukri') {
+          } else if (q.portal === 'naukri' && scrapeNaukri) {
             results = await scrapeNaukri(q.query, q.location || 'India');
-          } else if (q.portal === 'cutshort') {
+          } else if (q.portal === 'cutshort' && scrapeCutshort) {
             results = await scrapeCutshort(q.query, q.location || 'india');
-          } else if (q.portal === 'indeed') {
+          } else if (q.portal === 'indeed' && scrapeIndeed) {
             results = await scrapeIndeed(q.query, q.location || 'India');
-          } else {
+          } else if (discoverJobs) {
             // Fallback: Use Discovery Engine for generic site: queries (Naukri, Indeed, Glassdoor, etc.)
             results = await discoverJobs(q.query, q.name);
+          } else {
+            console.warn(`  ⚠ No scraper available for ${q.portal}; skipping`);
+            continue;
           }
           
           stats.discovery.found += results.length;
@@ -284,8 +295,10 @@ async function run() {
     if (enableExtendedScan) {
       console.log('\n🏢 Enterprise Phase — Scanning Workday & SuccessFactors');
       try {
-        const { scrapeWorkday }       = await importScraper('workday');
-        const { scrapeSuccessFactors} = await importScraper('successfactors');
+        const workdayMod = await importScraper('workday');
+        const successFactorsMod = await importScraper('successfactors');
+        const scrapeWorkday = workdayMod?.scrapeWorkday;
+        const scrapeSuccessFactors = successFactorsMod?.scrapeSuccessFactors;
 
         // This is where you would iterate through specific enterprise entries if added to tracked_companies
         // For now, I'll add a few known targets to ensure they are checked
@@ -299,10 +312,12 @@ async function run() {
            console.log(`  🏢 Checking Enterprise: ${target.name}...`);
            let results = [];
            try {
-             if (target.portal === 'workday') {
+             if (target.portal === 'workday' && scrapeWorkday) {
                results = await scrapeWorkday(target.name, target.subdomain, 'Software Engineer');
-             } else if (target.portal === 'successfactors') {
+             } else if (target.portal === 'successfactors' && scrapeSuccessFactors) {
                results = await scrapeSuccessFactors(target.name, target.portalToken, 'Software Engineer');
+             } else {
+               continue;
              }
              
              stats.enterprise.found += results.length;
