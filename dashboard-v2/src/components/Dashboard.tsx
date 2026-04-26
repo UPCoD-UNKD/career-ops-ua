@@ -35,7 +35,8 @@ export default function Dashboard() {
   const [profileFormData, setProfileFormData] = useState<any>({
     candidate: { full_name: '', location: '', email: '', linkedin: '', github: '' },
     narrative: { headline: '', exit_story: '', superpowers: [] },
-    targeting_keywords: { positive: [], negative: [] }
+    targeting_keywords: { positive: [], negative: [] },
+    search: { portals: ['linkedin', 'naukri', 'indeed', 'instahyre', 'flexiple', 'greenhouse', 'lever', 'japan-dev'] }
   });
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
@@ -44,6 +45,7 @@ export default function Dashboard() {
   const [accountInfo, setAccountInfo] = useState({ email: '', password: '', confirmPassword: '' });
   const [tagInputPositive, setTagInputPositive] = useState('');
   const [tagInputNegative, setTagInputNegative] = useState('');
+  const [tagInputPortals, setTagInputPortals] = useState('');
 
   const steps = [
     { target: null, title: "Welcome to Alpha v2.0", content: "Your AI career command center is live. Let's configure your agent for maximum discovery.", icon: <Zap size={24}/> },
@@ -181,7 +183,8 @@ export default function Dashboard() {
           setProfileFormData({
             candidate: d.resume_context?.candidate || { full_name: '', location: '', email: '', linkedin: '', github: '' },
             narrative: d.resume_context?.narrative || { headline: '', exit_story: '', superpowers: [] },
-            targeting_keywords: d.targeting_keywords || { positive: [], negative: [] }
+            targeting_keywords: d.targeting_keywords || { positive: [], negative: [] },
+            search: d.resume_context?.search || { portals: ['linkedin', 'naukri', 'indeed', 'instahyre', 'flexiple', 'greenhouse', 'lever', 'japan-dev'] }
           });
           setAccountInfo(prev => ({ ...prev, email: d.email || '' }));
         });
@@ -203,7 +206,8 @@ export default function Dashboard() {
         body: JSON.stringify({
           resume_context: {
             candidate: profileFormData.candidate,
-            narrative: profileFormData.narrative
+            narrative: profileFormData.narrative,
+            search: profileFormData.search
           },
           targeting_keywords: profileFormData.targeting_keywords,
           email: accountInfo.email,
@@ -580,39 +584,69 @@ export default function Dashboard() {
                     <Input label="Strategic Headline" value={profileFormData.narrative.headline} onChange={(v) => setProfileFormData({...profileFormData, narrative: {...profileFormData.narrative, headline: v}})} />
                     <div>
                        <label className="text-[10px] font-bold text-[#a8a29e] uppercase tracking-widest mb-2 block">Executive Story</label>
-                       <textarea 
+                       <textarea
                          rows={4}
                          value={profileFormData.narrative.exit_story}
                          onChange={(e) => setProfileFormData({...profileFormData, narrative: {...profileFormData.narrative, exit_story: e.target.value}})}
-                         className="w-full bg-[#faf9f6]/50 border border-[#e7e5e4] rounded-2xl p-4 outline-none focus:border-[#1c1917] transition-all text-sm font-medium leading-relaxed" 
+                         className="w-full bg-[#faf9f6]/50 border border-[#e7e5e4] rounded-2xl p-4 outline-none focus:border-[#1c1917] transition-all text-sm font-medium leading-relaxed"
                        />
                     </div>
-                  </ConfigSection>                   <ConfigSection id="config-targeting" title="Targeting Parameters" icon={<Search size={18} className="text-[#1c1917]" />}>
-                     <div className="space-y-6">
-                       <TagInput
-                         label="Targeted Roles & Skills"
-                         placeholder="Type a role or skill, press Enter..."
-                         tags={profileFormData.targeting_keywords.positive}
-                         inputValue={tagInputPositive}
-                         onInputChange={setTagInputPositive}
-                         onAdd={(tag) => setProfileFormData({...profileFormData, targeting_keywords: {...profileFormData.targeting_keywords, positive: [...profileFormData.targeting_keywords.positive, tag]}})}
-                         onRemove={(i) => setProfileFormData({...profileFormData, targeting_keywords: {...profileFormData.targeting_keywords, positive: profileFormData.targeting_keywords.positive.filter((_: string, idx: number) => idx !== i)}})}
-                         color="emerald"
-                       />
-                       <div className="pt-6 border-t border-[#f5f5f4]">
-                         <TagInput
-                           label="Exclusion Keywords"
-                           placeholder="Type a keyword to exclude, press Enter..."
-                           tags={profileFormData.targeting_keywords.negative}
-                           inputValue={tagInputNegative}
-                           onInputChange={setTagInputNegative}
-                           onAdd={(tag) => setProfileFormData({...profileFormData, targeting_keywords: {...profileFormData.targeting_keywords, negative: [...profileFormData.targeting_keywords.negative, tag]}})}
-                           onRemove={(i) => setProfileFormData({...profileFormData, targeting_keywords: {...profileFormData.targeting_keywords, negative: profileFormData.targeting_keywords.negative.filter((_: string, idx: number) => idx !== i)}})}
-                           color="rose"
-                         />
-                       </div>
-                     </div>
-                  </ConfigSection>
+                 </ConfigSection>
+
+                 <ConfigSection id="config-targeting" title="Targeting Parameters" icon={<Search size={18} className="text-[#1c1917]" />}>
+                    <div className="space-y-6">
+                      <TagInput
+                        label="Targeted Roles & Skills"
+                        placeholder="Type a role or skill, press Enter..."
+                        tags={profileFormData.targeting_keywords.positive}
+                        inputValue={tagInputPositive}
+                        onInputChange={setTagInputPositive}
+                        onAdd={(tag) => setProfileFormData({...profileFormData, targeting_keywords: {...profileFormData.targeting_keywords, positive: [...profileFormData.targeting_keywords.positive, tag]}})}
+                        onRemove={(i) => setProfileFormData({...profileFormData, targeting_keywords: {...profileFormData.targeting_keywords, positive: profileFormData.targeting_keywords.positive.filter((_: string, idx: number) => idx !== i)}})}
+                        color="emerald"
+                      />
+                      <div className="pt-6 border-t border-[#f5f5f4]">
+                        <TagInput
+                          label="Exclusion Keywords"
+                          placeholder="Type a keyword to exclude, press Enter..."
+                          tags={profileFormData.targeting_keywords.negative}
+                          inputValue={tagInputNegative}
+                          onInputChange={setTagInputNegative}
+                          onAdd={(tag) => setProfileFormData({...profileFormData, targeting_keywords: {...profileFormData.targeting_keywords, negative: [...profileFormData.targeting_keywords.negative, tag]}})}
+                          onRemove={(i) => setProfileFormData({...profileFormData, targeting_keywords: {...profileFormData.targeting_keywords, negative: profileFormData.targeting_keywords.negative.filter((_: string, idx: number) => idx !== i)}})}
+                          color="rose"
+                        />
+                      </div>
+                    </div>
+                 </ConfigSection>
+
+                 <ConfigSection title="Portal Sources (Per User)" icon={<TerminalIcon size={18} className="text-[#1c1917]" />}>
+                    <TagInput
+                      label="Enabled Portals"
+                      placeholder="linkedin, naukri, indeed, instahyre, flexiple..."
+                      tags={profileFormData.search?.portals || []}
+                      inputValue={tagInputPortals}
+                      onInputChange={setTagInputPortals}
+                      onAdd={(tag) => setProfileFormData({
+                        ...profileFormData,
+                        search: {
+                          ...(profileFormData.search || {}),
+                          portals: [...(profileFormData.search?.portals || []), tag.toLowerCase()]
+                        }
+                      })}
+                      onRemove={(i) => setProfileFormData({
+                        ...profileFormData,
+                        search: {
+                          ...(profileFormData.search || {}),
+                          portals: (profileFormData.search?.portals || []).filter((_: string, idx: number) => idx !== i)
+                        }
+                      })}
+                      color="stone"
+                    />
+                    <p className="text-xs text-[#78716c] font-medium">
+                      Multi-tenant: every user should configure their own basics once in Settings.
+                    </p>
+                 </ConfigSection>
                </div>
             </motion.div>
           )}

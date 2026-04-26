@@ -85,10 +85,10 @@ function VerifyContent() {
       setIsSuccess(true);
       setTimeout(() => {
         if (provider === 'github') {
-          router.push('/auth/continue?provider=github&callbackUrl=%2F%3Fwalkthrough%3D1');
+          router.push('/auth/continue?provider=github&callbackUrl=%2F');
           return;
         }
-        router.push(`/auth/continue?provider=credentials&email=${encodeURIComponent(email)}&callbackUrl=%2F%3Fwalkthrough%3D1`);
+        router.push(`/auth/continue?provider=credentials&email=${encodeURIComponent(email)}&callbackUrl=%2F`);
       }, 2000);
 
     } catch (err: unknown) {

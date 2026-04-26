@@ -2,7 +2,6 @@ import fs from 'fs';
 import { stat } from 'fs/promises';
 import path from 'path';
 import { execSync } from 'child_process';
-import { chromium } from 'playwright';
 import yaml from 'js-yaml';
 import sql from './db/client.mjs';
 
@@ -31,6 +30,15 @@ async function getHfClient(token) {
     return hf;
   } catch (e) {
     console.warn('⚠ HuggingFace SDK unavailable in this runtime. Using fallback tailoring.');
+    return null;
+  }
+}
+
+async function getChromium() {
+  try {
+    const mod = await import('playwright');
+    return mod.chromium;
+  } catch {
     return null;
   }
 }
@@ -110,17 +118,38 @@ async function checkSync() {
 
 async function scrapeJD(url) {
   console.log(`🌐 Scraping job description from: ${url}`);
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
+  const chromium = await getChromium();
+  if (chromium) {
+    const browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage();
+    try {
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await page.waitForTimeout(2000);
+      const text = await page.evaluate(() => document.body.innerText);
+      await browser.close();
+      return text.trim();
+    } catch (err) {
+      await browser.close();
+      throw new Error(`Scrape failed: ${err.message}`);
+    }
+  }
+
+  console.warn('⚠ Playwright unavailable in this runtime. Falling back to basic HTML fetch.');
   try {
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await page.waitForTimeout(2000);
-    const text = await page.evaluate(() => document.body.innerText);
-    await browser.close();
-    return text.trim();
+    const res = await fetch(url, { headers: { 'User-Agent': 'career-ops-tailor/1.0' } });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+    const html = await res.text();
+    const stripped = html
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return stripped.slice(0, 15000);
   } catch (err) {
-    await browser.close();
-    throw new Error(`Scrape failed: ${err.message}`);
+    throw new Error(`Fallback fetch failed: ${err.message}`);
   }
 }
 

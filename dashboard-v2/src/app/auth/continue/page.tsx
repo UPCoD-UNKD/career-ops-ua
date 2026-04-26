@@ -9,7 +9,7 @@ function AuthContinueContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const provider = searchParams.get('provider') || 'credentials';
-  const callbackUrl = searchParams.get('callbackUrl') || '/?walkthrough=1';
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
   const email = searchParams.get('email') || '';
 
   const hasStarted = useRef(false);

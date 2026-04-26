@@ -8,11 +8,27 @@ if (!Number.isFinite(userId)) {
   throw new Error(`Invalid SCAN_USER_ID: ${rawUserId}`);
 }
 // Attempt to load distinct profile config
-let config = { title_filter: { positive: [], negative: [] }, tracked_companies: [] };
+let config = { title_filter: { positive: [], negative: [] }, tracked_companies: [], search_queries: [] };
 try {
-  const [profile] = await sql`SELECT targeting_keywords FROM user_profiles WHERE user_id = ${userId}`;
+  const [profile] = await sql`
+    SELECT targeting_keywords, resume_context
+    FROM user_profiles
+    WHERE user_id = ${userId}
+  `;
   if (profile?.targeting_keywords) {
      config.title_filter = profile.targeting_keywords;
+  }
+  const selectedPortals = profile?.resume_context?.search?.portals || [];
+  if (selectedPortals.length > 0) {
+    const primaryKeyword = (config.title_filter?.positive?.[0] || 'software engineer').toLowerCase();
+    const location = profile?.resume_context?.candidate?.location || 'India';
+    config.search_queries = selectedPortals.map((portal) => ({
+      name: `${portal} ${primaryKeyword}`,
+      portal: String(portal).toLowerCase(),
+      query: primaryKeyword,
+      location,
+      enabled: true,
+    }));
   }
 } catch(e) {
   // Graceful fallback when DB is unavailable in the current environment.

@@ -15,7 +15,7 @@ function LoginContent() {
   const isReset = searchParams.get('reset') === 'true';
   const authError = searchParams.get('error');
   const autoGithub = searchParams.get('autogithub') === '1';
-  const githubCallbackUrl = '/?walkthrough=1';
+  const githubCallbackUrl = '/';
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const autoGithubStarted = useRef(false);

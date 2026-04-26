@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import { chromium } from 'playwright';
 import sql from './db/client.mjs';
 
 let hf = null;
@@ -24,6 +23,15 @@ async function getHfClient() {
     return hf;
   } catch (e) {
     console.warn('⚠ HuggingFace SDK unavailable in this runtime. Falling back to static field mapping.');
+    return null;
+  }
+}
+
+async function getChromium() {
+  try {
+    const mod = await import('playwright');
+    return mod.chromium;
+  } catch {
     return null;
   }
 }
@@ -263,7 +271,13 @@ async function matchAndFillFields(fields, profile, aiMapping) {
 (async () => {
   console.log(`🚀 Starting Job Application Companion...`);
   console.log(`Target: ${company || 'Unknown'} @ ${targetUrl}`);
-  
+
+  const chromium = await getChromium();
+  if (!chromium) {
+    console.error("✗ Playwright runtime is unavailable in this environment. 'apply' requires browser automation.");
+    process.exit(1);
+  }
+
   const browser = await chromium.launch({ headless: false }); 
   const context = await browser.newContext();
   const page = await context.newPage();

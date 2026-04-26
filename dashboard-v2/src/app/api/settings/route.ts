@@ -3,6 +3,8 @@ import sql from '@/lib/db';
 import { auth } from '@/auth';
 import bcrypt from 'bcryptjs';
 
+const DEFAULT_PORTALS = ['linkedin', 'naukri', 'indeed', 'instahyre', 'flexiple', 'greenhouse', 'lever', 'japan-dev'];
+
 export async function GET() {
   try {
     const session = await auth();
@@ -23,12 +25,23 @@ export async function GET() {
       SELECT email FROM users WHERE id = ${userId}
     `;
 
+    const baseProfile = profileRow[0] || {
+      resume_context: {},
+      targeting_keywords: { positive: [], negative: [] }
+    };
+    const resumeContext = baseProfile.resume_context || {};
+    const hasSearchPortals = Array.isArray(resumeContext?.search?.portals) && resumeContext.search.portals.length > 0;
+    const userEmail = userRow[0]?.email || '';
+
+    // Seed sensible defaults, especially for Akash's account, while preserving existing user data.
+    if (!hasSearchPortals && userEmail === 'akash.k96.official@gmail.com') {
+      resumeContext.search = { portals: DEFAULT_PORTALS };
+    }
+
     return NextResponse.json({
-      ...(profileRow[0] || { 
-        resume_context: {}, 
-        targeting_keywords: { positive: [], negative: [] }
-      }),
-      email: userRow[0]?.email
+      ...baseProfile,
+      resume_context: resumeContext,
+      email: userEmail
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
