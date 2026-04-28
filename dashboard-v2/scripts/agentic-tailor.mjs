@@ -164,13 +164,21 @@ async function scrapeJD(url) {
     let next = String(value).trim();
     // Handle protocol-relative URLs like //duckduckgo.com/...
     if (next.startsWith('//')) next = `https:${next}`;
+    // Handle URLs missing scheme like duckduckgo.com/...
+    if (!/^https?:\/\//i.test(next) && /^[a-z0-9.-]+\.[a-z]{2,}(\/|$)/i.test(next)) {
+      next = `https://${next}`;
+    }
     try {
       const u = new URL(next);
       // Unwrap DuckDuckGo redirect links: https://duckduckgo.com/l/?uddg=<encoded>
       if (u.hostname.includes('duckduckgo.com') && u.pathname.startsWith('/l/')) {
         const ud = u.searchParams.get('uddg');
         if (ud) {
-          return decodeURIComponent(ud);
+          try {
+            return decodeURIComponent(ud);
+          } catch {
+            return ud;
+          }
         }
       }
     } catch {
