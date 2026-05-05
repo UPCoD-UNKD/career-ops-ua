@@ -346,7 +346,7 @@ async function matchAndFillFields(fields, profile, aiMapping) {
     process.exit(0);
   }
 
-  const browser = await chromium.launch({ headless: false }); 
+  const browser = await chromium.launch({ headless: true }); 
   const context = await browser.newContext();
   const page = await context.newPage();
   
