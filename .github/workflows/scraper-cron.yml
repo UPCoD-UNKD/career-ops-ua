@@ -1,0 +1,38 @@
+name: Scraper Worker (Cron)
+
+on:
+  schedule:
+    # Run every 6 hours: midnight, 6am, noon, 6pm UTC
+    - cron: '0 0,6,12,18 * * *'
+  workflow_dispatch:
+    # Allow manual triggering from GitHub Actions UI
+    inputs:
+      user_id:
+        description: 'Specific user ID to scan (leave empty for all users)'
+        required: false
+        default: ''
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.52.0-noble
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --production
+
+      - name: Run scraper for all tenants
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
+          SCAN_USER_ID: ${{ github.event.inputs.user_id }}
+        run: node .github/scripts/run-scrapers.mjs
