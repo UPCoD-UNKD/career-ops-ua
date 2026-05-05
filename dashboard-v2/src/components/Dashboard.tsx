@@ -557,10 +557,10 @@ export default function Dashboard() {
 System Initialized — v2.0`}
                      </pre>
                      <div className="text-[#78716c] space-y-2 mb-4">
-                       <p><strong className="text-[#57534e]">1. scan --deep</strong> <span className="text-[#a8a29e]">→</span> Trigger heavy Playwright scan via GitHub Actions</p>
-                       <p><strong className="text-[#57534e]">2. rank</strong>       <span className="text-[#a8a29e]">→</span> Score and rank newly discovered jobs</p>
-                       <p><strong className="text-[#57534e]">3. tailor &lt;id&gt;</strong> <span className="text-[#a8a29e]">→</span> Generate custom Resume & Cover Letter HTML</p>
-                       <p><strong className="text-[#57534e]">4. apply &lt;id&gt; --deep</strong> <span className="text-[#a8a29e]">→</span> Initialize auto-apply sequence</p>
+                       <p><strong className="text-[#57534e]">1. scan --deep</strong> <span className="text-[#a8a29e]">→</span> Auto-discover new job matches</p>
+                       <p><strong className="text-[#57534e]">2. rank --deep</strong> <span className="text-[#a8a29e]">→</span> Score and rank discovered roles</p>
+                       <p><strong className="text-[#57534e]">3. tailor &lt;id&gt; --deep</strong> <span className="text-[#a8a29e]">→</span> Generate hyper-custom Resumes & Cover Letters</p>
+                       <p><strong className="text-[#57534e]">4. apply &lt;id&gt; --deep</strong> <span className="text-[#a8a29e]">→</span> Automatically apply to role</p>
                        <br/>
                        <p><strong className="text-[#57534e]">help</strong>        <span className="text-[#a8a29e]">→</span> View full command reference</p>
                      </div>

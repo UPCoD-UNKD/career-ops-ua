@@ -45,6 +45,10 @@ export async function GET(req: NextRequest) {
           scriptName = 'agentic-tailor.mjs';
           scriptArgs = [cmd];
         } else if (cmd === 'rank' || cmd === 'offer-list') {
+          if (args.includes('--deep')) {
+            await triggerGitHubAction(send, controller, userId, 'rank-pipeline.mjs', '');
+            return;
+          }
           scriptName = 'rank-pipeline.mjs';
         } else if (cmd === 'scan') {
           if (args[0] === '--deep') {
@@ -103,18 +107,15 @@ export async function GET(req: NextRequest) {
         } else if (cmd === 'help' || cmd === '?') {
           const helpText = `
   ┌─────────────────────────────────────────────────────┐
-  │              career-ops — Command Reference          │
-  ├─────────────────────────────────────────────────────┤
-  │                                                     │
-  │  PIPELINE SEQUENCE                                  │
-  │    1. scan --deep      Find new jobs (GitHub Actions)│
-  │    2. rank             Score & rank pipeline jobs    │
-  │    3. tailor <id>      Generate Resume & Cover Letter│
-  │    4. apply <id> --deep Auto-apply (GitHub Actions)  │
+  │  THE CAREER-OPS SEQUENCE                             │
+  │    1. scan --deep      Auto-discover new job matches │
+  │    2. rank --deep      Score & rank discovered roles │
+  │    3. tailor <id> --deep Generate hyper-custom Resumes │
+  │    4. apply <id> --deep Automatically apply to role  │
   │                                                     │
   │  UTILITIES                                          │
-  │    scan              Fast discovery scan (Serverless)│
-  │    tailor <id> --deep Generate full PDF (GitHub Action)│
+  │    scan              Quick discovery check           │
+  │    tailor <id>       Quick Resume preview            │
   │    ls                List project files              │
   │    clear             Clear terminal screen           │
   │    help              Show this reference             │
