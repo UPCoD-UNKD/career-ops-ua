@@ -335,8 +335,8 @@ async function run() {
 
   // log scan to history
   await sql`
-    INSERT INTO scans (portal, jobs_found, duration_ms)
-    VALUES ('Multi-Source Scan', ${totalFound}, ${Date.now() - startTime})
+    INSERT INTO scans (portal, jobs_found, duration_ms, user_id)
+    VALUES ('Multi-Source Scan', ${totalFound}, ${Date.now() - startTime}, ${userId})
   `;
 
   console.log('\n═══════════════════════════════════════════');
