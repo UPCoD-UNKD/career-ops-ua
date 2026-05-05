@@ -19,6 +19,8 @@ const __dir = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dir, '..');
 const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data');
 const REPORTS_DIR = process.env.REPORTS_DIR || path.join(ROOT, 'reports');
+// CONFIG_DIR isolates user-config writes (profile.yml) for safe smoke tests.
+const CONFIG_DIR = process.env.CONFIG_DIR || path.join(ROOT, 'config');
 const TOKENS_FILE = path.join(DATA_DIR, 'gmail-tokens.json');
 const CACHE_FILE = path.join(DATA_DIR, 'gmail-cache.json');
 
@@ -858,7 +860,7 @@ async function launchBrowser() {
 async function loadProfile() {
   const p = { full_name: '', email: '', phone: '', location: '', linkedin: '' };
   try {
-    const yml = await fs.readFile(path.join(ROOT, 'config', 'profile.yml'), 'utf8');
+    const yml = await fs.readFile(path.join(CONFIG_DIR, 'profile.yml'), 'utf8');
     const get = (key) => { const m = yml.match(new RegExp(`${key}:\\s*"?([^"\\n]+)"?`)); return m ? m[1].trim() : ''; };
     p.full_name = get('full_name');
     p.email = get('email');
@@ -3180,18 +3182,48 @@ const HTML = /* html */ `<!DOCTYPE html>
     /* ── Onboarding modal ── */
     .onboard-modal {
       display: none; position: fixed; inset: 0; z-index: 9000;
-      background: rgba(0,0,0,.7); backdrop-filter: blur(12px);
+      background: radial-gradient(ellipse at center, rgba(10,132,255,.08), rgba(0,0,0,.78) 70%);
+      backdrop-filter: blur(20px) saturate(140%);
+      -webkit-backdrop-filter: blur(20px) saturate(140%);
       align-items: center; justify-content: center; padding: 20px;
     }
     .onboard-modal.open { display: flex; }
     .onboard-box {
-      background: var(--surface);
-      border: .5px solid var(--separator2);
+      position: relative;
+      /* Liquid-glass surface: translucent base + saturate boost so the backdrop
+         picks up subtle color from anything behind it */
+      background: linear-gradient(180deg, rgba(40,40,42,.85) 0%, rgba(28,28,30,.85) 100%);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border: .5px solid rgba(255,255,255,.12);
       border-radius: var(--r-xl);
-      box-shadow: var(--shadow-lg);
-      width: 100%; max-width: 560px;
+      box-shadow:
+        0 24px 60px rgba(0,0,0,.55),
+        0 1px 0 rgba(255,255,255,.06) inset,
+        0 0 0 1px rgba(255,255,255,.02) inset;
+      width: 100%; max-width: 580px;
       max-height: 90vh; overflow-y: auto;
       padding: 28px;
+      isolation: isolate;
+    }
+    /* Prismatic edge — a faint conic-gradient ring around the modal */
+    .onboard-box::before {
+      content: '';
+      position: absolute; inset: -1px; border-radius: inherit;
+      padding: 1px;
+      background: conic-gradient(from 180deg at 50% 50%,
+        rgba(10,132,255,.45),
+        rgba(94,92,230,.40),
+        rgba(191,90,242,.35),
+        rgba(255,55,95,.35),
+        rgba(255,159,10,.35),
+        rgba(48,209,88,.40),
+        rgba(10,132,255,.45));
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor; mask-composite: exclude;
+      opacity: .55;
+      pointer-events: none;
+      z-index: -1;
     }
     .onboard-header {
       display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
@@ -3258,6 +3290,141 @@ const HTML = /* html */ `<!DOCTYPE html>
     }
     .onboard-spinner { display: none; }
     .onboard-spinner.show { display: inline-block; }
+
+    /* ── Wizard step machinery ──────────────────────────────────────── */
+    .wiz-steps {
+      display: flex; align-items: center; gap: 6px; margin: 0 0 18px;
+      font-size: 11px; color: var(--text-ter);
+    }
+    .wiz-dot {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--surface3); color: var(--text-ter);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 600; font-size: 11px; flex-shrink: 0;
+      transition: background .25s, color .25s, box-shadow .25s, transform .2s;
+      position: relative;
+    }
+    /* Prismatic glow on the active step */
+    .wiz-dot.active {
+      background: linear-gradient(135deg, #0a84ff, #5e5ce6 45%, #bf5af2);
+      color: #fff;
+      box-shadow:
+        0 0 0 3px rgba(10,132,255,.15),
+        0 0 14px rgba(94,92,230,.45),
+        0 0 28px rgba(191,90,242,.18);
+      transform: scale(1.08);
+    }
+    .wiz-dot.done {
+      background: linear-gradient(135deg, #30d158, #34c759);
+      color: #fff;
+      box-shadow: 0 0 0 2px rgba(48,209,88,.18);
+    }
+    .wiz-dot-line { flex: 1; height: 1px; background: var(--separator); }
+    .wiz-step { display: none; animation: wiz-fade .18s ease-out; }
+    .wiz-step.active { display: block; }
+    @keyframes wiz-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    .wiz-label {
+      display: block; font-size: 11px; font-weight: 600;
+      color: var(--text-sec); text-transform: uppercase; letter-spacing: .04em;
+      margin: 14px 0 6px;
+    }
+    .wiz-hint {
+      font-size: 11px; color: var(--text-ter); margin: 4px 0 8px;
+    }
+    .wiz-input, .wiz-textarea {
+      width: 100%;
+      background: var(--surface2); border: .5px solid var(--separator2);
+      border-radius: var(--r-md); padding: 9px 12px;
+      color: var(--text); font-size: 13px; font-family: inherit;
+      outline: none; transition: border-color .15s;
+    }
+    .wiz-textarea { font-family: var(--font-mono); font-size: 12px; min-height: 84px; resize: vertical; line-height: 1.5; }
+    .wiz-input:focus, .wiz-textarea:focus { border-color: var(--accent); }
+    .wiz-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .wiz-row .wiz-input { width: 100%; }
+    .wiz-chips {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;
+    }
+    .wiz-chip {
+      font-size: 12px; padding: 5px 11px; border-radius: 12px;
+      background: var(--surface2); color: var(--text-sec);
+      border: .5px solid var(--separator2); cursor: pointer;
+      transition: background .12s, border-color .12s, color .12s;
+      user-select: none;
+    }
+    .wiz-chip:hover { border-color: var(--separator2); color: var(--text); }
+    .wiz-chip.selected {
+      background: linear-gradient(180deg, rgba(10,132,255,.18), rgba(10,132,255,.10));
+      color: #6cb2ff;
+      border-color: rgba(10,132,255,.45);
+      box-shadow: 0 0 0 1px rgba(10,132,255,.25), 0 4px 14px rgba(10,132,255,.15);
+    }
+    .wiz-chip.selected.deal-breaker {
+      background: linear-gradient(180deg, rgba(255,69,58,.18), rgba(255,69,58,.10));
+      color: #ff7a72;
+      border-color: rgba(255,69,58,.45);
+      box-shadow: 0 0 0 1px rgba(255,69,58,.22), 0 4px 14px rgba(255,69,58,.12);
+    }
+
+    /* Prismatic primary CTA — only when in wizard context */
+    #onboard-btn {
+      position: relative;
+      background: linear-gradient(180deg, #0a84ff 0%, #0066cc 100%);
+      border: none;
+      box-shadow:
+        0 0 0 .5px rgba(255,255,255,.18) inset,
+        0 1px 0 rgba(255,255,255,.20) inset,
+        0 6px 18px rgba(10,132,255,.30);
+      transition: transform .12s ease, box-shadow .25s ease, filter .2s ease;
+      overflow: hidden;
+    }
+    #onboard-btn::after {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(120deg,
+        transparent 0%, transparent 35%,
+        rgba(255,255,255,.18) 50%,
+        transparent 65%, transparent 100%);
+      transform: translateX(-100%);
+      transition: transform .9s ease;
+    }
+    #onboard-btn:hover::after { transform: translateX(100%); }
+    #onboard-btn:hover {
+      filter: brightness(1.08);
+      box-shadow:
+        0 0 0 .5px rgba(255,255,255,.22) inset,
+        0 1px 0 rgba(255,255,255,.24) inset,
+        0 8px 26px rgba(10,132,255,.45),
+        0 0 0 4px rgba(94,92,230,.10);
+    }
+    #onboard-btn:active { transform: translateY(1px); }
+    #onboard-btn:disabled { filter: grayscale(.4) brightness(.7); cursor: not-allowed; }
+    .wiz-add-row { display: flex; gap: 6px; margin-top: 8px; }
+    .wiz-add-row .wiz-input { flex: 1; }
+    .wiz-add-row .wiz-add-btn {
+      background: var(--surface3); border: none; border-radius: var(--r-md);
+      padding: 0 14px; color: var(--text); cursor: pointer;
+      font-size: 13px; font-weight: 600;
+    }
+    .wiz-proof {
+      background: var(--surface2); border: .5px solid var(--separator2);
+      border-radius: var(--r-md); padding: 10px; margin-top: 8px;
+      display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 6px; align-items: center;
+    }
+    .wiz-proof .wiz-input { font-size: 12px; padding: 6px 9px; }
+    .wiz-proof-rm {
+      background: transparent; border: none; color: var(--text-ter);
+      cursor: pointer; padding: 4px 8px; font-size: 16px;
+    }
+    .wiz-summary {
+      background: var(--surface2); border: .5px solid var(--separator2);
+      border-radius: var(--r-md); padding: 14px; margin-top: 4px;
+      font-size: 12px; line-height: 1.7;
+    }
+    .wiz-summary strong { color: var(--text); }
+    .wiz-summary .wiz-summary-row { color: var(--text-sec); margin-bottom: 4px; }
+    .wiz-summary .wiz-summary-row em { color: var(--text-ter); font-style: normal; }
+    .wiz-empty { color: var(--text-ter); font-style: italic; font-size: 11px; }
 
     /* ── Apply banner ── */
     .apply-banner {
@@ -3657,37 +3824,111 @@ const HTML = /* html */ `<!DOCTYPE html>
   <div class="onboard-box">
     <div class="onboard-header">
       <div>
-        <div class="onboard-title">Drop Your Resume</div>
-        <div class="onboard-sub">AI will scan it, understand who you are, and get to work.</div>
+        <div class="onboard-title" id="wiz-title">Drop Your Resume</div>
+        <div class="onboard-sub" id="wiz-subtitle">Step 1 of 6 · We'll read it and ask a few questions.</div>
       </div>
       <button class="onboard-close" onclick="closeOnboard()">✕</button>
     </div>
 
-    <!-- Drop zone -->
-    <div class="drop-zone" id="drop-zone"
-         ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
-      <input type="file" accept=".txt,.md,.pdf" onchange="handleFileSelect(event)">
-      <div class="drop-icon">📄</div>
-      <div class="drop-label">Drop your CV here</div>
-      <div class="drop-hint">TXT or Markdown — or click to browse</div>
+    <div class="wiz-steps" id="wiz-steps"></div>
+
+    <!-- Step 1: Resume -->
+    <div class="wiz-step active" data-step="1">
+      <div class="drop-zone" id="drop-zone"
+           ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+        <input type="file" accept=".txt,.md,.pdf" onchange="handleFileSelect(event)">
+        <div class="drop-icon">📄</div>
+        <div class="drop-label">Drop your CV here</div>
+        <div class="drop-hint">TXT or Markdown — or click to browse</div>
+      </div>
+      <div class="onboard-divider">or paste text</div>
+      <textarea class="onboard-textarea" id="onboard-text"
+        placeholder="Paste your resume / CV text here…&#10;&#10;We'll extract your name, contact info, headline, and skills, then ask 5 quick questions to dial in your search."></textarea>
     </div>
 
-    <div class="onboard-divider">or paste text</div>
+    <!-- Step 2: Confirm basics -->
+    <div class="wiz-step" data-step="2">
+      <span class="wiz-label">Your basics — edit if anything is off</span>
+      <div class="wiz-row" style="margin-bottom:10px">
+        <input class="wiz-input" id="wiz-full-name" placeholder="Full name">
+        <input class="wiz-input" id="wiz-email" placeholder="Email" type="email">
+      </div>
+      <div class="wiz-row" style="margin-bottom:10px">
+        <input class="wiz-input" id="wiz-phone" placeholder="Phone (optional)">
+        <input class="wiz-input" id="wiz-location" placeholder="City, State/Country">
+      </div>
+      <input class="wiz-input" id="wiz-linkedin" placeholder="LinkedIn URL or handle (linkedin.com/in/…)" style="margin-bottom:10px">
+      <input class="wiz-input" id="wiz-headline" placeholder="One-line headline (e.g. 'Strategic operator turning AI into shipped systems')">
+    </div>
 
-    <textarea class="onboard-textarea" id="onboard-text"
-      placeholder="Paste your resume / CV text here…&#10;&#10;The AI will extract your name, contact info, headline, target roles, skills, and build a clean cv.md for the pipeline."></textarea>
+    <!-- Step 3: Target roles + comp -->
+    <div class="wiz-step" data-step="3">
+      <span class="wiz-label">Roles you're optimizing for</span>
+      <div class="wiz-hint">Tap any that fit. You can add custom titles below.</div>
+      <div class="wiz-chips" id="wiz-roles-chips"></div>
+      <div class="wiz-add-row">
+        <input class="wiz-input" id="wiz-role-add" placeholder="Add another role title…">
+        <button class="wiz-add-btn" onclick="wizAddCustom('roles')">Add</button>
+      </div>
+      <span class="wiz-label">Comp targets</span>
+      <div class="wiz-row" style="margin-bottom:10px">
+        <input class="wiz-input" id="wiz-comp-target" placeholder="Target (e.g. $200K-260K)">
+        <input class="wiz-input" id="wiz-comp-min" placeholder="Walk-away minimum (e.g. $170K)">
+      </div>
+      <div class="wiz-row">
+        <select class="wiz-input" id="wiz-comp-currency">
+          <option value="USD">USD</option><option value="CAD">CAD</option>
+          <option value="EUR">EUR</option><option value="GBP">GBP</option>
+          <option value="CHF">CHF</option><option value="AUD">AUD</option>
+        </select>
+        <input class="wiz-input" id="wiz-location-pref" placeholder="Location preference (e.g. Remote, Hybrid 2d, Onsite NYC)">
+      </div>
+    </div>
+
+    <!-- Step 4: Deal-breakers -->
+    <div class="wiz-step" data-step="4">
+      <span class="wiz-label">Deal-breakers — what would make you say no?</span>
+      <div class="wiz-hint">Tap to flag. We'll auto-skip postings that match these.</div>
+      <div class="wiz-chips" id="wiz-dealbreakers-chips"></div>
+      <div class="wiz-add-row">
+        <input class="wiz-input" id="wiz-dealbreaker-add" placeholder="Anything else? (e.g. 'No on-call rotation')">
+        <button class="wiz-add-btn" onclick="wizAddCustom('dealbreakers')">Add</button>
+      </div>
+    </div>
+
+    <!-- Step 5: Narrative (superpowers, achievement, proof) -->
+    <div class="wiz-step" data-step="5">
+      <span class="wiz-label">Your superpowers (3 short bullets)</span>
+      <div class="wiz-hint">What can you do that most people in your space typically can't? Be concrete.</div>
+      <input class="wiz-input" id="wiz-super-1" placeholder="Superpower 1" style="margin-bottom:6px">
+      <input class="wiz-input" id="wiz-super-2" placeholder="Superpower 2" style="margin-bottom:6px">
+      <input class="wiz-input" id="wiz-super-3" placeholder="Superpower 3" style="margin-bottom:14px">
+
+      <span class="wiz-label">Best achievement (lead with this in interviews)</span>
+      <div class="wiz-hint">Situation → action → measurable result. Specific numbers beat adjectives.</div>
+      <textarea class="wiz-textarea" id="wiz-best"
+        placeholder="e.g. Led the AI transformation across 12,000 consultants in 60 countries; built Jarvis (agentic platform on Claude API + MCP) projecting 1.35M manager-hours and $40M+ in annual savings."></textarea>
+
+      <span class="wiz-label">Proof points (optional but high-leverage)</span>
+      <div class="wiz-hint">Public-facing things you can point to: case study, repo, talk, article, dashboard.</div>
+      <div id="wiz-proof-list"></div>
+      <button class="wiz-add-btn" onclick="wizAddProof()" style="margin-top:8px;width:100%">+ Add proof point</button>
+    </div>
+
+    <!-- Step 6: Review & generate -->
+    <div class="wiz-step" data-step="6">
+      <span class="wiz-label">Ready to ship</span>
+      <div class="wiz-hint">We'll save your profile, render your CV PDF, and arm the pipeline. You can edit any field later in <code>config/profile.yml</code>.</div>
+      <div class="wiz-summary" id="wiz-summary"></div>
+    </div>
 
     <div class="onboard-actions">
-      <button class="btn btn-ghost" onclick="closeOnboard()">Cancel</button>
-      <button class="btn btn-apply-batch" id="onboard-btn" onclick="submitOnboard()">
+      <button class="btn btn-ghost" id="wiz-back" onclick="wizBack()" style="display:none">← Back</button>
+      <button class="btn btn-ghost" onclick="closeOnboard()" id="wiz-cancel">Cancel</button>
+      <button class="btn btn-apply-batch" id="onboard-btn" onclick="wizNext()">
         <span class="spinner onboard-spinner" id="onboard-spinner"></span>
-        <span id="onboard-btn-label">✦ Scan &amp; Setup</span>
+        <span id="onboard-btn-label">✦ Scan &amp; Continue</span>
       </button>
-    </div>
-
-    <div class="onboard-result" id="onboard-result">
-      <div class="onboard-result-title">✓ Profile extracted &amp; saved</div>
-      <div id="onboard-result-content"></div>
     </div>
   </div>
 </div>
@@ -4507,11 +4748,51 @@ const HTML = /* html */ `<!DOCTYPE html>
     }
   }
 
-  /* ── Onboarding / Resume Drop ── */
+  /* ── Onboarding wizard ──────────────────────────────────────────────
+     6 steps: resume → basics → roles+comp → dealbreakers → narrative → review.
+     State lives on window.wizState. Each step has an enter/leave hook. */
+
+  const WIZ_STEPS = 6;
+  const WIZ_TITLES = [
+    null,
+    { title: 'Drop Your Resume',     sub: 'Step 1 of 6 · We\\'ll read it and ask a few questions.' },
+    { title: 'Confirm Your Basics',  sub: 'Step 2 of 6 · Edit anything we got wrong.' },
+    { title: 'What You\\'re Hunting', sub: 'Step 3 of 6 · Roles and comp targets.' },
+    { title: 'Deal-Breakers',        sub: 'Step 4 of 6 · We\\'ll auto-skip postings that match.' },
+    { title: 'Your Narrative',       sub: 'Step 5 of 6 · The high-leverage qualitative stuff.' },
+    { title: 'Review & Generate',    sub: 'Step 6 of 6 · Ship it.' },
+  ];
+
+  const ROLE_PRESETS = [
+    'Chief of Staff', 'Head of AI', 'VP AI', 'Director of AI Innovation',
+    'Director Professional Services', 'VP Customer Success', 'Solutions Engineering Director',
+    'AI Practice Lead', 'Director Digital Transformation', 'Strategic Partnerships Lead',
+    'Senior Backend Engineer', 'Staff ML Engineer', 'Senior Frontend Engineer',
+    'Senior Data Engineer', 'Engineering Manager', 'Senior Product Manager',
+  ];
+
+  const DEALBREAKER_PRESETS = [
+    'No relocation', 'Remote required', 'No on-call rotation',
+    'No commission-only', 'No early-stage (<20 ppl)', 'No public-only companies',
+    'No Java shops', 'No travel >25%', 'No nights/weekends',
+  ];
+
+  function defaultWizState() {
+    return {
+      step: 1,
+      extracted: null,
+      basics: { full_name: '', email: '', phone: '', location: '', linkedin: '', headline: '' },
+      roles: { selected: new Set(), custom: [], comp_target: '', comp_min: '', comp_currency: 'USD', location_pref: '' },
+      dealbreakers: { selected: new Set(), custom: [] },
+      narrative: { superpowers: ['','',''], best_achievement: '', proof_points: [] },
+    };
+  }
+
   function openOnboard() {
+    window.wizState = defaultWizState();
     document.getElementById('onboard-modal').classList.add('open');
-    document.getElementById('onboard-result').classList.remove('show');
     document.getElementById('onboard-text').value = '';
+    wizGoTo(1);
   }
   function closeOnboard() {
     document.getElementById('onboard-modal').classList.remove('open');
@@ -4544,14 +4825,67 @@ const HTML = /* html */ `<!DOCTYPE html>
     document.getElementById('drop-zone').querySelector('.drop-label').textContent = '✓ ' + file.name;
   }
 
-  async function submitOnboard() {
-    const text = document.getElementById('onboard-text').value.trim();
-    if (text.length < 80) { showToast('Paste your full resume text first', 'error'); return; }
+  function wizRenderSteps() {
+    const el = document.getElementById('wiz-steps');
+    const out = [];
+    for (let i = 1; i <= WIZ_STEPS; i++) {
+      const cls = i < window.wizState.step ? 'wiz-dot done' : i === window.wizState.step ? 'wiz-dot active' : 'wiz-dot';
+      out.push('<span class="' + cls + '">' + (i < window.wizState.step ? '✓' : i) + '</span>');
+      if (i < WIZ_STEPS) out.push('<span class="wiz-dot-line"></span>');
+    }
+    el.innerHTML = out.join('');
+  }
 
+  function wizGoTo(n) {
+    window.wizState.step = n;
+    document.querySelectorAll('.wiz-step').forEach(el => {
+      el.classList.toggle('active', Number(el.dataset.step) === n);
+    });
+    wizRenderSteps();
+    const meta = WIZ_TITLES[n];
+    document.getElementById('wiz-title').textContent = meta.title;
+    document.getElementById('wiz-subtitle').textContent = meta.sub;
+    document.getElementById('wiz-back').style.display = n > 1 ? 'inline-flex' : 'none';
+    document.getElementById('wiz-cancel').style.display = n === 1 ? 'inline-flex' : 'none';
+    const label = document.getElementById('onboard-btn-label');
+    label.textContent = n === 1 ? '✦ Scan & Continue'
+      : n === WIZ_STEPS ? '🚀 Generate My Pipeline'
+      : 'Continue →';
+    if (n === 3) wizRenderChips('roles');
+    if (n === 4) wizRenderChips('dealbreakers');
+    if (n === 5) wizRenderProof();
+    if (n === WIZ_STEPS) wizRenderSummary();
+  }
+
+  function wizBack() {
+    if (window.wizState.step > 1) wizGoTo(window.wizState.step - 1);
+  }
+
+  async function wizNext() {
+    const s = window.wizState.step;
     const btn = document.getElementById('onboard-btn');
+    btn.disabled = true;
+    try {
+      if (s === 1) await wizSubmitStep1();
+      else if (s === 2) wizCollectStep2();
+      else if (s === 3) wizCollectStep3();
+      else if (s === 4) wizCollectStep4();
+      else if (s === 5) wizCollectStep5();
+      else if (s === 6) { await wizFinalize(); return; }
+      wizGoTo(s + 1);
+    } catch (err) {
+      showToast(err.message || 'Something went wrong', 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function wizSubmitStep1() {
+    const text = document.getElementById('onboard-text').value.trim();
+    if (text.length < 80) throw new Error('Paste your full resume text first (or drop a .txt/.md file)');
+
     const spinner = document.getElementById('onboard-spinner');
     const label = document.getElementById('onboard-btn-label');
-    btn.disabled = true;
     spinner.classList.add('show');
     label.textContent = 'Scanning…';
 
@@ -4562,28 +4896,167 @@ const HTML = /* html */ `<!DOCTYPE html>
         body: JSON.stringify({ text }),
       });
       const data = await res.json();
-
-      if (!data.ok) throw new Error(data.error || 'Unknown error');
-
+      if (!data.ok) throw new Error(data.error || 'Could not parse resume');
+      window.wizState.extracted = data.profile;
+      // Pre-fill step 2
       const p = data.profile;
-      const resultEl = document.getElementById('onboard-result');
-      const contentEl = document.getElementById('onboard-result-content');
-
-      contentEl.innerHTML = \`
-        <div class="onboard-field"><strong>\${esc(p.full_name || '')}</strong> · \${esc(p.email || '')} · \${esc(p.location || '')}</div>
-        <div class="onboard-field" style="margin-top:6px;font-style:italic;color:var(--text-sec)">\${esc(p.headline || '')}</div>
-        \${p.target_roles?.length ? \`<div class="onboard-tags" style="margin-top:10px">\${p.target_roles.map(r => \`<span class="onboard-tag">\${esc(r)}</span>\`).join('')}</div>\` : ''}
-        \${p.skills?.length ? \`<div class="onboard-tags" style="margin-top:6px">\${p.skills.map(s => \`<span class="onboard-tag" style="background:rgba(48,209,88,.08);color:var(--green);border-color:rgba(48,209,88,.2)">\${esc(s)}</span>\`).join('')}</div>\` : ''}
-        <div class="onboard-field" style="margin-top:12px;font-size:11px;color:var(--text-ter)">cv.md and config/profile.yml updated — the pipeline is ready.</div>
-      \`;
-      resultEl.classList.add('show');
-      showToast('Profile saved — pipeline ready!', 'success');
-    } catch (err) {
-      showToast('Error: ' + err.message, 'error');
+      document.getElementById('wiz-full-name').value = p.full_name || '';
+      document.getElementById('wiz-email').value = p.email || '';
+      document.getElementById('wiz-phone').value = p.phone || '';
+      document.getElementById('wiz-location').value = p.location || '';
+      document.getElementById('wiz-linkedin').value = p.linkedin || '';
+      document.getElementById('wiz-headline').value = p.headline || '';
     } finally {
-      btn.disabled = false;
       spinner.classList.remove('show');
-      label.textContent = '✦ Scan & Setup';
+    }
+  }
+
+  function wizCollectStep2() {
+    const v = (id) => document.getElementById(id).value.trim();
+    const b = window.wizState.basics;
+    b.full_name = v('wiz-full-name');
+    b.email     = v('wiz-email');
+    b.phone     = v('wiz-phone');
+    b.location  = v('wiz-location');
+    b.linkedin  = v('wiz-linkedin');
+    b.headline  = v('wiz-headline');
+    if (!b.full_name) throw new Error('Full name is required');
+    if (!b.email || !/.+@.+\\..+/.test(b.email)) throw new Error('Valid email is required');
+  }
+
+  function wizRenderChips(kind) {
+    const presets = kind === 'roles' ? ROLE_PRESETS : DEALBREAKER_PRESETS;
+    const state = window.wizState[kind];
+    const containerId = kind === 'roles' ? 'wiz-roles-chips' : 'wiz-dealbreakers-chips';
+    const cls = kind === 'dealbreakers' ? 'wiz-chip selected deal-breaker' : 'wiz-chip selected';
+    const all = [...presets, ...state.custom];
+    const out = all.map(opt => {
+      const sel = state.selected.has(opt) ? cls : 'wiz-chip';
+      return '<span class="' + sel + '" onclick="wizToggleChip(\\'' + kind + '\\', ' + JSON.stringify(opt) + ')">' + esc(opt) + '</span>';
+    });
+    document.getElementById(containerId).innerHTML = out.join('');
+  }
+
+  function wizToggleChip(kind, value) {
+    const s = window.wizState[kind];
+    if (s.selected.has(value)) s.selected.delete(value);
+    else s.selected.add(value);
+    wizRenderChips(kind);
+  }
+
+  function wizAddCustom(kind) {
+    const inputId = kind === 'roles' ? 'wiz-role-add' : 'wiz-dealbreaker-add';
+    const input = document.getElementById(inputId);
+    const v = input.value.trim();
+    if (!v) return;
+    const s = window.wizState[kind];
+    if (!s.custom.includes(v)) s.custom.push(v);
+    s.selected.add(v);
+    input.value = '';
+    wizRenderChips(kind);
+  }
+
+  function wizCollectStep3() {
+    const r = window.wizState.roles;
+    r.comp_target   = document.getElementById('wiz-comp-target').value.trim();
+    r.comp_min      = document.getElementById('wiz-comp-min').value.trim();
+    r.comp_currency = document.getElementById('wiz-comp-currency').value;
+    r.location_pref = document.getElementById('wiz-location-pref').value.trim();
+    if (r.selected.size === 0) throw new Error('Pick at least one target role');
+  }
+
+  function wizCollectStep4() {
+    /* deal-breakers are optional — anything goes through */
+  }
+
+  function wizRenderProof() {
+    const list = document.getElementById('wiz-proof-list');
+    const items = window.wizState.narrative.proof_points;
+    if (!items.length) { list.innerHTML = '<div class="wiz-empty">No proof points yet — add one if you have any.</div>'; return; }
+    list.innerHTML = items.map((p, i) =>
+      '<div class="wiz-proof">' +
+      '<input class="wiz-input" placeholder="Name (e.g. Jarvis platform)" value="' + esc(p.name || '') + '" oninput="wizUpdateProof(' + i + ',\\'name\\',this.value)">' +
+      '<input class="wiz-input" placeholder="URL (optional)" value="' + esc(p.url || '') + '" oninput="wizUpdateProof(' + i + ',\\'url\\',this.value)">' +
+      '<input class="wiz-input" placeholder="Hero metric (e.g. \\'$26M ROI\\')" value="' + esc(p.hero_metric || '') + '" oninput="wizUpdateProof(' + i + ',\\'hero_metric\\',this.value)">' +
+      '<button class="wiz-proof-rm" onclick="wizRemoveProof(' + i + ')" title="Remove">×</button>' +
+      '</div>').join('');
+  }
+
+  function wizAddProof() {
+    window.wizState.narrative.proof_points.push({ name: '', url: '', hero_metric: '' });
+    wizRenderProof();
+  }
+  function wizUpdateProof(i, field, val) {
+    if (window.wizState.narrative.proof_points[i]) {
+      window.wizState.narrative.proof_points[i][field] = val;
+    }
+  }
+  function wizRemoveProof(i) {
+    window.wizState.narrative.proof_points.splice(i, 1);
+    wizRenderProof();
+  }
+
+  function wizCollectStep5() {
+    const n = window.wizState.narrative;
+    n.superpowers = [
+      document.getElementById('wiz-super-1').value.trim(),
+      document.getElementById('wiz-super-2').value.trim(),
+      document.getElementById('wiz-super-3').value.trim(),
+    ].filter(Boolean);
+    n.best_achievement = document.getElementById('wiz-best').value.trim();
+    n.proof_points = n.proof_points.filter(p => p.name || p.url);
+  }
+
+  function wizRenderSummary() {
+    const s = window.wizState;
+    const rolesAll = [...s.roles.selected];
+    const dbAll = [...s.dealbreakers.selected];
+    const rows = [
+      ['Name',         esc(s.basics.full_name) + ' · <em>' + esc(s.basics.email || '') + '</em>'],
+      ['Headline',     s.basics.headline ? esc(s.basics.headline) : '<em>(none)</em>'],
+      ['Location',     esc(s.basics.location || '—')],
+      ['Target roles', rolesAll.length ? rolesAll.map(esc).join(' · ') : '<em>(none — pick at least one in step 3)</em>'],
+      ['Comp',         (esc(s.roles.comp_target || '—')) + ' / min ' + esc(s.roles.comp_min || '—') + ' (' + esc(s.roles.comp_currency) + ')'],
+      ['Deal-breakers', dbAll.length ? dbAll.map(esc).join(' · ') : '<em>none flagged</em>'],
+      ['Superpowers',  s.narrative.superpowers.length ? s.narrative.superpowers.map(esc).join(' · ') : '<em>(none)</em>'],
+      ['Best',         s.narrative.best_achievement ? '<em>' + esc(s.narrative.best_achievement.slice(0, 200)) + (s.narrative.best_achievement.length > 200 ? '…' : '') + '</em>' : '<em>(none)</em>'],
+      ['Proof points', s.narrative.proof_points.length ? s.narrative.proof_points.map(p => esc(p.name || p.url || '?')).join(' · ') : '<em>none</em>'],
+    ];
+    document.getElementById('wiz-summary').innerHTML =
+      rows.map(([k, v]) => '<div class="wiz-summary-row"><strong>' + k + '</strong> — ' + v + '</div>').join('');
+  }
+
+  async function wizFinalize() {
+    const spinner = document.getElementById('onboard-spinner');
+    const label = document.getElementById('onboard-btn-label');
+    spinner.classList.add('show');
+    label.textContent = 'Generating…';
+    const payload = {
+      basics: window.wizState.basics,
+      target_roles: [...window.wizState.roles.selected],
+      compensation: {
+        target_range: window.wizState.roles.comp_target,
+        minimum:      window.wizState.roles.comp_min,
+        currency:     window.wizState.roles.comp_currency,
+        location_flexibility: window.wizState.roles.location_pref,
+      },
+      deal_breakers: [...window.wizState.dealbreakers.selected],
+      narrative: window.wizState.narrative,
+    };
+    try {
+      const res = await fetch('/api/onboard/finalize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.error || 'finalize failed');
+      showToast('Pipeline armed — you\\'re ready to scan offers', 'success');
+      closeOnboard();
+      setTimeout(() => refresh(), 800);
+    } finally {
+      spinner.classList.remove('show');
+      label.textContent = '🚀 Generate My Pipeline';
     }
   }
 
@@ -4777,6 +5250,123 @@ function resolveSafeReportPath(reportRelOrAbs) {
     return null;
   }
   return resolved;
+}
+
+// ── Onboard wizard: validation + YAML serialization ─────────────────────────
+// Hand-rolled YAML emitter so we don't take a runtime dep on js-yaml. Schema
+// is well-known (config/profile.example.yml) so a templated emitter is fine.
+
+function validateOnboardPayload(p) {
+  const errors = [];
+  if (!p || typeof p !== 'object') { errors.push('payload required'); return errors; }
+  const b = p.basics;
+  if (!b || typeof b !== 'object') { errors.push('basics required'); return errors; }
+  if (!b.full_name || typeof b.full_name !== 'string' || b.full_name.length < 2 || b.full_name.length > 100) errors.push('full_name invalid');
+  if (!b.email || typeof b.email !== 'string' || !/.+@.+\..+/.test(b.email) || b.email.length > 200) errors.push('email invalid');
+  for (const k of ['phone','location','linkedin','headline']) {
+    if (b[k] != null && (typeof b[k] !== 'string' || b[k].length > 300)) errors.push(`${k} too long`);
+  }
+  if (!Array.isArray(p.target_roles) || p.target_roles.length === 0) errors.push('pick at least one target role');
+  else if (p.target_roles.length > 50) errors.push('too many target_roles');
+  for (const r of (p.target_roles || [])) {
+    if (typeof r !== 'string' || r.length === 0 || r.length > 120) { errors.push('invalid role entry'); break; }
+  }
+  if (p.compensation && typeof p.compensation === 'object') {
+    for (const k of ['target_range','minimum','currency','location_flexibility']) {
+      if (p.compensation[k] != null && (typeof p.compensation[k] !== 'string' || p.compensation[k].length > 100)) errors.push(`compensation.${k} invalid`);
+    }
+  }
+  if (p.deal_breakers != null) {
+    if (!Array.isArray(p.deal_breakers)) errors.push('deal_breakers must be array');
+    else if (p.deal_breakers.length > 50) errors.push('too many deal_breakers');
+  }
+  if (p.narrative && typeof p.narrative === 'object') {
+    const n = p.narrative;
+    if (n.superpowers != null && !Array.isArray(n.superpowers)) errors.push('superpowers must be array');
+    else if (Array.isArray(n.superpowers) && n.superpowers.length > 10) errors.push('too many superpowers');
+    if (n.best_achievement != null && (typeof n.best_achievement !== 'string' || n.best_achievement.length > 4000)) errors.push('best_achievement too long');
+    if (n.proof_points != null && !Array.isArray(n.proof_points)) errors.push('proof_points must be array');
+    else if (Array.isArray(n.proof_points) && n.proof_points.length > 20) errors.push('too many proof_points');
+  }
+  return errors;
+}
+
+function yamlQuote(s) {
+  const str = s == null ? '' : String(s);
+  // Use double-quoted form with escapes — handles every value type our schema
+  // produces (free-text headlines, achievements, role titles, URLs).
+  return '"' + str.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r').replace(/\t/g, '\\t') + '"';
+}
+
+function serializeProfileYaml(p) {
+  const b = p.basics || {};
+  const c = p.compensation || {};
+  const n = p.narrative || {};
+  const linkedin = (b.linkedin || '').trim().replace(/^https?:\/\//i, '');
+  const locParts = (b.location || '').split(',').map(s => s.trim()).filter(Boolean);
+
+  const out = [];
+  out.push('# Career-Ops Profile Configuration');
+  out.push('# Generated by the onboarding wizard. Edit any field directly — the');
+  out.push('# system picks up your changes on the next run.');
+  out.push('');
+  out.push('candidate:');
+  out.push(`  full_name: ${yamlQuote(b.full_name)}`);
+  out.push(`  email: ${yamlQuote(b.email)}`);
+  out.push(`  phone: ${yamlQuote(b.phone || '')}`);
+  out.push(`  location: ${yamlQuote(b.location || '')}`);
+  out.push(`  linkedin: ${yamlQuote(linkedin)}`);
+  out.push('  portfolio_url: ""');
+  out.push('  github: ""');
+  out.push('  twitter: ""');
+  out.push('');
+  out.push('target_roles:');
+  out.push('  primary:');
+  for (const r of (p.target_roles || [])) out.push(`    - ${yamlQuote(r)}`);
+  out.push('  archetypes: []');
+  out.push('');
+  out.push('narrative:');
+  out.push(`  headline: ${yamlQuote(b.headline || '')}`);
+  out.push('  exit_story: ""');
+  if (Array.isArray(n.superpowers) && n.superpowers.length) {
+    out.push('  superpowers:');
+    for (const sp of n.superpowers) out.push(`    - ${yamlQuote(sp)}`);
+  } else {
+    out.push('  superpowers: []');
+  }
+  if (n.best_achievement) {
+    out.push(`  best_achievement: ${yamlQuote(n.best_achievement)}`);
+  }
+  if (Array.isArray(n.proof_points) && n.proof_points.some(pp => pp.name || pp.url)) {
+    out.push('  proof_points:');
+    for (const pp of n.proof_points) {
+      if (!pp.name && !pp.url) continue;
+      out.push(`    - name: ${yamlQuote(pp.name || '')}`);
+      out.push(`      url: ${yamlQuote(pp.url || '')}`);
+      out.push(`      hero_metric: ${yamlQuote(pp.hero_metric || '')}`);
+    }
+  } else {
+    out.push('  proof_points: []');
+  }
+  out.push('');
+  out.push('compensation:');
+  out.push(`  target_range: ${yamlQuote(c.target_range || '')}`);
+  out.push(`  currency: ${yamlQuote(c.currency || 'USD')}`);
+  out.push(`  minimum: ${yamlQuote(c.minimum || '')}`);
+  out.push(`  location_flexibility: ${yamlQuote(c.location_flexibility || '')}`);
+  out.push('');
+  if (Array.isArray(p.deal_breakers) && p.deal_breakers.length) {
+    out.push('deal_breakers:');
+    for (const d of p.deal_breakers) out.push(`  - ${yamlQuote(d)}`);
+    out.push('');
+  }
+  out.push('location:');
+  out.push(`  city: ${yamlQuote(locParts[0] || '')}`);
+  out.push(`  country: ${yamlQuote(locParts[locParts.length - 1] || '')}`);
+  out.push('  timezone: ""');
+  out.push('  visa_status: ""');
+  out.push('');
+  return out.join('\n');
 }
 
 async function handleRequest(req, res) {
@@ -5181,7 +5771,7 @@ async function handleRequest(req, res) {
   // ── API: Setup status ──
   if (pathname === '/api/setup-status') {
     const cvExists = await fs.access(path.join(ROOT, 'cv.md')).then(() => true).catch(() => false);
-    const profileExists = await fs.access(path.join(ROOT, 'config', 'profile.yml')).then(() => true).catch(() => false);
+    const profileExists = await fs.access(path.join(CONFIG_DIR, 'profile.yml')).then(() => true).catch(() => false);
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ cvExists, profileExists }));
     return;
@@ -5212,7 +5802,7 @@ async function handleRequest(req, res) {
       }
 
       let headline = '';
-      const headlineKw = /director|head|manager|engineer|architect|lead|chief|vp|president|consultant|strategist/i;
+      const headlineKw = /director|head|manager|engineer|architect|lead|chief|vp|president|consultant|strategist|operator|founder/i;
       for (const line of lines.slice(0, 10)) {
         const clean = line.replace(/^#+\s*/, '').replace(/\*+/g, '').trim();
         if (clean !== fullName && headlineKw.test(clean) && clean.length < 120) {
@@ -5220,47 +5810,89 @@ async function handleRequest(req, res) {
         }
       }
 
+      // Heuristic location: "City, ST" or "City, Country" within the first 8 lines.
+      let location = '';
+      for (const line of lines.slice(0, 8)) {
+        // Skip lines that are clearly contact lines mixed with email/phone/url —
+        // pull the location segment from a pipe-delimited contact line.
+        const segments = line.split(/[|·•]/).map(s => s.trim()).filter(Boolean);
+        for (const seg of segments) {
+          if (seg.includes('@') || /\d{3}/.test(seg) || /https?:\/\//i.test(seg) || /linkedin/i.test(seg)) continue;
+          // "City, ST" — title-case city, 2-letter state OR title-case country
+          const m = seg.match(/^([A-Z][A-Za-z .'-]{1,30}),\s*([A-Z]{2}|[A-Z][A-Za-z]{2,30})$/);
+          if (m) { location = seg; break; }
+        }
+        if (location) break;
+      }
+
       const profile = {
         full_name: fullName,
         email: emailMatch ? emailMatch[0] : '',
         phone: phoneMatch ? phoneMatch[0] : '',
         linkedin: linkedinMatch ? linkedinMatch[0] : '',
+        location,
         headline,
       };
 
       const cvHeader = fullName ? `# ${fullName}\n\n` : '# Resume\n\n';
       await fs.writeFile(path.join(ROOT, 'cv.md'), cvHeader + text.trim() + '\n', 'utf8');
 
-      const profilePath = path.join(ROOT, 'config', 'profile.yml');
+      // Lightly patch existing profile.yml — the wizard will fully overwrite via
+      // /api/onboard/finalize, but this keeps single-shot extraction usable.
+      const profilePath = path.join(CONFIG_DIR, 'profile.yml');
       let yml = '';
       try { yml = await fs.readFile(profilePath, 'utf8'); } catch {}
-
       const patch = (yaml, key, val) => {
         if (!val) return yaml;
-        const escaped = val.replace(/"/g, '\\"');
+        const escaped = String(val).replace(/"/g, '\\"');
         return yaml.replace(new RegExp(`(${key}:\\s*).*`), `$1"${escaped}"`);
       };
-
       if (yml) {
         if (profile.full_name) yml = patch(yml, 'full_name', profile.full_name);
         if (profile.email) yml = patch(yml, 'email', profile.email);
         if (profile.phone) yml = patch(yml, 'phone', profile.phone);
         if (profile.linkedin) yml = patch(yml, 'linkedin', profile.linkedin);
+        if (profile.location) yml = patch(yml, 'location', profile.location);
         await fs.writeFile(profilePath, yml, 'utf8');
       }
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({
-        ok: true,
-        profile: {
-          full_name: profile.full_name,
-          email: profile.email,
-          headline: profile.headline,
-          location: '',
-        },
-      }));
+      res.end(JSON.stringify({ ok: true, profile }));
     } catch (err) {
       sendJsonError(res, 400, 'onboard failed', err);
+    }
+    return;
+  }
+
+  // ── API: Onboard finalize (full structured profile from wizard) ──
+  if (pathname === '/api/onboard/finalize' && req.method === 'POST') {
+    try {
+      const payload = await readJsonBody(req);
+      const errors = validateOnboardPayload(payload);
+      if (errors.length) return sendJsonError(res, 400, errors[0]);
+
+      const yml = serializeProfileYaml(payload);
+      const profilePath = path.join(CONFIG_DIR, 'profile.yml');
+      // Safety: never silently overwrite an existing profile. Snapshot to
+      // config/profile.yml.bak.{timestamp} first so accidents are recoverable.
+      try {
+        const existing = await fs.readFile(profilePath, 'utf8');
+        if (existing && existing.length > 0) {
+          const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+          await fs.writeFile(`${profilePath}.bak.${stamp}`, existing, 'utf8');
+        }
+      } catch { /* no existing file — first run */ }
+      await fs.writeFile(profilePath, yml, 'utf8');
+
+      // Kick off the resume PDF in the background — don't block the wizard.
+      spawn('node', [path.join(ROOT, 'generate-cv-pdf.mjs')], {
+        cwd: ROOT, stdio: 'ignore', detached: false,
+      }).on('error', (e) => console.error('[finalize] CV PDF gen failed:', e.message));
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: true }));
+    } catch (err) {
+      sendJsonError(res, 400, 'finalize failed', err);
     }
     return;
   }
