@@ -5,16 +5,56 @@ import fs from 'fs';
 import yaml from 'js-yaml';
 
 const userId = process.env.SCAN_USER_ID || process.argv[2] || 1;
+
+function normalizePortalId(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  if (!raw) return '';
+  const noProtocol = raw.replace(/^https?:\/\//, '');
+  const host = noProtocol.split('/')[0].replace(/^www\./, '');
+  if (raw.includes('naukri.com') || host === 'naukri.com') return 'naukri';
+  if (raw.includes('indeed.com') || host.endsWith('indeed.com')) return 'indeed';
+  if (raw.includes('instahyre.com') || host === 'instahyre.com') return 'instahyre';
+  if (raw.includes('cutshort.io') || host === 'cutshort.io') return 'cutshort';
+  if (raw.includes('linkedin.com') || host === 'linkedin.com') return 'linkedin';
+  if (raw.includes('greenhouse.io') || host.endsWith('greenhouse.io')) return 'greenhouse';
+  if (raw.includes('lever.co') || host.endsWith('lever.co')) return 'lever';
+  if (raw.includes('flexiple.com') || host === 'flexiple.com') return 'flexiple';
+  if (raw.includes('japan-dev.com') || host === 'japan-dev.com') return 'japan-dev';
+  return raw;
+}
+
 // Attempt to load distinct profile config
-let config = { title_filter: { positive: [], negative: [] }, tracked_companies: [] };
+let config = { title_filter: { positive: [], negative: [] }, tracked_companies: [], search_queries: [] };
 try {
-  const [profile] = await sql`SELECT targeting_keywords FROM user_profiles WHERE user_id = ${userId}`;
+  const [profile] = await sql`
+    SELECT targeting_keywords, resume_context
+    FROM user_profiles WHERE user_id = ${userId}
+  `;
   if (profile?.targeting_keywords) {
      config.title_filter = profile.targeting_keywords;
   }
+  // Generate search queries from user's configured portals + keywords
+  const selectedPortals = profile?.resume_context?.search?.portals || [];
+  if (selectedPortals.length > 0) {
+    const primaryKeyword = (config.title_filter?.positive?.[0] || 'software engineer').toLowerCase();
+    const location = profile?.resume_context?.candidate?.location || 'India';
+    const normalizedPortals = [...new Set(selectedPortals.map(normalizePortalId).filter(Boolean))];
+    config.search_queries = normalizedPortals.map((portal) => ({
+      name: `${portal} ${primaryKeyword}`,
+      portal,
+      query: primaryKeyword,
+      location,
+      enabled: true,
+    }));
+    console.log(`✓ Generated ${config.search_queries.length} portal search queries from user profile.`);
+  }
 } catch(e) {
   // Graceful fallback to legacy generic file
-  config = yaml.load(fs.readFileSync('portals.yml', 'utf8'));
+  try {
+    config = yaml.load(fs.readFileSync('portals.yml', 'utf8'));
+  } catch {
+    console.warn('⚠ No portals.yml found either. Running with empty config.');
+  }
 }
 const companies = config.tracked_companies || [];
 
