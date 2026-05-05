@@ -16,6 +16,7 @@ export async function GET(
 
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'resume'; // 'resume' or 'cl'
+    const download = searchParams.get('download') === '1';
     
     // In Next.js 15+, params is a Promise that must be awaited
     const { id } = await params;
@@ -37,9 +38,13 @@ export async function GET(
       return new NextResponse('Content not found', { status: 404 });
     }
 
+    const filename = `career-ops-${type === 'cl' ? 'cover-letter' : 'resume'}-${jobId}.html`;
     return new NextResponse(html, {
       headers: {
         'Content-Type': 'text/html',
+        ...(download
+          ? { 'Content-Disposition': `attachment; filename="${filename}"` }
+          : {}),
       },
     });
   } catch (error: any) {

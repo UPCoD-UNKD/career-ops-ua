@@ -621,19 +621,41 @@ export default function Dashboard() {
                   </h3>
                   <div className="space-y-3 overflow-y-auto flex-1">
                     {data?.pdfs?.map((doc: any, i: number) => (
-                      <a 
-                        key={i} 
-                        href={`/api/view/${doc.id}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="p-4 bg-white rounded-xl border border-[#e7e5e4] hover:border-[#1c1917] transition-all flex items-center justify-between group cursor-pointer"
+                      <div
+                        key={i}
+                        className="p-4 bg-white rounded-xl border border-[#e7e5e4] hover:border-[#1c1917] transition-all flex items-center justify-between group"
                       >
-                         <div className="truncate text-[10px] font-bold text-[#78716c] uppercase tracking-tighter group-hover:text-[#1c1917]">{doc.name}</div>
-                         <div className="flex items-center gap-2">
-                           <span className="text-[9px] text-[#a8a29e] uppercase font-bold opacity-0 group-hover:opacity-100 transition-opacity">View & Print</span>
-                           <ChevronRight size={14} className="text-[#e7e5e4] group-hover:text-[#1c1917]" />
-                         </div>
-                      </a>
+                        <a
+                          href={`/api/view/${doc.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="min-w-0 flex-1 cursor-pointer"
+                        >
+                          <div className="truncate text-[10px] font-bold text-[#78716c] uppercase tracking-tighter group-hover:text-[#1c1917]">
+                            {doc.name}
+                          </div>
+                          <div className="mt-1 text-[9px] text-[#a8a29e] uppercase font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                            View & Print
+                          </div>
+                        </a>
+                        <div className="flex items-center gap-2 pl-3">
+                          <a
+                            href={`/api/view/${doc.id}?download=1`}
+                            className="px-3 py-1.5 rounded-lg border border-[#e7e5e4] text-[10px] font-bold uppercase tracking-widest text-[#1c1917] hover:bg-[#f5f5f4] transition-colors"
+                          >
+                            Download
+                          </a>
+                          <a
+                            href={`/api/view/${doc.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 rounded-lg border border-[#e7e5e4] hover:bg-[#1c1917] hover:text-white transition-all text-[#1c1917]"
+                            aria-label="View"
+                          >
+                            <ChevronRight size={14} />
+                          </a>
+                        </div>
+                      </div>
                     ))}
                   </div>
                </div>
