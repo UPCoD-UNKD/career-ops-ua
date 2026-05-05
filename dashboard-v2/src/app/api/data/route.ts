@@ -61,14 +61,19 @@ export async function GET() {
     `;
     let profile = profileRow.length > 0 ? profileRow[0].resume_context : null;
 
-    // 5. Scan Output for PDFs (Legacy Fallback until S3 migration)
-    const outDir = path.join(process.cwd(), '..', 'output');
-    let pdfs: any[] = [];
-    if (fs.existsSync(outDir)) {
-      pdfs = fs.readdirSync(outDir)
-        .filter(f => f.endsWith('.pdf'))
-        .map(f => ({ name: f, mtime: fs.statSync(path.join(outDir, f)).mtime }));
-    }
+    // 5. Fetch Generated Docs from DB (instead of local PDF files)
+    const docs = await sql`
+      SELECT id, company, title, updated_at
+      FROM jobs
+      WHERE user_id = ${userId} 
+        AND (resume_html IS NOT NULL OR cover_letter_html IS NOT NULL)
+      ORDER BY updated_at DESC
+    `;
+    const pdfs = docs.map(d => ({
+      id: d.id,
+      name: `Tailored Assets: ${d.company} - ${d.title}`,
+      mtime: d.updated_at
+    }));
 
     return NextResponse.json({
       applications,

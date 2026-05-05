@@ -499,11 +499,20 @@ export default function Dashboard() {
                      <FileText size={18} className="text-[#a8a29e]" />
                   </h3>
                   <div className="space-y-3 overflow-y-auto flex-1">
-                    {data?.pdfs?.map((pdf: any, i: number) => (
-                      <div key={i} className="p-4 bg-white rounded-xl border border-[#e7e5e4] hover:border-[#1c1917] transition-all flex items-center justify-between group">
-                         <div className="truncate text-[10px] font-bold text-[#78716c] uppercase tracking-tighter group-hover:text-[#1c1917]">{pdf.name}</div>
-                         < ChevronRight size={14} className="text-[#e7e5e4] group-hover:text-[#1c1917]" />
-                      </div>
+                    {data?.pdfs?.map((doc: any, i: number) => (
+                      <a 
+                        key={i} 
+                        href={`/api/view/${doc.id}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="p-4 bg-white rounded-xl border border-[#e7e5e4] hover:border-[#1c1917] transition-all flex items-center justify-between group cursor-pointer"
+                      >
+                         <div className="truncate text-[10px] font-bold text-[#78716c] uppercase tracking-tighter group-hover:text-[#1c1917]">{doc.name}</div>
+                         <div className="flex items-center gap-2">
+                           <span className="text-[9px] text-[#a8a29e] uppercase font-bold opacity-0 group-hover:opacity-100 transition-opacity">View & Print</span>
+                           <ChevronRight size={14} className="text-[#e7e5e4] group-hover:text-[#1c1917]" />
+                         </div>
+                      </a>
                     ))}
                   </div>
                </div>
