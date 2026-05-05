@@ -172,14 +172,21 @@ export default function Dashboard() {
           setData((prevData: any) => {
             if (prevData) {
               if (prevData.pdfs && d.pdfs && d.pdfs.length > prevData.pdfs.length) {
-                setToast({ show: true, message: '🎉 Background Action Complete: New document generated!' });
+                setToast({ show: true, message: '🎉 Background Action Complete: Resume generated!' });
                 setTimeout(() => setToast({ show: false, message: '' }), 5000);
               } else if (prevData.applications && d.applications && d.applications.length > prevData.applications.length) {
                 setToast({ show: true, message: '🚀 Background Action Complete: Job applied successfully!' });
                 setTimeout(() => setToast({ show: false, message: '' }), 5000);
-              } else if (prevData.pipeline && d.pipeline && d.pipeline.length > prevData.pipeline.length) {
-                setToast({ show: true, message: '🎯 Background Action Complete: Pipeline updated with new jobs!' });
-                setTimeout(() => setToast({ show: false, message: '' }), 5000);
+              } else if (prevData.pipeline && d.pipeline) {
+                const prevScores = prevData.pipeline.map((j: any) => j.score || 0).join(',');
+                const newScores = d.pipeline.map((j: any) => j.score || 0).join(',');
+                if (d.pipeline.length > prevData.pipeline.length) {
+                  setToast({ show: true, message: '🎯 Background Action Complete: Pipeline updated with new jobs!' });
+                  setTimeout(() => setToast({ show: false, message: '' }), 5000);
+                } else if (prevScores !== newScores) {
+                  setToast({ show: true, message: '⚖️ Background Action Complete: Pipeline ranking finished!' });
+                  setTimeout(() => setToast({ show: false, message: '' }), 5000);
+                }
               }
             }
             return d;
