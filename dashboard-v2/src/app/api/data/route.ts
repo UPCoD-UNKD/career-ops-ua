@@ -64,6 +64,7 @@ export async function GET() {
     const applications = await sql`
       SELECT 
         a.id as app_id,
+        a.job_id as job_id,
         a.status,
         a.applied_at,
         a.resume_file,

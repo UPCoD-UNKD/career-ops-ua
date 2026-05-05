@@ -137,6 +137,26 @@ if (/^\d+$/.test(urlOrIdx)) {
   }
 }
 
+function normalizeUrl(value) {
+  if (!value) return value;
+  let next = String(value).trim();
+  if (next.startsWith('//')) next = `https:${next}`;
+  try {
+    const u = new URL(next);
+    if (u.hostname.includes('duckduckgo.com') && u.pathname.startsWith('/l/')) {
+      const ud = u.searchParams.get('uddg');
+      if (ud) {
+        try {
+          next = decodeURIComponent(ud);
+        } catch {
+          next = ud;
+        }
+      }
+    }
+  } catch {}
+  return next;
+}
+
 async function recordApplication(url, status, resume) {
   try {
     let job = await sql`SELECT id FROM jobs WHERE url = ${url} AND user_id = ${userId} LIMIT 1`;
@@ -338,6 +358,7 @@ async function matchAndFillFields(fields, profile, aiMapping) {
 // Main Loop
 (async () => {
   console.log(`🚀 Starting Job Application Companion...`);
+  targetUrl = normalizeUrl(targetUrl);
   console.log(`Target: ${company || 'Unknown'} @ ${targetUrl}`);
 
   const chromium = await getChromium();

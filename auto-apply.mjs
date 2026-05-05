@@ -133,6 +133,28 @@ async function resolveTargetFromDbIfNeeded() {
   }
 }
 
+function normalizeUrl(value) {
+  if (!value) return value;
+  let next = String(value).trim();
+  // protocol-relative urls like //duckduckgo.com/...
+  if (next.startsWith('//')) next = `https:${next}`;
+  // unwrap DuckDuckGo redirect links
+  try {
+    const u = new URL(next);
+    if (u.hostname.includes('duckduckgo.com') && u.pathname.startsWith('/l/')) {
+      const ud = u.searchParams.get('uddg');
+      if (ud) {
+        try {
+          next = decodeURIComponent(ud);
+        } catch {
+          next = ud;
+        }
+      }
+    }
+  } catch {}
+  return next;
+}
+
 async function recordApplication(url, status, resume) {
   try {
     let job = await sql`SELECT id FROM jobs WHERE url = ${url} AND user_id = ${userId} LIMIT 1`;
@@ -343,6 +365,7 @@ async function matchAndFillFields(fields, profile, aiMapping) {
     // If DB lookup fails, we'll proceed with whatever targetUrl is and fail loudly later.
   }
 
+  targetUrl = normalizeUrl(targetUrl);
   console.log(`Target: ${company || 'Unknown'} @ ${targetUrl}`);
 
   const chromium = await getChromium();

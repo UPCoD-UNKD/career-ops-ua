@@ -536,7 +536,7 @@ export default function Dashboard() {
                            </div>
                         </td>
                         <td className="px-8 py-6 text-[#1c1917]">
-                           <button onClick={() => { setActiveTab('terminal'); runCommand(`apply ${app.app_id} --deep`); }} className="p-2 border border-[#e7e5e4] rounded-lg hover:bg-[#1c1917] hover:text-white transition-all">
+                           <button onClick={() => { setActiveTab('terminal'); runCommand(`apply ${app.job_id} --deep`); }} className="p-2 border border-[#e7e5e4] rounded-lg hover:bg-[#1c1917] hover:text-white transition-all">
                              <Play size={14} />
                            </button>
                         </td>
