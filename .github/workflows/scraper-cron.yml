@@ -11,6 +11,10 @@ on:
         description: 'Specific user ID to scan (leave empty for all users)'
         required: false
         default: ''
+      run_id:
+        description: 'Run ID for dashboard tracing'
+        required: false
+        default: ''
       action_script:
         description: 'Script to run (e.g. scratch-scan.mjs)'
         required: false
@@ -45,6 +49,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
           SCAN_USER_ID: ${{ github.event.inputs.user_id }}
+          RUN_ID: ${{ github.event.inputs.run_id }}
           ACTION_SCRIPT: ${{ github.event.inputs.action_script }}
           ACTION_ARGS: ${{ github.event.inputs.action_args }}
         run: node .github/scripts/run-scrapers.mjs
@@ -55,6 +60,7 @@ jobs:
           DASHBOARD_WEBHOOK_URL: ${{ secrets.DASHBOARD_WEBHOOK_URL }}
           WORKER_WEBHOOK_SECRET: ${{ secrets.WORKER_WEBHOOK_SECRET }}
           USER_ID: ${{ github.event.inputs.user_id }}
+          RUN_ID: ${{ github.event.inputs.run_id }}
           ACTION_SCRIPT: ${{ github.event.inputs.action_script }}
           ACTION_ARGS: ${{ github.event.inputs.action_args }}
           JOB_STATUS: ${{ job.status }}
@@ -67,5 +73,5 @@ jobs:
           curl -sS -X POST "$DASHBOARD_WEBHOOK_URL" \
             -H "content-type: application/json" \
             -H "x-worker-secret: $WORKER_WEBHOOK_SECRET" \
-            --data "{\"user_id\":\"$USER_ID\",\"action_script\":\"$ACTION_SCRIPT\",\"action_args\":\"$ACTION_ARGS\",\"status\":\"$JOB_STATUS\",\"run_url\":\"$RUN_URL\"}" \
+            --data "{\"user_id\":\"$USER_ID\",\"run_id\":\"$RUN_ID\",\"action_script\":\"$ACTION_SCRIPT\",\"action_args\":\"$ACTION_ARGS\",\"status\":\"$JOB_STATUS\",\"run_url\":\"$RUN_URL\"}" \
             && echo "Notified dashboard."

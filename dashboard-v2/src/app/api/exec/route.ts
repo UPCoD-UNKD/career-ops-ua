@@ -268,6 +268,26 @@ async function triggerGitHubAction(send: any, controller: any, userId: string, s
   send({ type: 'stdout', content: `🚀 Triggering ${actionName} via GitHub Actions (Playwright + Chromium)...\n` });
   
   try {
+    // Create a run record (for lifecycle + traceability)
+    const runId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    await sql`
+      CREATE TABLE IF NOT EXISTS background_runs (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        action_script TEXT NOT NULL,
+        action_args TEXT,
+        status TEXT NOT NULL DEFAULT 'queued',
+        run_url TEXT,
+        queued_at TIMESTAMP NOT NULL DEFAULT NOW(),
+        completed_at TIMESTAMP
+      );
+    `;
+    await sql`
+      INSERT INTO background_runs (id, user_id, action_script, action_args, status)
+      VALUES (${runId}, ${String(userId)}, ${script}, ${args || null}, 'queued')
+      ON CONFLICT (id) DO NOTHING
+    `;
+
     const res = await fetch('https://api.github.com/repos/UGilfoyle/career-ops/actions/workflows/scraper-cron.yml/dispatches', {
       method: 'POST',
       headers: {
@@ -279,6 +299,7 @@ async function triggerGitHubAction(send: any, controller: any, userId: string, s
         ref: 'main',
         inputs: {
           user_id: String(userId),
+          run_id: runId,
           action_script: script,
           action_args: args
         }
@@ -287,6 +308,7 @@ async function triggerGitHubAction(send: any, controller: any, userId: string, s
 
     if (res.ok) {
       send({ type: 'stdout', content: `✅ ${actionName} successfully queued on GitHub Actions!\n` });
+      send({ type: 'stdout', content: `↳ Run ID: ${runId}\n` });
       send({ type: 'stdout', content: '⏳ Please allow 5-10 minutes for the process to complete in the background.\n' });
       if (script === 'agentic-tailor.mjs') {
         send({ type: 'stdout', content: '📄 Your PDF will be available in the GitHub Actions artifacts when ready.\n' });

@@ -40,7 +40,7 @@ function runScraper(userId) {
 
     const child = spawn('node', [script, ...scriptArgs], {
       cwd: ROOT,
-      env: { ...process.env, SCAN_USER_ID: userId.toString() },
+      env: { ...process.env, SCAN_USER_ID: userId.toString(), RUN_ID: process.env.RUN_ID || '' },
       stdio: 'inherit',
     });
 
