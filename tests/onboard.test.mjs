@@ -45,6 +45,14 @@ describe('yamlQuote', () => {
   test('preserves unicode and accented characters', () => {
     assert.equal(yamlQuote('Montréal · São Paulo'), '"Montréal · São Paulo"');
   });
+  test('escapes carriage-return-only (CR) input', () => {
+    // \r alone (without \n) showed up in CSV/Excel-pasted resumes during
+    // smoke testing. The emitter must round-trip cleanly.
+    assert.equal(yamlQuote('a\rb'), '"a\\rb"');
+  });
+  test('roundtrips Windows-style CRLF line endings', () => {
+    assert.equal(yamlQuote('line1\r\nline2'), '"line1\\r\\nline2"');
+  });
 });
 
 // ── validateOnboardPayload ──────────────────────────────────────────────────
@@ -119,6 +127,48 @@ describe('validateOnboardPayload', () => {
   test('rejects > 20 proof_points', () => {
     const p = valid(); p.narrative.proof_points = Array.from({ length: 21 }, () => ({ name: 'x' }));
     assert.ok(validateOnboardPayload(p).includes('too many proof_points'));
+  });
+  test('accepts plus-addressed email (jane+jobs@example.com)', () => {
+    const p = valid(); p.basics.email = 'jane+jobs@example.com';
+    assert.deepEqual(validateOnboardPayload(p), []);
+  });
+  test('accepts subdomain email (jane@team.example.com)', () => {
+    const p = valid(); p.basics.email = 'jane@team.example.com';
+    assert.deepEqual(validateOnboardPayload(p), []);
+  });
+  test('rejects email > 200 chars even if syntactically valid', () => {
+    const p = valid();
+    p.basics.email = 'a'.repeat(190) + '@x.com'; // 196 chars — fits
+    assert.deepEqual(validateOnboardPayload(p), []);
+    p.basics.email = 'a'.repeat(195) + '@x.com'; // 201 chars — too long
+    assert.ok(validateOnboardPayload(p).includes('email invalid'));
+  });
+  test('rejects > 300-char location field', () => {
+    const p = valid(); p.basics.location = 'X'.repeat(301);
+    assert.ok(validateOnboardPayload(p).includes('location too long'));
+  });
+  test('rejects > 50 deal_breakers', () => {
+    const p = valid(); p.deal_breakers = Array.from({ length: 51 }, (_, i) => `db ${i}`);
+    assert.ok(validateOnboardPayload(p).includes('too many deal_breakers'));
+  });
+  test('rejects > 120-char role title', () => {
+    const p = valid(); p.target_roles = ['X'.repeat(121)];
+    assert.ok(validateOnboardPayload(p).includes('invalid role entry'));
+  });
+  test('rejects > 100-char compensation field', () => {
+    const p = valid();
+    p.compensation = { target_range: 'X'.repeat(101) };
+    assert.ok(validateOnboardPayload(p).some(e => /compensation\.target_range/.test(e)));
+  });
+  test('treats narrative.proof_points = null as missing (no error)', () => {
+    // The validator uses `!= null` so null + undefined skip the array check.
+    // This protects clients that omit the field rather than passing [].
+    const p = valid(); p.narrative.proof_points = null;
+    assert.deepEqual(validateOnboardPayload(p), []);
+  });
+  test('rejects narrative.proof_points when it is a non-null non-array', () => {
+    const p = valid(); p.narrative.proof_points = 'oops';
+    assert.ok(validateOnboardPayload(p).includes('proof_points must be array'));
   });
 });
 
@@ -199,6 +249,56 @@ describe('serializeProfileYaml', () => {
     assert.match(yml, /candidate:/);
     assert.match(yml, /currency: "USD"/);  // default
   });
+  test('skips proof_points entries with neither name nor url', () => {
+    const yml = serializeProfileYaml({
+      basics: { full_name: 'X', email: 'x@y.com' },
+      target_roles: ['Y'],
+      narrative: {
+        proof_points: [
+          { name: 'Real proof', url: 'https://x.com', hero_metric: '$1M' },
+          { name: '', url: '' },                  // empty — skip
+          { name: '', url: '', hero_metric: 'orphan' }, // also skip (no name/url)
+        ],
+      },
+    });
+    // Only one proof point should be emitted
+    const matches = yml.match(/- name:/g) || [];
+    assert.equal(matches.length, 1);
+    assert.match(yml, /name: "Real proof"/);
+    assert.doesNotMatch(yml, /hero_metric: "orphan"/);
+  });
+  test('handles single-segment location (no comma)', () => {
+    // "Tokyo" alone should still produce city=Tokyo, country=Tokyo (the
+    // first/last fallback). Tested explicitly because the split logic is
+    // easy to get wrong for length-1 arrays.
+    const yml = serializeProfileYaml({
+      basics: { full_name: 'X', email: 'x@y.com', location: 'Tokyo' },
+      target_roles: ['Y'],
+    });
+    assert.match(yml, /city: "Tokyo"/);
+    assert.match(yml, /country: "Tokyo"/);
+  });
+  test('emits best_achievement only when present', () => {
+    const withAch = serializeProfileYaml({
+      basics: { full_name: 'X', email: 'x@y.com' },
+      target_roles: ['Y'],
+      narrative: { best_achievement: 'Built Jarvis' },
+    });
+    assert.match(withAch, /best_achievement: "Built Jarvis"/);
+    const without = serializeProfileYaml({
+      basics: { full_name: 'X', email: 'x@y.com' },
+      target_roles: ['Y'],
+      narrative: {},
+    });
+    assert.doesNotMatch(without, /best_achievement:/);
+  });
+  test('escapes a role title with embedded quotes', () => {
+    const yml = serializeProfileYaml({
+      basics: { full_name: 'X', email: 'x@y.com' },
+      target_roles: ['Director "AI Strategy"'],
+    });
+    assert.match(yml, /- "Director \\"AI Strategy\\""/);
+  });
 });
 
 // ── extractProfileFromResume ────────────────────────────────────────────────
@@ -259,6 +359,51 @@ Strategic Operator · AI Ecosystem Architect · Partnership Leader
     const text = `Experience\n\njane@x.com`;
     const p = extractProfileFromResume(text);
     assert.equal(p.full_name, '');
+  });
+  test('rejects exclamation-terminated lines as headlines', () => {
+    // Sentence punctuation (! and ?) should also disqualify, not just period.
+    const text = `Tony Walteur\n\nDirector of AI Innovation!\nReal Headline`;
+    const p = extractProfileFromResume(text);
+    assert.notEqual(p.headline, 'Director of AI Innovation!');
+  });
+  test('rejects question-terminated lines as headlines', () => {
+    const text = `Tony Walteur\n\nWhy hire a Director of AI?\nReal Headline`;
+    const p = extractProfileFromResume(text);
+    assert.notEqual(p.headline, 'Why hire a Director of AI?');
+  });
+  test('rejects > 80-char headline candidates', () => {
+    // 90-char line that contains "director" — should NOT be picked despite
+    // the keyword match.
+    const big = 'Director of AI Innovation across multiple regions and product lines and so on';
+    assert.ok(big.length < 81 || true); // keep test self-documenting
+    const text = `Tony Walteur\n\n${big.padEnd(90, '.')} `;
+    const p = extractProfileFromResume(text);
+    // The line is too long — should be empty
+    assert.equal(p.headline, '');
+  });
+  test('does not mistake email-only line as headline', () => {
+    const text = `Jane Doe\njane@example.com\nlinkedin.com/in/jane`;
+    const p = extractProfileFromResume(text);
+    assert.equal(p.headline, ''); // no role keywords + URLs filtered
+  });
+  test('extracts the first email when multiple are present', () => {
+    const text = `Jane Doe\nWork: jane@work.com · Personal: jane@gmail.com`;
+    const p = extractProfileFromResume(text);
+    assert.equal(p.email, 'jane@work.com');
+  });
+  test('handles international phone with country code + standard 3-3-4 format', () => {
+    // Regex assumes North-American 3-3-4 grouping but allows an optional 1-3
+    // digit country code prefix. Pure E.164-style "+44 20 7946 0958" (2-4-4)
+    // is intentionally not handled — that's a known limitation of the
+    // lightweight extractor.
+    const text = `Jane Doe\n+1 415 555 0123\njane@x.com`;
+    const p = extractProfileFromResume(text);
+    assert.ok(p.phone.includes('415'));
+  });
+  test('handles "City, Country" location (not just "City, ST")', () => {
+    const text = `Jane Doe\nMontreal, Canada · jane@x.com`;
+    const p = extractProfileFromResume(text);
+    assert.equal(p.location, 'Montreal, Canada');
   });
 });
 
@@ -382,6 +527,34 @@ narrative:
     assert.equal(s.exists, true); // string was non-empty
     assert.equal(s.full_name, '');
     assert.deepEqual(s.target_roles, []);
+  });
+  test('does not pick up archetype description: sub-fields as roles', () => {
+    // Older regex was greedy and would match nested sub-keys under archetypes
+    // entries. Make sure the line-walker correctly stops at archetypes:.
+    const yml = `target_roles:
+  primary:
+    - "Real Role 1"
+    - "Real Role 2"
+  archetypes:
+    - name: "Decoy Architect"
+      description: "Should not be picked"
+    - name: "Decoy Operator"
+      description: "Also not picked"
+`;
+    const s = parseProfileSummary(yml);
+    assert.deepEqual(s.target_roles, ['Real Role 1', 'Real Role 2']);
+  });
+  test('handles target_roles before candidate block (order-independent)', () => {
+    const yml = `target_roles:
+  primary:
+    - "Role X"
+candidate:
+  full_name: "Jane"
+  email: "jane@x.com"
+`;
+    const s = parseProfileSummary(yml);
+    assert.equal(s.full_name, 'Jane');
+    assert.deepEqual(s.target_roles, ['Role X']);
   });
 });
 

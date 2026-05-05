@@ -3342,6 +3342,17 @@ const HTML = /* html */ `<!DOCTYPE html>
     .wiz-hint {
       font-size: 11px; color: var(--text-ter); margin: 4px 0 8px;
     }
+    .wiz-count {
+      display: inline-block; margin-left: 8px; padding: 1px 8px;
+      font-size: 10px; font-weight: 600; letter-spacing: .02em;
+      color: var(--text-ter); background: var(--surface2);
+      border: .5px solid var(--separator2); border-radius: 999px;
+      transition: color .15s, border-color .15s, background .15s;
+    }
+    .wiz-count.has-selection {
+      color: var(--accent); border-color: rgba(40,184,255,.45);
+      background: rgba(40,184,255,.10);
+    }
     .wiz-input, .wiz-textarea {
       width: 100%;
       background: var(--surface2); border: .5px solid var(--separator2);
@@ -3597,7 +3608,7 @@ const HTML = /* html */ `<!DOCTYPE html>
   <div class="header-actions">
     <span class="last-updated" id="last-updated">Loading…</span>
     <div id="gmail-header-status"></div>
-    <button class="btn btn-ghost" id="profile-btn" onclick="openOnboard()" title="Update profile / drop resume">⊕ Profile</button>
+    <button class="btn btn-ghost" id="profile-btn" onclick="openOnboard()" title="Update profile / drop resume (⌘ ,)">⊕ Profile</button>
     <button class="btn btn-apply-batch" onclick="openApplyModal()">⚡ Apply</button>
     <button class="btn btn-autopilot" id="autopilot-btn" onclick="toggleAutopilot()">🤖 Autopilot</button>
     <button class="btn btn-ghost" onclick="refresh()">↻ Refresh</button>
@@ -3935,11 +3946,11 @@ const HTML = /* html */ `<!DOCTYPE html>
 
     <!-- Step 3: Target roles + comp -->
     <div class="wiz-step" data-step="3">
-      <span class="wiz-label">Roles you're optimizing for</span>
+      <span class="wiz-label">Roles you're optimizing for <span class="wiz-count" id="wiz-roles-count" aria-live="polite"></span></span>
       <div class="wiz-hint">Tap any that fit. You can add custom titles below.</div>
       <div class="wiz-chips" id="wiz-roles-chips"></div>
       <div class="wiz-add-row">
-        <input class="wiz-input" id="wiz-role-add" placeholder="Add another role title…">
+        <input class="wiz-input" id="wiz-role-add" placeholder="Add another role title…" onkeydown="if(event.key==='Enter'){event.preventDefault();wizAddCustom('roles');}">
         <button class="wiz-add-btn" onclick="wizAddCustom('roles')">Add</button>
       </div>
       <span class="wiz-label">Comp targets</span>
@@ -3959,11 +3970,11 @@ const HTML = /* html */ `<!DOCTYPE html>
 
     <!-- Step 4: Deal-breakers -->
     <div class="wiz-step" data-step="4">
-      <span class="wiz-label">Deal-breakers — what would make you say no?</span>
+      <span class="wiz-label">Deal-breakers — what would make you say no? <span class="wiz-count" id="wiz-dealbreakers-count" aria-live="polite"></span></span>
       <div class="wiz-hint">Tap to flag. We'll auto-skip postings that match these.</div>
       <div class="wiz-chips" id="wiz-dealbreakers-chips"></div>
       <div class="wiz-add-row">
-        <input class="wiz-input" id="wiz-dealbreaker-add" placeholder="Anything else? (e.g. 'No on-call rotation')">
+        <input class="wiz-input" id="wiz-dealbreaker-add" placeholder="Anything else? (e.g. 'No on-call rotation')" onkeydown="if(event.key==='Enter'){event.preventDefault();wizAddCustom('dealbreakers');}">
         <button class="wiz-add-btn" onclick="wizAddCustom('dealbreakers')">Add</button>
       </div>
     </div>
@@ -3997,6 +4008,7 @@ const HTML = /* html */ `<!DOCTYPE html>
     <div class="onboard-actions">
       <button class="btn btn-ghost" id="wiz-back" onclick="wizBack()" style="display:none">← Back</button>
       <button class="btn btn-ghost" onclick="closeOnboard()" id="wiz-cancel">Cancel</button>
+      <button class="btn btn-ghost" id="wiz-skip" onclick="wizSkip()" style="display:none" title="Skip this optional step (you can edit later in config/profile.yml)">Skip →</button>
       <button class="btn btn-apply-batch" id="onboard-btn" onclick="wizNext()">
         <span class="spinner onboard-spinner" id="onboard-spinner"></span>
         <span id="onboard-btn-label">✦ Scan &amp; Continue</span>
@@ -4830,10 +4842,12 @@ const HTML = /* html */ `<!DOCTYPE html>
     { title: 'Drop Your Resume',     sub: 'Step 1 of 6 · We\\'ll read it and ask a few questions.' },
     { title: 'Confirm Your Basics',  sub: 'Step 2 of 6 · Edit anything we got wrong.' },
     { title: 'What You\\'re Hunting', sub: 'Step 3 of 6 · Roles and comp targets.' },
-    { title: 'Deal-Breakers',        sub: 'Step 4 of 6 · We\\'ll auto-skip postings that match.' },
-    { title: 'Your Narrative',       sub: 'Step 5 of 6 · The high-leverage qualitative stuff.' },
+    { title: 'Deal-Breakers',        sub: 'Step 4 of 6 · Optional. We\\'ll auto-skip postings that match.' },
+    { title: 'Your Narrative',       sub: 'Step 5 of 6 · Optional but high-leverage.' },
     { title: 'Review & Generate',    sub: 'Step 6 of 6 · Ship it.' },
   ];
+  // Steps where Skip → jump straight to step 6.
+  const WIZ_SKIPPABLE = new Set([4, 5]);
 
   const ROLE_PRESETS = [
     'Chief of Staff', 'Head of AI', 'VP AI', 'Director of AI Innovation',
@@ -5127,6 +5141,7 @@ const HTML = /* html */ `<!DOCTYPE html>
     document.getElementById('wiz-subtitle').textContent = meta.sub;
     document.getElementById('wiz-back').style.display = n > 1 ? 'inline-flex' : 'none';
     document.getElementById('wiz-cancel').style.display = n === 1 ? 'inline-flex' : 'none';
+    document.getElementById('wiz-skip').style.display = WIZ_SKIPPABLE.has(n) ? 'inline-flex' : 'none';
     const label = document.getElementById('onboard-btn-label');
     label.textContent = n === 1 ? '✦ Scan & Continue'
       : n === WIZ_STEPS ? '🚀 Generate My Pipeline'
@@ -5141,6 +5156,17 @@ const HTML = /* html */ `<!DOCTYPE html>
 
   function wizBack() {
     if (window.wizState.step > 1) wizGoTo(window.wizState.step - 1);
+  }
+
+  // Skip optional step → jump straight to the review screen. We deliberately
+  // don't try to "fast-forward" through intermediate optional steps; if a user
+  // skips step 4 we still want to show step 5 in case they have a narrative.
+  // Only step 5 → 6 is the true "skip to end" jump.
+  function wizSkip() {
+    const s = window.wizState.step;
+    if (!WIZ_SKIPPABLE.has(s)) return;
+    if (s === 4) wizGoTo(5);
+    else if (s === 5) wizGoTo(WIZ_STEPS);
   }
 
   async function wizNext() {
@@ -5258,6 +5284,14 @@ const HTML = /* html */ `<!DOCTYPE html>
     }
   }
 
+  function wizUpdateChipCounter(kind) {
+    const counter = document.getElementById(kind === 'roles' ? 'wiz-roles-count' : 'wiz-dealbreakers-count');
+    if (!counter) return;
+    const n = window.wizState[kind].selected.size;
+    counter.textContent = n === 0 ? 'none yet' : (n === 1 ? '1 selected' : n + ' selected');
+    counter.classList.toggle('has-selection', n > 0);
+  }
+
   function wizRenderChips(kind) {
     const presets = kind === 'roles' ? ROLE_PRESETS : DEALBREAKER_PRESETS;
     const state = window.wizState[kind];
@@ -5286,6 +5320,7 @@ const HTML = /* html */ `<!DOCTYPE html>
       });
       container.dataset.bound = '1';
     }
+    wizUpdateChipCounter(kind);
   }
 
   function wizToggleChip(kind, value) {
@@ -5303,6 +5338,7 @@ const HTML = /* html */ `<!DOCTYPE html>
     if (!chip) { wizRenderChips(kind); return; } // fallback (e.g. just-added custom)
     chip.className = wasSelected ? 'wiz-chip' : cls;
     chip.setAttribute('aria-pressed', wasSelected ? 'false' : 'true');
+    wizUpdateChipCounter(kind);
     wizSaveDraft();
   }
 
@@ -5432,9 +5468,15 @@ const HTML = /* html */ `<!DOCTYPE html>
       wizClearDraft();
       showToast('Profile saved · CV PDF generating…', 'info');
       closeOnboard();
+      // Defensive refresh: the disk write + scheduler pickup race means a
+      // single setTimeout(800) sometimes lands before the file is visible.
+      // Trigger refresh at 800ms AND 3s — both are no-ops if data hasn't
+      // changed, but the second one catches the slow-disk case.
       setTimeout(() => refresh(), 800);
+      setTimeout(() => refresh(), 3000);
       // Poll the PDF endpoint so the user gets a follow-up toast when the
-      // background generation finishes (or fails).
+      // background generation finishes (or fails). Also refreshes the
+      // dashboard once the new PDF is visible on disk.
       pollPdfStatus(15);
     } finally {
       spinner.classList.remove('show');
@@ -5443,7 +5485,8 @@ const HTML = /* html */ `<!DOCTYPE html>
   }
 
   // Polls /api/onboard/pdf-status up to N times (1s apart) and updates the
-  // user when the background CV PDF generation completes.
+  // user when the background CV PDF generation completes. On success, also
+  // refreshes the dashboard so the new CV link is picked up immediately.
   async function pollPdfStatus(maxTries) {
     for (let i = 0; i < maxTries; i++) {
       await new Promise(r => setTimeout(r, 1000));
@@ -5453,6 +5496,7 @@ const HTML = /* html */ `<!DOCTYPE html>
         const s = await r.json();
         if (s.ready) {
           showToast('CV PDF ready — pipeline armed', 'success');
+          refresh();
           return;
         }
         if (s.error) {
@@ -5542,6 +5586,24 @@ const HTML = /* html */ `<!DOCTYPE html>
       }
     } catch {}
   }
+
+  // Global keyboard shortcuts — opens the onboarding wizard. We use comma
+  // because it is the macOS-standard "preferences" hotkey and does not
+  // collide with browser print (Cmd/Ctrl+P) or find (Cmd/Ctrl+F).
+  document.addEventListener('keydown', (e) => {
+    if (!(e.metaKey || e.ctrlKey)) return;
+    if (e.key !== ',') return;
+    // Skip when typing in a field. Feature-detect matches() because the
+    // event target may be the document object itself (synthetic events)
+    // which has no matches() method.
+    const t = e.target;
+    if (t && typeof t.matches === 'function'
+        && t.matches('input, textarea, select, [contenteditable="true"]')) return;
+    const modal = document.getElementById('onboard-modal');
+    if (modal && modal.classList.contains('open')) return;
+    e.preventDefault();
+    openOnboard();
+  });
 
   // Boot
   refresh().then(scheduleRefresh);
