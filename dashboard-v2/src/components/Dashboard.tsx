@@ -101,6 +101,19 @@ export default function Dashboard() {
     }
   }, [status, session?.user?.email, session?.user?.id]);
 
+  // Track last seen background completion event (so we can show toast even if it completed while user was away)
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    const userKey = session?.user?.email || session?.user?.id || 'default';
+    const key = `career_ops_last_seen_bg_event:${userKey}`;
+    try {
+      const seen = localStorage.getItem(key);
+      if (seen === null) localStorage.setItem(key, '0');
+    } catch {
+      // ignore storage failures
+    }
+  }, [status, session?.user?.email, session?.user?.id]);
+
   const completeOnboarding = () => {
     const userKey = session?.user?.email || session?.user?.id || 'default';
     localStorage.setItem(`career_ops_onboarding_v2:${userKey}`, 'true');
@@ -170,6 +183,41 @@ export default function Dashboard() {
         .then(res => res.json())
         .then(d => {
           setData((prevData: any) => {
+            const userKey = session?.user?.email || session?.user?.id || 'default';
+            const lastSeenKey = `career_ops_last_seen_bg_event:${userKey}`;
+
+            // Toast even on first load (if webhook completed while user was away)
+            try {
+              const nextMeta = d?.meta || {};
+              const nextEventId = Number(nextMeta.lastBackgroundEventId || 0);
+              const lastSeen = Number(localStorage.getItem(lastSeenKey) || 0);
+              if (nextEventId > 0 && nextEventId > lastSeen) {
+                const script: string = String(nextMeta.lastBackgroundActionScript || '');
+                const status: string = String(nextMeta.lastBackgroundStatus || '');
+                const label =
+                  script === 'scratch-scan.mjs'
+                    ? 'Scan'
+                    : script === 'rank-pipeline.mjs'
+                      ? 'Rank'
+                      : script === 'agentic-tailor.mjs'
+                        ? 'Tailor'
+                        : script === 'auto-apply.mjs'
+                          ? 'Apply'
+                          : 'Background job';
+                const outcome =
+                  status === 'success'
+                    ? 'completed'
+                    : status === 'cancelled'
+                      ? 'cancelled'
+                      : 'failed';
+                setToast({ show: true, message: `✅ ${label} ${outcome}.` });
+                setTimeout(() => setToast({ show: false, message: '' }), 5000);
+                localStorage.setItem(lastSeenKey, String(nextEventId));
+              }
+            } catch {
+              // ignore storage failures
+            }
+
             if (prevData) {
               // Reliable background completion signals (GitHub Actions / cron)
               const prevMeta = prevData.meta || {};
@@ -199,6 +247,11 @@ export default function Dashboard() {
                       : 'failed';
                 setToast({ show: true, message: `✅ ${label} ${outcome}.` });
                 setTimeout(() => setToast({ show: false, message: '' }), 5000);
+                try {
+                  localStorage.setItem(lastSeenKey, String(Number(nextMeta.lastBackgroundEventId || 0)));
+                } catch {
+                  // ignore
+                }
               }
               if (
                 typeof prevMeta.jobsTotal === 'number' &&
