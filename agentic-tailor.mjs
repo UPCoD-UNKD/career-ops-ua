@@ -464,7 +464,13 @@ async function tailorPackage(jd, profile, companyName) {
 
     // Persist to Neon DB so it can be viewed on the Vercel dashboard!
     try {
-      await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS resume_html TEXT, ADD COLUMN IF NOT EXISTS cover_letter_html TEXT;`;
+      await sql`
+        ALTER TABLE jobs
+          ADD COLUMN IF NOT EXISTS resume_html TEXT,
+          ADD COLUMN IF NOT EXISTS cover_letter_html TEXT,
+          ADD COLUMN IF NOT EXISTS resume_pdf BYTEA,
+          ADD COLUMN IF NOT EXISTS cover_letter_pdf BYTEA;
+      `;
       
       // We assume entry.id exists if it came from DB, else we try to find it by URL
       if (entry.id) {
@@ -487,6 +493,34 @@ async function tailorPackage(jd, profile, companyName) {
         execSync(`"${process.execPath}" "${generatePdfScript}" "${resumePathHtml}" "${resumePathPdf}"`);
         execSync(`"${process.execPath}" "${generatePdfScript}" "${clPathHtml}" "${clPathPdf}"`);
         console.log(`✨ SUCCESS! Resume & Cover Letter saved for ${entry.company}`);
+
+        // Persist PDFs to DB for true "Download PDF" in dashboard.
+        try {
+          const resumePdfBuf = fs.existsSync(resumePathPdf) ? fs.readFileSync(resumePathPdf) : null;
+          const clPdfBuf = fs.existsSync(clPathPdf) ? fs.readFileSync(clPathPdf) : null;
+          if (resumePdfBuf || clPdfBuf) {
+            if (entry.id) {
+              await sql`
+                UPDATE jobs
+                SET
+                  resume_pdf = COALESCE(${resumePdfBuf}, resume_pdf),
+                  cover_letter_pdf = COALESCE(${clPdfBuf}, cover_letter_pdf)
+                WHERE id = ${entry.id} AND user_id = ${userId}
+              `;
+            } else {
+              await sql`
+                UPDATE jobs
+                SET
+                  resume_pdf = COALESCE(${resumePdfBuf}, resume_pdf),
+                  cover_letter_pdf = COALESCE(${clPdfBuf}, cover_letter_pdf)
+                WHERE url = ${entry.url} AND user_id = ${userId}
+              `;
+            }
+            console.log('💾 PDFs persisted to database.');
+          }
+        } catch (pdfDbErr) {
+          console.warn(`⚠ Could not save PDFs to database: ${pdfDbErr.message}`);
+        }
       } catch (pdfErr) {
         console.warn(`⚠ PDF generation unavailable in this runtime (${pdfErr.message}).`);
       }

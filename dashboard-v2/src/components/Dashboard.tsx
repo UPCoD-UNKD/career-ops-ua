@@ -35,6 +35,7 @@ export default function Dashboard() {
   const [profileFormData, setProfileFormData] = useState<any>({
     candidate: { full_name: '', location: '', email: '', linkedin: '', github: '' },
     narrative: { headline: '', exit_story: '', superpowers: [] },
+  education: [],
     targeting_keywords: { positive: [], negative: [] },
     search: { portals: ['linkedin', 'naukri', 'indeed', 'instahyre', 'flexiple', 'greenhouse', 'lever', 'japan-dev'] }
   });
@@ -306,6 +307,7 @@ export default function Dashboard() {
           setProfileFormData({
             candidate: d.resume_context?.candidate || { full_name: '', location: '', email: '', linkedin: '', github: '' },
             narrative: d.resume_context?.narrative || { headline: '', exit_story: '', superpowers: [] },
+            education: d.resume_context?.education || [],
             targeting_keywords: d.targeting_keywords || { positive: [], negative: [] },
             search: d.resume_context?.search || { portals: ['linkedin', 'naukri', 'indeed', 'instahyre', 'flexiple', 'greenhouse', 'lever', 'japan-dev'] }
           });
@@ -330,6 +332,7 @@ export default function Dashboard() {
           resume_context: {
             candidate: profileFormData.candidate,
             narrative: profileFormData.narrative,
+              education: profileFormData.education,
             search: profileFormData.search
           },
           targeting_keywords: profileFormData.targeting_keywords,
@@ -640,10 +643,16 @@ export default function Dashboard() {
                         </a>
                         <div className="flex items-center gap-2 pl-3">
                           <a
-                            href={`/api/view/${doc.id}?download=1`}
+                            href={`/api/view/${doc.id}?format=pdf&download=1`}
                             className="px-3 py-1.5 rounded-lg border border-[#e7e5e4] text-[10px] font-bold uppercase tracking-widest text-[#1c1917] hover:bg-[#f5f5f4] transition-colors"
                           >
-                            Download
+                            Download PDF
+                          </a>
+                          <a
+                            href={`/api/view/${doc.id}?download=1`}
+                            className="px-3 py-1.5 rounded-lg border border-[#e7e5e4] text-[10px] font-bold uppercase tracking-widest text-[#78716c] hover:bg-[#f5f5f4] transition-colors"
+                          >
+                            HTML
                           </a>
                           <a
                             href={`/api/view/${doc.id}`}
@@ -758,6 +767,82 @@ System Initialized — v2.0`}
                    <div className="grid grid-cols-2 gap-4">
                       <Input label="Site Location" value={profileFormData.candidate.location} onChange={(v) => setProfileFormData({...profileFormData, candidate: {...profileFormData.candidate, location: v}})} />
                       <Input label="Secure Email" value={profileFormData.candidate.email} onChange={(v) => setProfileFormData({...profileFormData, candidate: {...profileFormData.candidate, email: v}})} />
+                   </div>
+                 </ConfigSection>
+
+                 <ConfigSection title="Education" icon={<FileText size={18} className="text-[#1c1917]" />}>
+                   <div className="space-y-4">
+                     {(profileFormData.education || []).map((edu: any, idx: number) => (
+                       <div key={idx} className="p-5 bg-[#faf9f6]/50 border border-[#e7e5e4] rounded-2xl">
+                         <div className="flex items-start justify-between gap-4 mb-4">
+                           <div className="text-[10px] font-bold text-[#a8a29e] uppercase tracking-widest">
+                             Entry {idx + 1}
+                           </div>
+                           <button
+                             onClick={() =>
+                               setProfileFormData({
+                                 ...profileFormData,
+                                 education: (profileFormData.education || []).filter((_: any, i: number) => i !== idx),
+                               })
+                             }
+                             className="text-[10px] font-bold uppercase tracking-widest text-rose-700 hover:underline underline-offset-4"
+                           >
+                             Remove
+                           </button>
+                         </div>
+                         <div className="grid grid-cols-2 gap-4">
+                           <Input
+                             label="School"
+                             value={edu.school || ''}
+                             onChange={(v) => {
+                               const next = [...(profileFormData.education || [])];
+                               next[idx] = { ...(next[idx] || {}), school: v };
+                               setProfileFormData({ ...profileFormData, education: next });
+                             }}
+                           />
+                           <Input
+                             label="Degree"
+                             value={edu.degree || ''}
+                             onChange={(v) => {
+                               const next = [...(profileFormData.education || [])];
+                               next[idx] = { ...(next[idx] || {}), degree: v };
+                               setProfileFormData({ ...profileFormData, education: next });
+                             }}
+                           />
+                         </div>
+                         <div className="grid grid-cols-2 gap-4 mt-4">
+                           <Input
+                             label="Period (e.g., 2016–2020)"
+                             value={edu.period || ''}
+                             onChange={(v) => {
+                               const next = [...(profileFormData.education || [])];
+                               next[idx] = { ...(next[idx] || {}), period: v };
+                               setProfileFormData({ ...profileFormData, education: next });
+                             }}
+                           />
+                           <Input
+                             label="Location (optional)"
+                             value={edu.location || ''}
+                             onChange={(v) => {
+                               const next = [...(profileFormData.education || [])];
+                               next[idx] = { ...(next[idx] || {}), location: v };
+                               setProfileFormData({ ...profileFormData, education: next });
+                             }}
+                           />
+                         </div>
+                       </div>
+                     ))}
+                     <button
+                       onClick={() =>
+                         setProfileFormData({
+                           ...profileFormData,
+                           education: [...(profileFormData.education || []), { school: '', degree: '', period: '' }],
+                         })
+                       }
+                       className="w-full px-6 py-3 rounded-2xl border border-[#e7e5e4] bg-white hover:bg-[#f5f5f4] transition-colors text-sm font-bold text-[#1c1917]"
+                     >
+                       Add Education
+                     </button>
                    </div>
                  </ConfigSection>
 

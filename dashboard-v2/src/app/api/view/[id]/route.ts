@@ -17,19 +17,36 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'resume'; // 'resume' or 'cl'
     const download = searchParams.get('download') === '1';
+    const format = searchParams.get('format') || 'html'; // 'html' | 'pdf'
     
     // In Next.js 15+, params is a Promise that must be awaited
     const { id } = await params;
     const jobId = id;
 
     const [job] = await sql`
-      SELECT resume_html, cover_letter_html 
+      SELECT resume_html, cover_letter_html, resume_pdf, cover_letter_pdf
       FROM jobs 
       WHERE id = ${jobId} AND user_id = ${session.user.id}
     `;
 
     if (!job) {
       return new NextResponse('Job not found', { status: 404 });
+    }
+
+    if (format === 'pdf') {
+      const pdf = type === 'cl' ? job.cover_letter_pdf : job.resume_pdf;
+      if (!pdf) {
+        return new NextResponse('PDF not found (run tailor --deep first)', { status: 404 });
+      }
+      const filename = `career-ops-${type === 'cl' ? 'cover-letter' : 'resume'}-${jobId}.pdf`;
+      return new NextResponse(pdf, {
+        headers: {
+          'Content-Type': 'application/pdf',
+          ...(download
+            ? { 'Content-Disposition': `attachment; filename="${filename}"` }
+            : {}),
+        },
+      });
     }
 
     const html = type === 'cl' ? job.cover_letter_html : job.resume_html;
