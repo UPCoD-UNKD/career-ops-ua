@@ -46,6 +46,7 @@ export default function Dashboard() {
   const [tagInputPositive, setTagInputPositive] = useState('');
   const [tagInputNegative, setTagInputNegative] = useState('');
   const [tagInputPortals, setTagInputPortals] = useState('');
+  const [toast, setToast] = useState<{ show: boolean; message: string }>({ show: false, message: '' });
 
   const steps = [
     { target: null, title: "Welcome to Alpha v2.0", content: "Your AI career command center is live. Let's configure your agent for maximum discovery.", icon: <Zap size={24}/> },
@@ -168,7 +169,18 @@ export default function Dashboard() {
       fetch('/api/data?t=' + Date.now(), { cache: 'no-store' })
         .then(res => res.json())
         .then(d => {
-          setData(d);
+          setData((prevData: any) => {
+            if (prevData) {
+              if (prevData.pdfs && d.pdfs && d.pdfs.length > prevData.pdfs.length) {
+                setToast({ show: true, message: '🎉 Background Action Complete: New document generated!' });
+                setTimeout(() => setToast({ show: false, message: '' }), 5000);
+              } else if (prevData.applications && d.applications && d.applications.length > prevData.applications.length) {
+                setToast({ show: true, message: '🚀 Background Action Complete: Job applied successfully!' });
+                setTimeout(() => setToast({ show: false, message: '' }), 5000);
+              }
+            }
+            return d;
+          });
           setLoading(false);
         });
     };
@@ -690,6 +702,21 @@ System Initialized — v2.0`}
           )}
         </AnimatePresence>
       </main>
+
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {toast.show && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-6 right-6 z-[100] bg-[#1c1917] text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10"
+          >
+            <CheckCircle2 size={20} className="text-[#f59e0b]" />
+            <span className="text-sm font-bold tracking-wide">{toast.message}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Walkthrough Overlay */}
       <AnimatePresence>
