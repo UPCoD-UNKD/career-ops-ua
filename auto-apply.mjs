@@ -1,27 +1,91 @@
 import fs from 'fs';
 import path from 'path';
-import yaml from 'js-yaml';
-import { chromium } from 'playwright';
 import sql from './db/client.mjs';
-import dotenv from 'dotenv';
-import { HfInference } from '@huggingface/inference';
 
-dotenv.config();
-
-const hf = new HfInference(process.env.HUGGINGFACE_TOKEN);
+let hf = null;
 const TARGET_MAP = 'data/current_eval.json';
-const PROFILE_PATH = 'config/profile.yml';
 
 let urlOrIdx = process.argv[2];
 let company = process.argv[3] || '';
-
-// Load profile for auto-filling
-let profile = { candidate: {} };
-try {
-  profile = yaml.load(fs.readFileSync(PROFILE_PATH, 'utf8'));
-} catch (e) {
-  console.warn("⚠ Failed to load profile.yml, using placeholders.");
+const rawUserId = process.env.SCAN_USER_ID || 1;
+const userId = Number.parseInt(String(rawUserId), 10);
+if (!Number.isFinite(userId)) {
+  throw new Error(`Invalid SCAN_USER_ID: ${rawUserId}`);
 }
+
+async function getHfClient() {
+  if (hf) return hf;
+  try {
+    const mod = await import('@huggingface/inference');
+    hf = new mod.HfInference(process.env.HUGGINGFACE_TOKEN);
+    return hf;
+  } catch (e) {
+    console.warn('⚠ HuggingFace SDK unavailable in this runtime. Falling back to static field mapping.');
+    return null;
+  }
+}
+
+async function getChromium() {
+  try {
+    const mod = await import('playwright');
+    return mod.chromium;
+  } catch {
+    return null;
+  }
+}
+
+function writeApplicationPack({ companyName, targetUrl, profile, resumePath, note }) {
+  if (!fs.existsSync('output')) fs.mkdirSync('output');
+  const safe = (s) => String(s || '').replace(/[^a-z0-9]/gi, '_').replace(/_{2,}/g, '_').slice(0, 60);
+  const companySlug = safe(companyName || 'Company');
+  const outPath = path.join('output', `Application_Pack_${companySlug}.md`);
+
+  const c = profile?.candidate || {};
+  const n = profile?.narrative || {};
+  const l = profile?.legal || {};
+  const comp = profile?.compensation || {};
+
+  const content = `# Application Pack — ${companyName || 'Unknown'}
+
+- **Target URL:** ${targetUrl}
+- **Generated:** ${new Date().toISOString()}
+- **Mode:** Draft (no browser automation available)
+
+## Candidate details
+- Name: ${c.full_name || ''}
+- Email: ${c.email || ''}
+- Phone: ${c.phone || ''}
+- Location: ${c.location || ''}
+- LinkedIn: ${c.linkedin || ''}
+- GitHub/Portfolio: ${c.github || c.portfolio_url || ''}
+
+## Attachments
+- Resume: ${resumePath || '(not found — run tailor first or upload manually)'}
+
+## Quick answers (copy/paste)
+- Why are you interested in this role?
+  - ${n.exit_story || 'I focus on shipping reliable software with measurable outcomes, and I’m excited to contribute in a role that values strong engineering fundamentals and ownership.'}
+- What’s your strongest skill?
+  - ${(Array.isArray(n.superpowers) && n.superpowers.length > 0) ? n.superpowers.slice(0, 3).join(', ') : 'Backend engineering, reliability, and product-minded execution.'}
+- Notice period
+  - ${l.notice_period || ''}
+- Work authorization
+  - ${l.work_authorization || ''}
+- Sponsorship required
+  - ${l.sponsorship_required || ''}
+- Compensation expectations
+  - ${l.salary_expectations || comp.target_range || ''}
+
+## Notes
+${note || ''}
+`;
+
+  fs.writeFileSync(outPath, content);
+  return outPath;
+}
+
+// Load profile for auto-filling from user-scoped DB context.
+let profile = { candidate: {}, narrative: {}, legal: {}, compensation: {} };
 
 function findTailoredCV(companyName) {
   if (!companyName) return null;
@@ -53,12 +117,25 @@ if (/^\d+$/.test(urlOrIdx)) {
 
 async function recordApplication(url, status, resume) {
   try {
-    const job = await sql`SELECT id FROM jobs WHERE url = ${url} LIMIT 1`;
+    let job = await sql`SELECT id FROM jobs WHERE url = ${url} AND user_id = ${userId} LIMIT 1`;
+    
+    if (job.length === 0) {
+      // Create a manual job entry if it doesn't exist
+      job = await sql`
+        INSERT INTO jobs (user_id, url, company, title, source, score)
+        VALUES (${userId}, ${url}, ${company || 'Manual Entry'}, 'Job via Direct URL', 'manual', 0)
+        RETURNING id
+      `;
+    }
+
     if (job.length > 0) {
       await sql`
-        INSERT INTO applications (job_id, status, resume_file, applied_at)
-        VALUES (${job[0].id}, ${status}, ${resume}, CURRENT_TIMESTAMP)
-        ON CONFLICT (job_id) DO UPDATE SET status = ${status}, applied_at = CURRENT_TIMESTAMP
+        INSERT INTO applications (job_id, user_id, status, resume_file, applied_at)
+        VALUES (${job[0].id}, ${userId}, ${status}, ${resume}, CURRENT_TIMESTAMP)
+        ON CONFLICT (job_id) DO UPDATE SET
+          status = ${status},
+          resume_file = ${resume},
+          applied_at = CURRENT_TIMESTAMP
       `;
       console.log(`✓ Status '${status}' recorded for ${company} in DB.`);
     }
@@ -119,6 +196,9 @@ async function scanFormFields(frame) {
 }
 
 async function reasonFieldMappings(fields, profile, companyName) {
+  const hfClient = await getHfClient();
+  if (!hfClient) return null;
+
   console.log(`🤖 Consulting MiniMax-M2.7 for form reasoning...`);
   
   const fieldList = fields.map((f, i) => `${i}: "${f.label}" (Context: ${f.context}) [Type: ${f.type}]`).join('\n');
@@ -151,7 +231,7 @@ async function reasonFieldMappings(fields, profile, companyName) {
   `;
 
   try {
-    const response = await hf.chatCompletion({
+    const response = await hfClient.chatCompletion({
       model: "MiniMaxAI/MiniMax-M2.7",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 2000,
@@ -237,12 +317,47 @@ async function matchAndFillFields(fields, profile, aiMapping) {
 (async () => {
   console.log(`🚀 Starting Job Application Companion...`);
   console.log(`Target: ${company || 'Unknown'} @ ${targetUrl}`);
-  
+
+  const chromium = await getChromium();
+  if (!chromium) {
+    console.warn("⚠ Playwright runtime is unavailable in this environment. Switching to draft mode (no submission).");
+
+    // Load profile from DB if possible.
+    try {
+      const [profileRow] = await sql`SELECT resume_context FROM user_profiles WHERE user_id = ${userId} LIMIT 1`;
+      if (profileRow?.resume_context) profile = profileRow.resume_context;
+    } catch {}
+
+    const tailoredPdf = findTailoredCV(company);
+    const packPath = writeApplicationPack({
+      companyName: company || 'Unknown',
+      targetUrl,
+      profile,
+      resumePath: tailoredPdf,
+      note: "Open the target link, upload the resume, paste answers from this pack, and submit manually.",
+    });
+
+    console.log('─────────────────────────────────────────────────────');
+    console.log('✅ DRAFT PACK READY (manual submit):');
+    console.log(`   ${path.resolve(packPath)}`);
+    console.log('─────────────────────────────────────────────────────');
+
+    await recordApplication(targetUrl, 'DRAFT', tailoredPdf || 'pending');
+    process.exit(0);
+  }
+
   const browser = await chromium.launch({ headless: true }); 
   const context = await browser.newContext();
   const page = await context.newPage();
   
   try {
+    const [profileRow] = await sql`SELECT resume_context FROM user_profiles WHERE user_id = ${userId} LIMIT 1`;
+    if (profileRow?.resume_context) {
+      profile = profileRow.resume_context;
+    } else {
+      console.warn("⚠ No profile found in DB for this user. Using placeholders.");
+    }
+
     await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.waitForLoadState('load').catch(() => {});
     
