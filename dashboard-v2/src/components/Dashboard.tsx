@@ -19,7 +19,10 @@ import {
   X,
   Zap,
   Upload,
-  ExternalLink
+  ExternalLink,
+  Trash2,
+  AlertTriangle,
+  MoreVertical
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { signOut, useSession } from 'next-auth/react';
@@ -61,6 +64,11 @@ export default function Dashboard() {
   const [jobDetailsLoading, setJobDetailsLoading] = useState(false);
   const [jobDetails, setJobDetails] = useState<any>(null);
   const [jobDetailsError, setJobDetailsError] = useState<string | null>(null);
+
+  // Delete confirmation state
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number; company: string; title: string } | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const appendTerminalLine = (line: string) => {
     setLogs((prev) => [...prev, { type: 'stdout', content: `\n${line}\n` }]);
@@ -486,6 +494,40 @@ export default function Dashboard() {
     }
   };
 
+  const openDeleteConfirm = (id: number, company: string, title: string) => {
+    setDeleteTarget({ id, company, title });
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteJob = async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    try {
+      const res = await fetch(`/api/job/${deleteTarget.id}/delete`, {
+        method: 'DELETE',
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || 'Failed to delete');
+
+      // Refresh data
+      const refreshRes = await fetch('/api/data');
+      if (refreshRes.ok) {
+        const freshData = await refreshRes.json();
+        setData(freshData);
+      }
+
+      setToast({ show: true, message: `[OK] ✔ Deleted ${deleteTarget.company} — ${deleteTarget.title}` });
+      setTimeout(() => setToast({ show: false, message: '' }), 3000);
+      setDeleteConfirmOpen(false);
+      setDeleteTarget(null);
+    } catch (e: any) {
+      setToast({ show: true, message: `[ERR] ✗ Delete failed: ${e?.message || 'Unknown error'}` });
+      setTimeout(() => setToast({ show: false, message: '' }), 5000);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   useEffect(() => {
     const term = document.getElementById('terminal-logs');
     if (term) {
@@ -874,115 +916,133 @@ export default function Dashboard() {
                   )}
                 </div>
                </div>
-               <div className="bg-[#faf9f6] border border-[#e7e5e4] rounded-[2.5rem] p-4 sm:p-6 lg:p-8 flex flex-col">
-                  <h3 className="font-bold mb-4 sm:mb-6 text-[#1c1917] flex items-center justify-between text-sm sm:text-base">
-                    <span className="flex items-center gap-2">
-                      <FileText size={16} className="text-[#a8a29e]" />
-                      Generated Docs
+               <div className="bg-[#faf9f6] border border-[#e7e5e4] rounded-[2rem] sm:rounded-[2.5rem] p-3 sm:p-6 lg:p-8 flex flex-col shadow-sm">
+                  <div className="flex items-center justify-between mb-4 sm:mb-6">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 bg-[#1c1917] rounded-xl">
+                        <FileText size={16} className="text-white" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-[#1c1917] text-sm sm:text-base">Generated Documents</h3>
+                        <p className="text-[10px] text-[#a8a29e] hidden sm:block">Tailored resumes and cover letters</p>
+                      </div>
+                    </div>
+                    <span className="px-3 py-1 bg-white border border-[#e7e5e4] rounded-full text-[10px] sm:text-xs font-bold text-[#78716c]">
+                      {filteredDocs.length} {filteredDocs.length === 1 ? 'item' : 'items'}
                     </span>
-                    <span className="text-[10px] text-[#a8a29e] font-medium">{filteredDocs.length} items</span>
-                  </h3>
-                  <div className="space-y-2 sm:space-y-3 overflow-y-auto flex-1 -mx-2 px-2 sm:mx-0 sm:px-0">
-                    {filteredDocs.map((doc: any, i: number) => (
-                      <div
-                        key={i}
-                        className="bg-white rounded-xl border border-[#e7e5e4] hover:border-[#1c1917] hover:shadow-sm transition-all overflow-hidden"
-                      >
-                        {/* Card Header - Company/Role Info */}
-                        <div className="p-3 sm:p-4 border-b border-[#f5f5f4]">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 flex-1">
-                              <div className="truncate text-xs sm:text-sm font-bold text-[#1c1917]">
-                                {doc.company}
+                  </div>
+
+                  <div className="space-y-3 overflow-y-auto flex-1">
+                    {filteredDocs.length === 0 ? (
+                      <div className="text-center py-12 px-4">
+                        <div className="w-16 h-16 mx-auto mb-4 bg-[#f5f5f4] rounded-2xl flex items-center justify-center">
+                          <FileText size={24} className="text-[#a8a29e]" />
+                        </div>
+                        <p className="text-sm font-medium text-[#78716c]">No documents yet</p>
+                        <p className="text-xs text-[#a8a29e] mt-1">Run tailor to generate resumes</p>
+                      </div>
+                    ) : (
+                      filteredDocs.map((doc: any, i: number) => (
+                        <div
+                          key={i}
+                          className="group bg-white rounded-2xl border border-[#e7e5e4] hover:border-[#1c1917] hover:shadow-lg transition-all duration-200 overflow-hidden"
+                        >
+                          {/* Card Header */}
+                          <div className="p-3 sm:p-4 border-b border-[#f5f5f4] bg-gradient-to-r from-white to-[#faf9f6]">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                  <span className="truncate text-sm font-bold text-[#1c1917]">
+                                    {doc.company}
+                                  </span>
+                                </div>
+                                <div className="truncate text-xs text-[#78716c] pl-4">
+                                  {doc.title}
+                                </div>
                               </div>
-                              <div className="truncate text-[10px] sm:text-xs text-[#78716c] mt-0.5">
-                                {doc.title}
+                              <div className="flex items-center gap-1 shrink-0">
+                                {doc?.url && (
+                                  <a
+                                    href={doc.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-2 rounded-lg hover:bg-[#f5f5f4] transition-all text-[#78716c] hover:text-[#1c1917]"
+                                    title="Open job posting"
+                                  >
+                                    <ExternalLink size={14} />
+                                  </a>
+                                )}
+                                <button
+                                  onClick={() => openDeleteConfirm(Number(doc.id), doc.company, doc.title)}
+                                  className="p-2 rounded-lg hover:bg-rose-50 transition-all text-[#a8a29e] hover:text-rose-600"
+                                  title="Delete job and documents"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
                               </div>
                             </div>
-                            {doc?.url && (
-                              <a
-                                href={doc.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="shrink-0 p-1.5 rounded-lg border border-[#e7e5e4] hover:bg-[#f5f5f4] transition-all text-[#78716c] hover:text-[#1c1917]"
-                                aria-label="Open posting"
-                                title="Open posting"
-                              >
-                                <ExternalLink size={12} />
-                              </a>
-                            )}
                           </div>
-                        </div>
 
-                        {/* Action Buttons - Responsive Grid */}
-                        <div className="p-2 sm:p-3">
-                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                            {/* Resume PDF Button */}
-                            {doc.has_resume_pdf ? (
+                          {/* Action Buttons */}
+                          <div className="p-2 sm:p-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                              {/* Resume PDF */}
+                              {doc.has_resume_pdf ? (
+                                <a
+                                  href={`/api/view/${doc.id}?format=pdf&download=1`}
+                                  className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#1c1917] text-white text-xs font-bold hover:bg-[#27272a] hover:shadow-md transition-all"
+                                >
+                                  <FileText size={14} />
+                                  <span>Resume</span>
+                                </a>
+                              ) : (
+                                <span className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#f5f5f4] text-[#a8a29e] text-xs font-bold cursor-not-allowed">
+                                  <FileText size={14} />
+                                  <span>—</span>
+                                </span>
+                              )}
+
+                              {/* Cover Letter PDF */}
+                              {doc.has_cover_letter_pdf ? (
+                                <a
+                                  href={`/api/view/${doc.id}?type=cl&format=pdf&download=1`}
+                                  className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#1c1917] text-white text-xs font-bold hover:bg-[#27272a] hover:shadow-md transition-all"
+                                >
+                                  <FileText size={14} />
+                                  <span>Cover</span>
+                                </a>
+                              ) : (
+                                <span className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-[#f5f5f4] text-[#a8a29e] text-xs font-bold cursor-not-allowed">
+                                  <FileText size={14} />
+                                  <span>—</span>
+                                </span>
+                              )}
+
+                              {/* HTML */}
                               <a
-                                href={`/api/view/${doc.id}?format=pdf&download=1`}
-                                className="flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-[#1c1917] text-white text-[10px] sm:text-xs font-bold hover:bg-[#27272a] transition-colors"
+                                href={`/api/view/${doc.id}?download=1`}
+                                className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-[#e7e5e4] text-[#1c1917] text-xs font-bold hover:bg-[#f5f5f4] hover:border-[#1c1917] transition-all"
                               >
-                                <FileText size={12} />
-                                <span className="hidden sm:inline">Resume</span>
-                                <span className="sm:hidden">Resume</span>
+                                <FileText size={14} />
+                                <span>HTML</span>
                               </a>
-                            ) : (
-                              <span className="flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-[#f5f5f4] text-[#a8a29e] text-[10px] sm:text-xs font-bold cursor-not-allowed">
-                                <FileText size={12} />
-                                <span>No Resume</span>
-                              </span>
-                            )}
 
-                            {/* Cover Letter PDF Button */}
-                            {doc.has_cover_letter_pdf ? (
-                              <a
-                                href={`/api/view/${doc.id}?type=cl&format=pdf&download=1`}
-                                className="flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-[#1c1917] text-white text-[10px] sm:text-xs font-bold hover:bg-[#27272a] transition-colors"
-                              >
-                                <FileText size={12} />
-                                <span className="hidden sm:inline">Cover Letter</span>
-                                <span className="sm:hidden">Cover Ltr</span>
-                              </a>
-                            ) : (
-                              <span className="flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg bg-[#f5f5f4] text-[#a8a29e] text-[10px] sm:text-xs font-bold cursor-not-allowed">
-                                <FileText size={12} />
-                                <span>No CL</span>
-                              </span>
-                            )}
-
-                            {/* HTML Button */}
-                            <a
-                              href={`/api/view/${doc.id}?download=1`}
-                              className="flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-[#e7e5e4] text-[#1c1917] text-[10px] sm:text-xs font-bold hover:bg-[#f5f5f4] transition-colors"
-                            >
-                              <FileText size={12} />
-                              <span>HTML</span>
-                            </a>
-
-                            {/* View & Details */}
-                            <div className="flex gap-1">
+                              {/* View */}
                               <a
                                 href={`/api/view/${doc.id}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-[#e7e5e4] text-[#78716c] text-[10px] sm:text-xs font-bold hover:bg-[#f5f5f4] transition-colors"
+                                className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-[#e7e5e4] text-[#78716c] text-xs font-bold hover:bg-[#f5f5f4] hover:text-[#1c1917] hover:border-[#1c1917] transition-all"
                               >
+                                <ExternalLink size={14} />
                                 <span>View</span>
                               </a>
-                              <button
-                                onClick={() => openJobDetails(Number(doc.id))}
-                                className="flex items-center justify-center p-2 rounded-lg border border-[#e7e5e4] hover:bg-[#f5f5f4] transition-all text-[#78716c] hover:text-[#1c1917]"
-                                aria-label="Details"
-                                title="Details"
-                              >
-                                <ChevronRight size={12} />
-                              </button>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                </div>
             </motion.div>
@@ -1460,6 +1520,82 @@ System Initialized — v2.0`}
                     </pre>
                   </>
                 )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteConfirmOpen && deleteTarget && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[95] flex items-center justify-center p-4 sm:p-6"
+            onClick={() => !deleteLoading && setDeleteConfirmOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="w-full max-w-md bg-white rounded-3xl border border-rose-200 shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="p-6 bg-gradient-to-r from-rose-50 to-white border-b border-rose-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center">
+                    <AlertTriangle size={24} className="text-rose-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-[#1c1917] text-lg">Delete Job?</h3>
+                    <p className="text-xs text-[#78716c]">This action cannot be undone</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-6">
+                <p className="text-sm text-[#78716c] mb-4">
+                  You are about to delete:
+                </p>
+                <div className="bg-[#faf9f6] rounded-2xl p-4 border border-[#e7e5e4]">
+                  <div className="font-bold text-[#1c1917] mb-1">{deleteTarget.company}</div>
+                  <div className="text-xs text-[#78716c]">{deleteTarget.title}</div>
+                </div>
+                <p className="text-xs text-[#a8a29e] mt-4">
+                  This will remove the job from your pipeline and delete all associated documents (resumes, cover letters, and job description).
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="p-4 border-t border-[#e7e5e4] flex gap-3">
+                <button
+                  onClick={() => setDeleteConfirmOpen(false)}
+                  disabled={deleteLoading}
+                  className="flex-1 px-4 py-3 rounded-xl border border-[#e7e5e4] text-[#78716c] font-bold text-sm hover:bg-[#f5f5f4] transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteJob}
+                  disabled={deleteLoading}
+                  className="flex-1 px-4 py-3 rounded-xl bg-rose-600 text-white font-bold text-sm hover:bg-rose-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {deleteLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Deleting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={16} />
+                      <span>Delete</span>
+                    </>
+                  )}
+                </button>
               </div>
             </motion.div>
           </motion.div>
