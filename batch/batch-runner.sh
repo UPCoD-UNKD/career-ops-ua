@@ -393,9 +393,11 @@ process_offer() {
     # claude backend: resolve placeholders into a temp system prompt file
     local resolved_prompt="$BATCH_DIR/.resolved-prompt-${id}.md"
     local esc_url esc_jd_file esc_report_num esc_date esc_id
-    esc_url="${url//\\/\\\\}"; esc_url="${esc_url//|/\\|}"
-    esc_jd_file="${jd_file//\\/\\\\}"; esc_jd_file="${esc_jd_file//|/\\|}"
-    esc_report_num="${report_num//|/\\|}"; esc_date="${date//|/\\|}"; esc_id="${id//|/\\|}"
+    esc_url="${url//\\/\\\\}";           esc_url="${esc_url//|/\\|}";           esc_url="${esc_url//&/\\&}"
+    esc_jd_file="${jd_file//\\/\\\\}";   esc_jd_file="${esc_jd_file//|/\\|}";   esc_jd_file="${esc_jd_file//&/\\&}"
+    esc_report_num="${report_num//|/\\|}"; esc_report_num="${esc_report_num//&/\\&}"
+    esc_date="${date//|/\\|}";           esc_date="${esc_date//&/\\&}"
+    esc_id="${id//|/\\|}";               esc_id="${esc_id//&/\\&}"
     sed \
       -e "s|{{URL}}|${esc_url}|g" \
       -e "s|{{JD_FILE}}|${esc_jd_file}|g" \
