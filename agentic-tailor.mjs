@@ -12,7 +12,7 @@ let hfUnavailable = false;
 let hfTokenInUse = '';
 const HF_MODEL = 'MiniMaxAI/MiniMax-M2.7';
 const TARGET_MAP = 'data/current_eval.json';
-const TEMPLATE = 'templates/ats-template.html';
+const TEMPLATE = 'templates/ats-template-professional.html';
 const require = createRequire(import.meta.url);
 
 const idOrUrl = process.argv[2];
@@ -119,22 +119,29 @@ async function uploadToR2({ key, body, contentType }) {
 
 // ── UTILITIES ──
 
-function renderExperience(exp, tailoredBullets) {
+function renderExperience(exp, tailoredBullets, maxPages = 2) {
   if (!Array.isArray(exp) || exp.length === 0) return '';
-  return exp.map((job, idx) => `
+
+  // Limit bullets per job based on page count
+  const maxBulletsPerJob = maxPages >= 3 ? 6 : maxPages >= 2 ? 4 : 3;
+
+  return exp.map((job, idx) => {
+    const bullets = (idx === 0 && tailoredBullets)
+      ? tailoredBullets.slice(0, maxBulletsPerJob)
+      : (job.bullets || []).slice(0, maxBulletsPerJob);
+
+    return `
     <div class="job">
       <div class="job-header">
         <span>${job.role}</span>
         <span>${job.period}</span>
       </div>
-      <div class="job-meta">${job.company}</div>
+      <div class="job-meta">${job.company}${job.location ? ` | ${job.location}` : ''}</div>
       <ul>
-        ${(idx === 0 && tailoredBullets) 
-          ? tailoredBullets.map(b => `<li>${b}</li>`).join('') 
-          : job.bullets.map(b => `<li>${b}</li>`).join('')}
+        ${bullets.map(b => `<li>${b}</li>`).join('')}
       </ul>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 function renderEducation(edu) {
@@ -174,6 +181,100 @@ function renderCategorizedSkills(skills) {
      }
   });
   return html;
+}
+
+// Calculate years of experience from experience array
+function calculateYearsOfExperience(experience) {
+  if (!Array.isArray(experience) || experience.length === 0) return 0;
+
+  let totalYears = 0;
+  const currentYear = new Date().getFullYear();
+
+  for (const job of experience) {
+    if (!job.period) continue;
+    const period = job.period;
+
+    // Parse various date formats
+    // Format: "2020–Present", "2018-2022", "Jan 2020 - Dec 2022"
+    const parts = period.split(/[-–—]/);
+    if (parts.length === 2) {
+      const startStr = parts[0].trim();
+      const endStr = parts[1].trim();
+
+      // Extract year from start
+      const startMatch = startStr.match(/\d{4}/);
+      const startYear = startMatch ? parseInt(startMatch[0]) : currentYear;
+
+      // Extract year from end
+      let endYear;
+      if (/present|current|now/i.test(endStr)) {
+        endYear = currentYear;
+      } else {
+        const endMatch = endStr.match(/\d{4}/);
+        endYear = endMatch ? parseInt(endMatch[0]) : currentYear;
+      }
+
+      totalYears += Math.max(0, endYear - startYear);
+    }
+  }
+
+  return totalYears;
+}
+
+// Calculate ATS score based on keyword matching
+function calculateATSScore(profile, jdText, tailoring) {
+  if (!jdText || !profile) return { score: 0, matched: [], missing: [] };
+
+  const jdLower = jdText.toLowerCase();
+  const matched = [];
+  const missing = [];
+
+  // Extract keywords from superpowers/skills
+  const profileSkills = [
+    ...(profile.narrative?.superpowers || []),
+    ...(profile.experience?.flatMap(e => e.bullets || []) || [])
+  ];
+
+  // Check which skills appear in JD
+  for (const skill of profileSkills) {
+    const skillLower = skill.toLowerCase();
+    const keywords = skillLower.split(/[,;\s]+/).filter(k => k.length > 2);
+
+    for (const keyword of keywords) {
+      if (jdLower.includes(keyword)) {
+        matched.push(skill);
+        break;
+      }
+    }
+  }
+
+  // Calculate score (0-100)
+  const uniqueMatches = [...new Set(matched)];
+  const baseScore = Math.min(100, (uniqueMatches.length * 5) + 50);
+
+  // Boost score if tailored competencies match
+  const competencyBonus = (tailoring?.core_competencies?.length || 0) * 2;
+  const finalScore = Math.min(100, baseScore + competencyBonus);
+
+  return {
+    score: finalScore,
+    matched: uniqueMatches.slice(0, 10),
+    totalMatched: uniqueMatches.length
+  };
+}
+
+// Generate visual ATS score bar
+function generateATSScoreBar(score) {
+  const color = score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : '#ef4444';
+  return `
+    <div style="margin: 10px 0;">
+      <div style="font-size: 9pt; color: #666; margin-bottom: 3px;">ATS Compatibility Score</div>
+      <div style="background: #e5e7eb; height: 8px; border-radius: 4px; overflow: hidden;">
+        <div style="background: ${color}; width: ${score}%; height: 100%; border-radius: 4px;"></div>
+      </div>
+      <div style="font-size: 10pt; font-weight: bold; color: ${color}; margin-top: 2px;">${score}/100</div>
+    </div>
+  `;
 }
 
 // sync cv.md if profile.yml is newer
@@ -456,7 +557,20 @@ async function tailorPackage(jd, profile, companyName) {
     const canonicalUrl = canonicalizeUrl(entry.url);
     const result = await tailorPackage(jdText, profile, entry.company);
     const tailoring = result.resume;
-    
+
+    // Calculate ATS Score
+    const atsScore = calculateATSScore(profile, jdText, tailoring);
+    console.log(`📊 ATS Score: ${atsScore.score}/100 (${atsScore.totalMatched} keywords matched)`);
+
+    // Calculate Years of Experience
+    const yearsExp = calculateYearsOfExperience(profile.experience);
+    console.log(`📊 Years of Experience: ${yearsExp}`);
+
+    // Determine resume length based on experience
+    // 0-5 years: 1 page, 6-11 years: 2 pages, 12-20 years: up to 4 pages
+    const maxPages = yearsExp <= 5 ? 1 : yearsExp <= 11 ? 2 : Math.min(4, Math.ceil(yearsExp / 5));
+    console.log(`📄 Resume length: up to ${maxPages} page${maxPages > 1 ? 's' : ''}`);
+
     // Prepare common replacements
     const c = profile.candidate;
     const commonReps = {
@@ -470,10 +584,16 @@ async function tailorPackage(jd, profile, companyName) {
       PORTFOLIO_DISPLAY: c.github || 'Github',
       DATE: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
       COMPANY_NAME: entry.company,
-      LANG: 'en'
+      LANG: 'en',
+      ATS_SCORE: `${atsScore.score}/100`,
+      ATS_SCORE_BAR: generateATSScoreBar(atsScore.score),
+      YEARS_EXP: `${yearsExp}`,
+      MAX_PAGES: `${maxPages}`
     };
 
-    // 1. GENERATE RESUME
+    // 1. GENERATE RESUME - Dynamic length based on experience
+    const experienceToShow = maxPages >= 3 ? profile.experience : profile.experience?.slice(0, maxPages * 2) || [];
+
     const resumeReps = {
       ...commonReps,
       SECTION_SUMMARY: 'Professional Summary',
@@ -481,16 +601,19 @@ async function tailorPackage(jd, profile, companyName) {
       SECTION_COMPETENCIES: 'Core Competencies',
       COMPETENCIES: (Array.isArray(tailoring.core_competencies) ? tailoring.core_competencies : []).map(skill => `<span class="competency-tag">${skill}</span>`).join(''),
       SECTION_EXPERIENCE: 'Professional Experience',
-      EXPERIENCE: renderExperience(profile.experience, tailoring.experience),
+      EXPERIENCE: renderExperience(experienceToShow, tailoring.experience, maxPages),
       SECTION_PROJECTS: 'Selected Achievements',
-      PROJECTS: renderProjects(profile.narrative.proof_points),
+      PROJECTS: maxPages >= 2 ? renderProjects(profile.narrative.proof_points) : '',
       SECTION_EDUCATION: 'Education',
       EDUCATION: renderEducation(profile.education),
       SECTION_SKILLS: 'Technical Skills',
       SKILLS: renderCategorizedSkills(profile.narrative.superpowers),
       SECTION_CERTIFICATIONS: '',
       CERTIFICATIONS: '',
-      PAGE_WIDTH: '800px'
+      PAGE_WIDTH: '800px',
+      ATS_BADGE: atsScore.score >= 80 ? '<div class="ats-badge ats-high">ATS Optimized</div>' :
+                 atsScore.score >= 60 ? '<div class="ats-badge ats-medium">ATS Friendly</div>' :
+                 '<div class="ats-badge ats-low">Needs Optimization</div>'
     };
 
     let resumeHtml = fs.readFileSync(TEMPLATE, 'utf8');

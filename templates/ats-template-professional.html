@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{NAME}} - Resume</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        @page {
+            size: A4;
+            margin: 0.5in;
+        }
+
+        body {
+            font-family: 'Segoe UI', Calibri, Arial, sans-serif;
+            font-size: 10.5pt;
+            line-height: 1.4;
+            color: #2c3e50;
+            background: #fff;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Header Section */
+        header {
+            border-bottom: 2px solid #1c1917;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .name-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 22pt;
+            font-weight: 700;
+            color: #1c1917;
+            letter-spacing: 0.5px;
+        }
+
+        .title-badge {
+            font-size: 11pt;
+            color: #555;
+            font-weight: 500;
+            margin-top: 3px;
+        }
+
+        .contact-line {
+            font-size: 9.5pt;
+            color: #444;
+            margin-bottom: 4px;
+        }
+
+        .contact-line a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        /* ATS Score Badge */
+        .ats-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 8pt;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .ats-high {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .ats-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .ats-low {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Section Styling */
+        section {
+            margin-bottom: 18px;
+        }
+
+        h2 {
+            font-size: 11pt;
+            font-weight: 700;
+            color: #1c1917;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 4px;
+            margin-bottom: 10px;
+        }
+
+        /* Professional Summary */
+        .summary-text {
+            font-size: 10.5pt;
+            text-align: left;
+            line-height: 1.5;
+            color: #374151;
+        }
+
+        /* Core Competencies */
+        .competencies-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 5px;
+        }
+
+        .competency-tag {
+            background: #f3f4f6;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 9pt;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        /* Skills Categories */
+        .skills-section {
+            font-size: 9.5pt;
+        }
+
+        .skills-category {
+            margin-bottom: 5px;
+        }
+
+        .skills-label {
+            font-weight: 600;
+            color: #1c1917;
+        }
+
+        /* Experience */
+        .job {
+            margin-bottom: 14px;
+            page-break-inside: avoid;
+        }
+
+        .job-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 10.5pt;
+            color: #1c1917;
+        }
+
+        .job-meta {
+            font-size: 9.5pt;
+            color: #6b7280;
+            font-style: italic;
+            margin-bottom: 4px;
+        }
+
+        .job ul {
+            list-style-type: disc;
+            margin-left: 18px;
+            margin-top: 4px;
+        }
+
+        .job li {
+            font-size: 10pt;
+            margin-bottom: 2px;
+            color: #374151;
+            line-height: 1.35;
+        }
+
+        /* Education */
+        .edu-item {
+            margin-bottom: 6px;
+        }
+
+        .edu-header {
+            font-weight: 600;
+            font-size: 10pt;
+        }
+
+        .edu-location {
+            font-size: 9pt;
+            color: #6b7280;
+        }
+
+        /* Projects/Achievements */
+        .project {
+            margin-bottom: 5px;
+            font-size: 10pt;
+        }
+
+        .project-name {
+            font-weight: 600;
+        }
+
+        /* Print Optimization */
+        @media print {
+            body {
+                padding: 0;
+                font-size: 10pt;
+            }
+
+            .job {
+                page-break-inside: avoid;
+            }
+
+            section {
+                page-break-inside: auto;
+            }
+        }
+
+        /* Footer with ATS Score */
+        .resume-footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 8pt;
+            color: #9ca3af;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ats-score-footer {
+            font-weight: 600;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="name-section">
+                <div>
+                    <h1>{{NAME}}</h1>
+                    <div class="title-badge">{{YEARS_EXP}} Years of Experience {{ATS_BADGE}}</div>
+                </div>
+                {{ATS_SCORE_BAR}}
+            </div>
+
+            <div class="contact-line">
+                {{LOCATION}} | {{EMAIL}} | {{PHONE}}
+            </div>
+            <div class="contact-line">
+                <a href="{{LINKEDIN_URL}}">{{LINKEDIN_DISPLAY}}</a>
+                {{#if PORTFOLIO_URL}}
+                | <a href="{{PORTFOLIO_URL}}">{{PORTFOLIO_DISPLAY}}</a>
+                {{/if}}
+            </div>
+        </header>
+
+        <section>
+            <h2>Professional Summary</h2>
+            <div class="summary-text">{{SUMMARY_TEXT}}</div>
+        </section>
+
+        <section>
+            <h2>Core Competencies</h2>
+            <div class="competencies-grid">
+                {{COMPETENCIES}}
+            </div>
+        </section>
+
+        <section>
+            <h2>Technical Skills</h2>
+            <div class="skills-section">
+                {{SKILLS}}
+            </div>
+        </section>
+
+        <section>
+            <h2>Professional Experience</h2>
+            <div id="experience-content">
+                {{EXPERIENCE}}
+            </div>
+        </section>
+
+        {{#if PROJECTS}}
+        <section>
+            <h2>Selected Achievements</h2>
+            <div id="projects-content">
+                {{PROJECTS}}
+            </div>
+        </section>
+        {{/if}}
+
+        <section>
+            <h2>Education</h2>
+            <div id="education-content">
+                {{EDUCATION}}
+            </div>
+        </section>
+
+        <div class="resume-footer">
+            <span>Generated on {{DATE}} for {{COMPANY_NAME}} role</span>
+            <span class="ats-score-footer">ATS Score: {{ATS_SCORE}}</span>
+        </div>
+    </div>
+</body>
+</html>
