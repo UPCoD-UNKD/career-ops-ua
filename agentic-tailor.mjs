@@ -98,9 +98,11 @@ async function uploadToR2({ key, body, contentType }) {
   const client = getR2Client();
   if (!bucket || !client) {
     console.warn('[R2] Skip upload: missing bucket or client credentials');
+    console.warn(`[R2] Debug: bucket="${bucket}", hasClient=${!!client}, accountId="${process.env.R2_ACCOUNT_ID?.slice(0, 6)}...", hasAccessKey=${!!process.env.R2_ACCESS_KEY_ID}, hasSecret=${!!process.env.R2_SECRET_ACCESS_KEY}`);
     return false;
   }
   try {
+    console.log(`[R2] Uploading ${key} (${body.length} bytes) to bucket ${bucket}...`);
     await client.send(
       new PutObjectCommand({
         Bucket: bucket,
@@ -109,9 +111,16 @@ async function uploadToR2({ key, body, contentType }) {
         ContentType: contentType,
       })
     );
+    console.log(`[R2] Upload successful: ${key}`);
     return true;
   } catch (e) {
     console.error(`[R2] Upload failed for ${key}: ${e?.name || e?.message}`);
+    if (e?.message?.includes('AccessDenied')) {
+      console.error('[R2] Hint: Check your R2 token permissions (needs Object Read & Write)');
+    }
+    if (e?.message?.includes('NoSuchBucket')) {
+      console.error(`[R2] Hint: Bucket "${bucket}" does not exist`);
+    }
     return false;
   }
 }
@@ -744,39 +753,42 @@ async function tailorPackage(jd, profile, companyName) {
           console.log(`[R2] Generating key with id=${keyId}, baseKey=${baseKey}`);
           let resumeKey = null;
           let clKey = null;
+          let resumeUploaded = false;
+          let clUploaded = false;
 
           if (resumePdfBuf) {
             resumeKey = `${baseKey}-resume.pdf`;
-            const ok = await uploadToR2({ key: resumeKey, body: resumePdfBuf, contentType: 'application/pdf' });
-            console.log(ok ? `[R2] Resume uploaded: ${resumeKey}` : `[R2] Resume upload failed: ${resumeKey}`);
+            resumeUploaded = await uploadToR2({ key: resumeKey, body: resumePdfBuf, contentType: 'application/pdf' });
+            console.log(resumeUploaded ? `[R2] Resume uploaded: ${resumeKey}` : `[R2] Resume upload FAILED: ${resumeKey}`);
           }
           if (clPdfBuf) {
             clKey = `${baseKey}-cover-letter.pdf`;
-            const ok = await uploadToR2({ key: clKey, body: clPdfBuf, contentType: 'application/pdf' });
-            console.log(ok ? `[R2] Cover letter uploaded: ${clKey}` : `[R2] Cover letter upload failed: ${clKey}`);
+            clUploaded = await uploadToR2({ key: clKey, body: clPdfBuf, contentType: 'application/pdf' });
+            console.log(clUploaded ? `[R2] Cover letter uploaded: ${clKey}` : `[R2] Cover letter upload FAILED: ${clKey}`);
           }
 
-          if (resumeKey || clKey) {
+          // Only save keys to DB if upload was successful
+          if (resumeUploaded || clUploaded) {
             if (entry.id) {
               await sql`
                 UPDATE jobs
                 SET
-                  resume_pdf_key = COALESCE(${resumeKey}, resume_pdf_key),
-                  cover_letter_pdf_key = COALESCE(${clKey}, cover_letter_pdf_key)
+                  resume_pdf_key = COALESCE(${resumeUploaded ? resumeKey : null}, resume_pdf_key),
+                  cover_letter_pdf_key = COALESCE(${clUploaded ? clKey : null}, cover_letter_pdf_key)
                 WHERE id = ${entry.id} AND user_id = ${userId}
               `;
             } else {
               await sql`
                 UPDATE jobs
                 SET
-                  resume_pdf_key = COALESCE(${resumeKey}, resume_pdf_key),
-                  cover_letter_pdf_key = COALESCE(${clKey}, cover_letter_pdf_key)
+                  resume_pdf_key = COALESCE(${resumeUploaded ? resumeKey : null}, resume_pdf_key),
+                  cover_letter_pdf_key = COALESCE(${clUploaded ? clKey : null}, cover_letter_pdf_key)
                 WHERE url = ${entry.url} AND user_id = ${userId}
               `;
             }
             console.log('💾 PDFs uploaded to R2 and keys persisted to database.');
           } else {
-            console.warn('⚠ PDF buffers missing; nothing uploaded.');
+            console.warn('⚠ No PDFs were uploaded to R2 (check credentials/bucket).');
           }
         } catch (pdfDbErr) {
           console.warn(`⚠ Could not upload PDFs to R2: ${pdfDbErr.message}`);
