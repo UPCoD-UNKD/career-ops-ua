@@ -2,6 +2,8 @@
 
 | # | Date | Company | Role | Score | Status | PDF | Report | Notes |
 |---|------|---------|------|-------|--------|-----|--------|-------|
+| 579 | 2026-05-06 | Daxko | AI Software Engineer I | 3.6/5 | Evaluated | ✅ | [579](reports/579-daxko-ai-software-engineer-i-2026-05-06.md) | $95.7-160K disclosed; remote-US; RAG + multi-provider LLM API + vector DB 1:1 fit; AWS Bedrock/SageMaker ramp gap acceptable; PDF generated |
+| 580 | 2026-05-06 | Aspen Skiing | AI Engineer | 3.0/5 | Evaluated | ✅ | [580](reports/580-aspen-skiing-ai-engineer-2026-05-06.md) | $103-144K disclosed CO; Aspen/Denver on-site verify; Azure/Copilot/Power Platform ramp gap; deadline 2026-04-07 may have closed; PDF generated |
 | 576 | 2026-05-06 | Pear VC (Atrix) | Forward Deployed Engineer (AI Solutions) | 4.0/5 | Evaluated | ✅ | [576](reports/576-pear-vc-atrix-fde-ai-solutions-2026-05-06.md) | NYC Hybrid earliest-FDE at Pear-backed pharma AI startup; 2-5 yr fit + healthcare AI + RAG/agentic/evals 1:1 stack; relocation needed; PDF generated |
 | 566 | 2026-05-06 | ElevenLabs | Enterprise Solutions Engineer - North America | 3.2/5 | Evaluated | ✅ | [566](reports/566-elevenlabs-enterprise-se-na-2026-05-06.md) | $11B voice AI; Remote-Global (NA preferred); Python SE for ElevenAgents/ElevenCreative; pre-sales hybrid; Manga Lens public ship + multi-provider integration directly maps; voice AI domain ramp gap. |
 | 563 | 2026-05-06 | Spotify | Machine Learning Engineer | 3.2/5 | Evaluated | ✅ | [563](reports/563-spotify-ml-engineer-2026-05-06.md) | Remote (EST timezone) US-leaning; $170-212K + equity; ML Engineer (Applied AI Systems) archetype; Java/Scala/GCP/Beam ramp gap; F-1 OPT sponsorship verify in screen; PDF generated |
