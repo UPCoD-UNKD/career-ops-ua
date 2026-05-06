@@ -38,7 +38,7 @@ export default function Dashboard() {
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [profileFormData, setProfileFormData] = useState<any>({
-    candidate: { full_name: '', location: '', email: '', linkedin: '', github: '' },
+    candidate: { full_name: '', location: '', email: '', phone: '', linkedin: '', github: '' },
     narrative: { headline: '', exit_story: '', superpowers: [] },
     experience: [],
     education: [],
@@ -1140,11 +1140,125 @@ System Initialized — v2.0`}
                  </ConfigSection>
 
                  <ConfigSection title="Candidate Identity" icon={<LayoutDashboard size={18} className="text-[#1c1917]" />}>
-                   <Input label="Full Name" value={profileFormData.candidate.full_name} onChange={(v) => setProfileFormData({...profileFormData, candidate: {...profileFormData.candidate, full_name: v}})} />
-                   <div className="grid grid-cols-2 gap-4">
-                      <Input label="Site Location" value={profileFormData.candidate.location} onChange={(v) => setProfileFormData({...profileFormData, candidate: {...profileFormData.candidate, location: v}})} />
-                      <Input label="Secure Email" value={profileFormData.candidate.email} onChange={(v) => setProfileFormData({...profileFormData, candidate: {...profileFormData.candidate, email: v}})} />
+                   {/* Profile Completion Indicator */}
+                   {(() => {
+                     const fields = ['full_name', 'email', 'location', 'phone', 'linkedin'];
+                     const filled = fields.filter(f => profileFormData.candidate?.[f]?.trim()).length;
+                     const percent = Math.round((filled / fields.length) * 100);
+                     return (
+                       <div className="mb-5 bg-[#faf9f6] rounded-2xl p-4 border border-[#e7e5e4]">
+                         <div className="flex items-center justify-between mb-2">
+                           <span className="text-xs font-bold text-[#1c1917] uppercase tracking-wider">Profile Completion</span>
+                           <span className={`text-xs font-bold ${percent === 100 ? 'text-emerald-600' : 'text-[#78716c]'}`}>{percent}%</span>
+                         </div>
+                         <div className="h-2 bg-[#e7e5e4] rounded-full overflow-hidden">
+                           <div
+                             className={`h-full rounded-full transition-all duration-500 ${percent === 100 ? 'bg-emerald-500' : 'bg-[#1c1917]'}`}
+                             style={{ width: `${percent}%` }}
+                           />
+                         </div>
+                         <p className="text-[10px] text-[#a8a29e] mt-2">
+                           {percent === 100 ? '✓ All essential fields completed' : `${5 - filled} field${5 - filled === 1 ? '' : 's'} remaining for a complete profile`}
+                         </p>
+                       </div>
+                     );
+                   })()}
+
+                   {/* Essential Info Card */}
+                   <div className="bg-white rounded-2xl border border-[#e7e5e4] p-4 mb-4">
+                     <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#f5f5f4]">
+                       <div className="w-8 h-8 bg-[#1c1917] rounded-lg flex items-center justify-center">
+                         <span className="text-white text-xs font-bold">01</span>
+                       </div>
+                       <span className="text-sm font-bold text-[#1c1917]">Essential Information</span>
+                       <span className="text-[10px] text-rose-500 font-medium ml-auto">Required</span>
+                     </div>
+
+                     <div className="space-y-4">
+                       <Input
+                         label="Full Name"
+                         value={profileFormData.candidate.full_name}
+                         onChange={(v) => setProfileFormData({...profileFormData, candidate: {...profileFormData.candidate, full_name: v}})}
+                         placeholder="John Doe"
+                         required
+                       />
+                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                         <Input
+                           label="Email Address"
+                           type="email"
+                           value={profileFormData.candidate.email}
+                           onChange={(v) => setProfileFormData({...profileFormData, candidate: {...profileFormData.candidate, email: v}})}
+                           placeholder="john@example.com"
+                           required
+                         />
+                         <Input
+                           label="Phone Number"
+                           type="tel"
+                           value={profileFormData.candidate.phone}
+                           onChange={(v) => setProfileFormData({...profileFormData, candidate: {...profileFormData.candidate, phone: v}})}
+                           placeholder="+1 (555) 123-4567"
+                         />
+                       </div>
+                       <Input
+                         label="Location"
+                         value={profileFormData.candidate.location}
+                         onChange={(v) => setProfileFormData({...profileFormData, candidate: {...profileFormData.candidate, location: v}})}
+                         placeholder="San Francisco, CA"
+                         hint="City, State/Country format"
+                       />
+                     </div>
                    </div>
+
+                   {/* Online Presence Card */}
+                   <div className="bg-white rounded-2xl border border-[#e7e5e4] p-4">
+                     <div className="flex items-center gap-2 mb-4 pb-3 border-b border-[#f5f5f4]">
+                       <div className="w-8 h-8 bg-[#78716c] rounded-lg flex items-center justify-center">
+                         <span className="text-white text-xs font-bold">02</span>
+                       </div>
+                       <span className="text-sm font-bold text-[#1c1917]">Online Presence</span>
+                       <span className="text-[10px] text-[#a8a29e] font-medium ml-auto">Recommended</span>
+                     </div>
+
+                     <div className="space-y-4">
+                       <Input
+                         label="LinkedIn Profile"
+                         value={profileFormData.candidate.linkedin}
+                         onChange={(v) => setProfileFormData({...profileFormData, candidate: {...profileFormData.candidate, linkedin: v}})}
+                         placeholder="linkedin.com/in/johndoe"
+                         hint="Just the path: linkedin.com/in/username"
+                       />
+                       <Input
+                         label="GitHub / Portfolio"
+                         value={profileFormData.candidate.github}
+                         onChange={(v) => setProfileFormData({...profileFormData, candidate: {...profileFormData.candidate, github: v}})}
+                         placeholder="github.com/johndoe or johndoe.com"
+                         hint="Used as portfolio link on resume"
+                       />
+                     </div>
+                   </div>
+
+                   {/* Quick Preview */}
+                   {profileFormData.candidate.full_name && (
+                     <div className="mt-4 bg-[#faf9f6] rounded-2xl p-4 border border-[#e7e5e4]">
+                       <p className="text-[10px] font-bold text-[#a8a29e] uppercase tracking-wider mb-2">Resume Header Preview</p>
+                       <div className="text-sm font-bold text-[#1c1917]">{profileFormData.candidate.full_name}</div>
+                       <div className="text-xs text-[#78716c] mt-1">
+                         {[
+                           profileFormData.candidate.location,
+                           profileFormData.candidate.email,
+                           profileFormData.candidate.phone
+                         ].filter(Boolean).join(' • ') || 'Add location, email, and phone'}
+                       </div>
+                       {(profileFormData.candidate.linkedin || profileFormData.candidate.github) && (
+                         <div className="text-[10px] text-[#a8a29e] mt-2">
+                           {[
+                             profileFormData.candidate.linkedin && `linkedin.com/in/${profileFormData.candidate.linkedin.replace(/^.*\//, '')}`,
+                             profileFormData.candidate.github && (profileFormData.candidate.github.includes('/') ? profileFormData.candidate.github : `github.com/${profileFormData.candidate.github}`)
+                           ].filter(Boolean).join(' • ')}
+                         </div>
+                       )}
+                     </div>
+                   )}
                  </ConfigSection>
 
                  <ConfigSection title="Resume Import" icon={<Upload size={18} className="text-[#1c1917]" />}>
@@ -1814,16 +1928,41 @@ function ConfigSection({ id, title, icon, children }: { id?: string, title: stri
   );
 }
 
-function Input({ label, value, onChange, placeholder, type = "text" }: { label: string, value: string, onChange: (v: string) => void, placeholder?: string, type?: string }) {
+function Input({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+  hint,
+  required
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
+  hint?: string;
+  required?: boolean;
+}) {
   return (
     <div className="space-y-2">
-      <label className="text-[10px] font-bold text-[#a8a29e] uppercase tracking-widest block pl-1">{label}</label>
-      <input 
+      <div className="flex items-center justify-between">
+        <label className="text-[10px] font-bold text-[#a8a29e] uppercase tracking-widest block pl-1">
+          {label}
+          {required && <span className="text-rose-500 ml-1">*</span>}
+        </label>
+        {hint && <span className="text-[9px] text-[#a8a29e] italic">{hint}</span>}
+      </div>
+      <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full bg-[#faf9f6]/50 border border-[#e7e5e4] rounded-2xl p-4 outline-none focus:border-[#1c1917] transition-all text-sm font-bold text-[#1c1917]" 
+        className={`w-full bg-[#faf9f6]/50 border rounded-2xl p-4 outline-none focus:border-[#1c1917] transition-all text-sm font-bold text-[#1c1917] ${
+          value?.trim() ? 'border-[#e7e5e4]' : required ? 'border-rose-200 focus:border-rose-400' : 'border-[#e7e5e4]'
+        }`}
         placeholder={placeholder}
+        required={required}
       />
     </div>
   );
