@@ -1147,61 +1147,158 @@ System Initialized — v2.0`}
                    </div>
                  </ConfigSection>
 
-                 <ConfigSection title="Resume Import (PDF/DOCX)" icon={<Upload size={18} className="text-[#1c1917]" />}>
-                   <div className="space-y-4">
-                     <input
-                       type="file"
-                       accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                       onChange={(e) => {
-                         const f = e.target.files?.[0];
-                         if (f) handleResumeImportFile(f);
-                       }}
-                       className="block w-full text-sm font-medium text-[#1c1917] file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-[#1c1917] file:text-white file:font-bold hover:file:bg-[#27272a]"
-                     />
+                 <ConfigSection title="Resume Import" icon={<Upload size={18} className="text-[#1c1917]" />}>
+                   <div className="space-y-5">
+                     {/* Upload Area - Drop Zone Style */}
+                     <div
+                       className={`relative border-2 border-dashed rounded-2xl p-6 transition-all duration-200 ${
+                         resumeImportStatus === 'uploading'
+                           ? 'border-emerald-400 bg-emerald-50'
+                           : resumeImportStatus === 'error'
+                             ? 'border-rose-400 bg-rose-50'
+                             : resumeImportStatus === 'ready'
+                               ? 'border-emerald-500 bg-emerald-50'
+                               : 'border-[#e7e5e4] hover:border-[#1c1917] hover:bg-[#faf9f6]'
+                       }`}
+                     >
+                       <div className="text-center">
+                         <div className={`w-14 h-14 mx-auto mb-3 rounded-2xl flex items-center justify-center transition-colors ${
+                           resumeImportStatus === 'ready'
+                             ? 'bg-emerald-100'
+                             : resumeImportStatus === 'error'
+                               ? 'bg-rose-100'
+                               : 'bg-[#f5f5f4]'
+                         }`}>
+                           {resumeImportStatus === 'uploading' ? (
+                             <div className="w-6 h-6 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                           ) : resumeImportStatus === 'ready' ? (
+                             <CheckCircle2 size={24} className="text-emerald-600" />
+                           ) : resumeImportStatus === 'error' ? (
+                             <AlertTriangle size={24} className="text-rose-600" />
+                           ) : (
+                             <Upload size={24} className="text-[#78716c]" />
+                           )}
+                         </div>
 
-                     <div className="flex items-center gap-4">
-                       <div className="text-[10px] font-bold text-[#a8a29e] uppercase tracking-widest">Mode</div>
-                       <button
-                         type="button"
-                         onClick={() => setResumeImportMode('merge')}
-                         className={`px-4 py-2 rounded-xl border text-xs font-bold transition-colors ${
-                           resumeImportMode === 'merge' ? 'bg-white border-[#1c1917]' : 'bg-[#faf9f6] border-[#e7e5e4]'
-                         }`}
-                       >
-                         Merge
-                       </button>
-                       <button
-                         type="button"
-                         onClick={() => setResumeImportMode('replace')}
-                         className={`px-4 py-2 rounded-xl border text-xs font-bold transition-colors ${
-                           resumeImportMode === 'replace' ? 'bg-white border-[#1c1917]' : 'bg-[#faf9f6] border-[#e7e5e4]'
-                         }`}
-                       >
-                         Replace
-                       </button>
+                         <p className="text-sm font-bold text-[#1c1917] mb-1">
+                           {resumeImportStatus === 'uploading' && 'Analyzing resume...'}
+                           {resumeImportStatus === 'ready' && 'Resume analyzed successfully'}
+                           {resumeImportStatus === 'error' && 'Import failed'}
+                           {resumeImportStatus === 'idle' && 'Upload your resume (PDF or DOCX)'}
+                         </p>
+                         <p className="text-xs text-[#78716c] mb-4">
+                           {resumeImportStatus === 'idle' && 'We\'ll extract Experience and Education automatically'}
+                           {resumeImportStatus === 'ready' && `Found ${(resumeImport?.experience || []).length} experience entries and ${(resumeImport?.education || []).length} education entries`}
+                           {resumeImportStatus === 'error' && (resumeImport?.error || 'Unknown error')}
+                         </p>
+
+                         {resumeImportStatus !== 'uploading' && (
+                           <label className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#1c1917] text-white text-xs font-bold rounded-xl hover:bg-[#27272a] transition-colors cursor-pointer">
+                             <Upload size={14} />
+                             <span>{resumeImportStatus === 'ready' ? 'Upload different resume' : 'Choose file'}</span>
+                             <input
+                               type="file"
+                               accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                               onChange={(e) => {
+                                 const f = e.target.files?.[0];
+                                 if (f) handleResumeImportFile(f);
+                               }}
+                               className="hidden"
+                             />
+                           </label>
+                         )}
+                       </div>
                      </div>
 
-                     <div className="text-xs font-medium text-[#78716c]">
-                       {resumeImportStatus === 'idle' && 'Upload your resume to auto-fill Experience + Education.'}
-                       {resumeImportStatus === 'uploading' && 'Importing… (best-effort extraction)'}
-                       {resumeImportStatus === 'error' && `Import failed: ${resumeImport?.error || 'Unknown error'}`}
-                       {resumeImportStatus === 'ready' &&
-                         `Found ${(resumeImport?.experience || []).length} experience entries and ${(resumeImport?.education || []).length} education entries.`}
+                     {/* Import Mode Selection */}
+                     <div className="bg-[#faf9f6] rounded-2xl p-4 border border-[#e7e5e4]">
+                       <div className="flex items-center justify-between mb-3">
+                         <span className="text-xs font-bold text-[#1c1917] uppercase tracking-wider">Import Mode</span>
+                         <span className="text-[10px] text-[#a8a29e] bg-white px-2 py-1 rounded-lg border border-[#e7e5e4]">
+                           {resumeImportMode === 'merge' ? 'Add to existing' : 'Replace all'}
+                         </span>
+                       </div>
+
+                       <div className="grid grid-cols-2 gap-3">
+                         {/* Merge Option */}
+                         <button
+                           type="button"
+                           onClick={() => setResumeImportMode('merge')}
+                           className={`p-4 rounded-xl border text-left transition-all ${
+                             resumeImportMode === 'merge'
+                               ? 'bg-white border-[#1c1917] shadow-sm'
+                               : 'bg-white border-[#e7e5e4] hover:border-[#1c1917]'
+                           }`}
+                         >
+                           <div className="flex items-center gap-2 mb-2">
+                             <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                               resumeImportMode === 'merge' ? 'border-[#1c1917] bg-[#1c1917]' : 'border-[#e7e5e4]'
+                             }`}>
+                               {resumeImportMode === 'merge' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                             </div>
+                             <span className="text-sm font-bold text-[#1c1917]">Merge</span>
+                           </div>
+                           <p className="text-[10px] text-[#78716c] leading-relaxed">
+                             Keep existing entries and add new ones from resume. No duplicates.
+                           </p>
+                         </button>
+
+                         {/* Replace Option */}
+                         <button
+                           type="button"
+                           onClick={() => setResumeImportMode('replace')}
+                           className={`p-4 rounded-xl border text-left transition-all ${
+                             resumeImportMode === 'replace'
+                               ? 'bg-white border-rose-500 shadow-sm'
+                               : 'bg-white border-[#e7e5e4] hover:border-rose-400'
+                           }`}
+                         >
+                           <div className="flex items-center gap-2 mb-2">
+                             <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                               resumeImportMode === 'replace' ? 'border-rose-500 bg-rose-500' : 'border-[#e7e5e4]'
+                             }`}>
+                               {resumeImportMode === 'replace' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                             </div>
+                             <span className="text-sm font-bold text-[#1c1917]">Replace</span>
+                           </div>
+                           <p className="text-[10px] text-[#78716c] leading-relaxed">
+                             Delete all existing entries. Use only what's in the uploaded resume.
+                           </p>
+                         </button>
+                       </div>
                      </div>
 
+                     {/* Action Button */}
                      {resumeImportStatus === 'ready' && (
-                       <div className="space-y-3">
+                       <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-200">
+                         <div className="flex items-start gap-3 mb-4">
+                           <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
+                             <CheckCircle2 size={16} className="text-emerald-600" />
+                           </div>
+                           <div>
+                             <p className="text-sm font-bold text-emerald-800">Ready to import</p>
+                             <p className="text-xs text-emerald-600 mt-0.5">
+                               This will {resumeImportMode === 'merge' ? 'add to' : 'replace'} your current Experience and Education sections
+                             </p>
+                           </div>
+                         </div>
                          <button
                            type="button"
                            onClick={applyResumeImport}
-                           className="w-full px-6 py-3 rounded-2xl bg-[#1c1917] text-white hover:bg-[#27272a] transition-colors text-sm font-bold"
+                           className="w-full px-4 py-3 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
                          >
-                           Apply import to Experience/Education
+                           <Upload size={16} />
+                           Apply Import
                          </button>
                          {!!resumeImport?.raw_text_preview && (
-                           <details className="bg-[#faf9f6] border border-[#e7e5e4] rounded-2xl p-4">
-                             <summary className="cursor-pointer text-xs font-bold text-[#1c1917]">Raw text preview</summary>
-                             <pre className="mt-3 text-[11px] whitespace-pre-wrap text-[#44403c] font-mono">{resumeImport.raw_text_preview}</pre>
+                           <details className="mt-3 border-t border-emerald-200 pt-3">
+                             <summary className="cursor-pointer text-xs font-bold text-emerald-700 flex items-center gap-2">
+                               <FileText size={12} />
+                               Preview extracted text
+                             </summary>
+                             <pre className="mt-3 text-[10px] whitespace-pre-wrap text-emerald-800 font-mono bg-emerald-100/50 rounded-xl p-3 max-h-40 overflow-y-auto">
+                               {resumeImport.raw_text_preview}
+                             </pre>
                            </details>
                          )}
                        </div>
