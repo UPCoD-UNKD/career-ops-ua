@@ -852,6 +852,8 @@
 - [!] https://jobs.ashbyhq.com/percepta/bbfe8035-2364-419b-bb36-500aaa542fb2 | Percepta | Applied AI Engineer | New York City — On-site (verify hybrid in screen) — moved to Procesadas (#588) 2026-05-06 (4.0/5 — GC-backed vertical AI healthcare/manufacturing/energy; $150-300K + equity; 1:1 healthcare RAG + agentic + multi-provider stack; PDF generated)
 - [!] https://jobs.ashbyhq.com/latent/bf2e495f-4a9c-4d60-9c12-28339e032185 | Latent | Machine Learning Engineer | Remote — error: posting closed (Ashby GraphQL `jobPosting: null` 2026-05-06T12Z); replaced with current live Latent posting 233bbaac (Machine Learning Engineer SF)
 - [!] https://jobs.ashbyhq.com/latent/233bbaac-d589-49f4-a8eb-6bb16673b060 | Latent Health | Machine Learning Engineer | San Francisco — On-site most-of-week — moved to Procesadas (#589) 2026-05-06 (2.6/5 — explicit senior/staff gate + RL/mid-training gap; healthcare LLM domain 1:1 but tier mismatch; SKIP)
+- [ ] https://job-boards.greenhouse.io/celonis/jobs/7610416003?gh_jid=7610416003 | Celonis | Field CTO - AI & Enterprise Modernization | Munich, Germany
+
 
 
 
