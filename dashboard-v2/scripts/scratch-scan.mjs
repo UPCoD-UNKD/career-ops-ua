@@ -222,7 +222,10 @@ async function scanGreenhouse() {
   console.log(`\n🌿 Greenhouse API — ${ghCompanies.length} companies`);
   stats.greenhouse.checked = ghCompanies.length;
 
-  for (const comp of ghCompanies) {
+  for (let i = 0; i < ghCompanies.length; i++) {
+    const comp = ghCompanies[i];
+    const progress = ghCompanies.length > 10 ? `[${i + 1}/${ghCompanies.length}] ` : '';
+
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout per company
@@ -240,12 +243,17 @@ async function scanGreenhouse() {
         const result = tryAdd(url, comp.name, title, 'Greenhouse API');
         if (result === 'added') {
           stats.greenhouse.added++;
-          process.stdout.write(`  ✓ ${comp.name}: ${job.title}\n`);
+          process.stdout.write(`  ${progress}✓ ${comp.name}: ${job.title}\n`);
         }
+      }
+
+      // Show progress every 10 companies if many exist
+      if (ghCompanies.length > 10 && (i + 1) % 10 === 0) {
+        console.log(`📊 Greenhouse: ${i + 1}/${ghCompanies.length} checked`);
       }
     } catch (e) {
       stats.greenhouse.errors++;
-      process.stdout.write(`  ✗ ${comp.name}: ${e.message}\n`);
+      process.stdout.write(`  ${progress}✗ ${comp.name}: ${e.message}\n`);
     }
   }
 }
@@ -256,7 +264,9 @@ async function scanAshby() {
   const ashbyCompanies = companies.filter(c => c.careers_url?.includes('jobs.ashbyhq.com') && !c.api && c.enabled !== false);
   console.log(`\n🔷 Ashby API — ${ashbyCompanies.length} companies`);
   stats.ashby.checked = ashbyCompanies.length;
-  for (const comp of ashbyCompanies) {
+  for (let i = 0; i < ashbyCompanies.length; i++) {
+    const comp = ashbyCompanies[i];
+    const progress = ashbyCompanies.length > 10 ? `[${i + 1}/${ashbyCompanies.length}] ` : '';
     try {
       const slug = comp.careers_url.replace('https://jobs.ashbyhq.com/', '').split('/')[0].split('?')[0];
       const apiUrl = `https://jobs.ashbyhq.com/${slug}/api/jobs`;
@@ -270,9 +280,12 @@ async function scanAshby() {
         const loc = job.locationName || (job.isRemote ? 'Remote' : '');
         const title = loc ? `${job.title} (${loc})` : job.title;
         const result = tryAdd(url, comp.name, title, 'Ashby API');
-        if (result === 'added') { stats.ashby.added++; process.stdout.write(`  ✓ ${comp.name}: ${job.title}\n`); }
+        if (result === 'added') { stats.ashby.added++; process.stdout.write(`  ${progress}✓ ${comp.name}: ${job.title}\n`); }
       }
-    } catch (e) { stats.ashby.errors++; process.stdout.write(`  ✗ ${comp.name}: ${e.message}\n`); }
+      if (ashbyCompanies.length > 10 && (i + 1) % 10 === 0) {
+        console.log(`📊 Ashby: ${i + 1}/${ashbyCompanies.length} checked`);
+      }
+    } catch (e) { stats.ashby.errors++; process.stdout.write(`  ${progress}✗ ${comp.name}: ${e.message}\n`); }
   }
 }
 
@@ -280,7 +293,9 @@ async function scanLever() {
   const leverCompanies = companies.filter(c => c.careers_url?.includes('jobs.lever.co') && c.enabled !== false);
   console.log(`\n🔶 Lever API — ${leverCompanies.length} companies`);
   stats.lever.checked = leverCompanies.length;
-  for (const comp of leverCompanies) {
+  for (let i = 0; i < leverCompanies.length; i++) {
+    const comp = leverCompanies[i];
+    const progress = leverCompanies.length > 10 ? `[${i + 1}/${leverCompanies.length}] ` : '';
     try {
       const slug = comp.careers_url.replace('https://jobs.lever.co/', '').split('/')[0].split('?')[0];
       const apiUrl = `https://api.lever.co/v0/postings/${slug}?mode=json&limit=250`;
@@ -294,9 +309,12 @@ async function scanLever() {
         const loc = job.categories?.location || job.workplaceType || '';
         const title = loc ? `${job.text} (${loc})` : job.text;
         const result = tryAdd(url, comp.name, title, 'Lever API');
-        if (result === 'added') { stats.lever.added++; process.stdout.write(`  ✓ ${comp.name}: ${job.text}\n`); }
+        if (result === 'added') { stats.lever.added++; process.stdout.write(`  ${progress}✓ ${comp.name}: ${job.text}\n`); }
       }
-    } catch (e) { stats.lever.errors++; process.stdout.write(`  ✗ ${comp.name}: ${e.message}\n`); }
+      if (leverCompanies.length > 10 && (i + 1) % 10 === 0) {
+        console.log(`📊 Lever: ${i + 1}/${leverCompanies.length} checked`);
+      }
+    } catch (e) { stats.lever.errors++; process.stdout.write(`  ${progress}✗ ${comp.name}: ${e.message}\n`); }
   }
 }
 
@@ -304,7 +322,9 @@ async function scanWorkable() {
   const workableCompanies = companies.filter(c => c.careers_url?.includes('apply.workable.com') && c.enabled !== false);
   console.log(`\n🔵 Workable API — ${workableCompanies.length} companies`);
   stats.workable.checked = workableCompanies.length;
-  for (const comp of workableCompanies) {
+  for (let i = 0; i < workableCompanies.length; i++) {
+    const comp = workableCompanies[i];
+    const progress = workableCompanies.length > 10 ? `[${i + 1}/${workableCompanies.length}] ` : '';
     try {
       const slug = comp.careers_url.replace('https://apply.workable.com/', '').split('/')[0].split('?')[0];
       const apiUrl = `https://apply.workable.com/api/v3/accounts/${slug}/jobs`;
@@ -322,9 +342,12 @@ async function scanWorkable() {
         const loc = job.location?.locationStr || (job.remote ? 'Remote' : '');
         const title = loc ? `${job.title} (${loc})` : job.title;
         const result = tryAdd(url, comp.name, title, 'Workable API');
-        if (result === 'added') { stats.workable.added++; process.stdout.write(`  ✓ ${comp.name}: ${job.title}\n`); }
+        if (result === 'added') { stats.workable.added++; process.stdout.write(`  ${progress}✓ ${comp.name}: ${job.title}\n`); }
       }
-    } catch (e) { stats.workable.errors++; process.stdout.write(`  ✗ ${comp.name}: ${e.message}\n`); }
+      if (workableCompanies.length > 10 && (i + 1) % 10 === 0) {
+        console.log(`📊 Workable: ${i + 1}/${workableCompanies.length} checked`);
+      }
+    } catch (e) { stats.workable.errors++; process.stdout.write(`  ${progress}✗ ${comp.name}: ${e.message}\n`); }
   }
 }
 
@@ -385,9 +408,16 @@ async function run() {
       const queries = (config.search_queries || []).filter(q => q.enabled !== false);
       stats.discovery.checked = queries.length;
 
-      for (const q of queries) {
-        console.log(`  🔍 Scanning: ${q.name}...`);
+      console.log(`\n📊 Progress: 0/${queries.length} portals completed`);
+
+      for (let i = 0; i < queries.length; i++) {
+        const q = queries[i];
+        const progress = `[${i + 1}/${queries.length}]`;
+        console.log(`  ${progress} 🔍 Scanning ${q.name}... (${q.portal})`);
+
         let results = [];
+        const scanStart = Date.now();
+
         try {
           if (q.portal === 'linkedin' && scrapeLinkedIn) {
             results = await scrapeLinkedIn(q.query, q.location || 'India');
@@ -408,15 +438,26 @@ async function run() {
             // Browser-free discovery (DuckDuckGo search) — primary path in serverless
             results = await discoverJobsWithoutBrowser(buildDiscoveryQuery(q), q.name);
           }
-          
+
+          const duration = ((Date.now() - scanStart) / 1000).toFixed(1);
           stats.discovery.found += results.length;
           results.forEach(j => {
             const res = tryAdd(j.url, j.company, j.title, j.source);
             if (res === 'added') stats.discovery.added++;
           });
+          console.log(`      ✓ Done: ${results.length} jobs found (${duration}s)`);
         } catch (err) {
-          console.error(`  ✗ Error scanning ${q.name}:`, err.message);
+          const duration = ((Date.now() - scanStart) / 1000).toFixed(1);
+          console.error(`      ✗ Failed after ${duration}s:`, err.message);
           stats.discovery.errors++;
+        }
+
+        // Show progress after each portal
+        const remaining = queries.length - (i + 1);
+        if (remaining > 0) {
+          console.log(`📊 Progress: ${i + 1}/${queries.length} completed • ${remaining} remaining`);
+        } else {
+          console.log(`📊 Progress: ${queries.length}/${queries.length} completed ✓`);
         }
       }
     } catch (e) {
