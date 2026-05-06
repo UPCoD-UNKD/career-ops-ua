@@ -389,7 +389,7 @@ async function tailorPackage(jd, profile, companyName) {
             const resolvedUrl = mapping[jobId].url;
             // Now lookup by URL
             const [jobRecord] = await sql`
-              SELECT user_id, url, company, title
+              SELECT id, user_id, url, company, title
               FROM jobs
               WHERE url = ${resolvedUrl} AND user_id = ${userId}
               LIMIT 1
@@ -411,7 +411,7 @@ async function tailorPackage(jd, profile, companyName) {
       if (!entry.url && jobId > 0 && jobId < 1000) {
         const offset = Math.max(0, jobId - 1);
         const [jobRecord] = await sql`
-          SELECT user_id, url, company, title
+          SELECT id, user_id, url, company, title
           FROM jobs
           WHERE user_id = ${userId}
           ORDER BY (score IS NULL) ASC, score DESC, created_at DESC
