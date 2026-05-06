@@ -3,9 +3,9 @@
 /**
  * scan.mjs — Zero-token portal scanner
  *
- * Fetches Greenhouse, Ashby, and Lever APIs directly, applies title
- * filters from portals.yml, deduplicates against existing history,
- * and appends new offers to pipeline.md + scan-history.tsv.
+ * Fetches Greenhouse, Ashby, Lever, RemoteOK, Remotive, and WeWorkRemotely
+ * APIs directly, applies title filters from portals.yml, deduplicates
+ * against existing history, and appends new offers to pipeline.md + scan-history.tsv.
  *
  * Zero Claude API tokens — pure HTTP + JSON.
  *
@@ -105,6 +105,81 @@ function parseLever(json, companyName) {
 }
 
 const PARSERS = { greenhouse: parseGreenhouse, ashby: parseAshby, lever: parseLever };
+
+// ── Open job board APIs (no per-company config needed) ─────────────
+
+async function fetchRemoteOk(titleFilter) {
+  const res = await fetchJson('https://remoteok.com/api');
+  // First element is metadata; skip it
+  const jobs = Array.isArray(res) ? res.slice(1) : [];
+  return jobs
+    .filter(j => j && j.id && j.position)
+    .filter(j => titleFilter(j.position))
+    .map(j => ({
+      title: j.position,
+      url: j.url,
+      company: j.company || 'Unknown',
+      location: j.location || 'Remote',
+      source: 'remoteok-api',
+    }));
+}
+
+async function fetchRemotive(titleFilter) {
+  const res = await fetchJson('https://remotive.com/api/remote-jobs?category=software-dev');
+  const jobs = res?.jobs || [];
+  return jobs
+    .filter(j => titleFilter(j.title))
+    .map(j => ({
+      title: j.title,
+      url: j.url,
+      company: j.company_name || 'Unknown',
+      location: j.candidate_required_location || 'Remote',
+      source: 'remotive-api',
+    }));
+}
+
+async function fetchWeWorkRemotely(titleFilter) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch('https://weworkremotely.com/categories/remote-programming-jobs.rss', {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'career-ops/1.0', 'Accept': 'application/rss+xml' },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const xml = await res.text();
+
+    // Lightweight RSS parser
+    const items = xml.split('<item>').slice(1);
+    const jobs = [];
+    for (const chunk of items) {
+      const block = chunk.split('</item>')[0];
+      const extract = (tag) => {
+        const m = block.match(new RegExp(`<${tag}[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?</${tag}>`, 'i'));
+        return m ? m[1].trim() : '';
+      };
+      const rawTitle = extract('title');
+      const link = extract('link');
+      if (!rawTitle || !link) continue;
+
+      // WWR titles: "Company Name: Job Title"
+      let company = extract('dc:creator') || 'Unknown';
+      let title = rawTitle;
+      const colonIdx = rawTitle.indexOf(':');
+      if (colonIdx > 0) {
+        company = rawTitle.slice(0, colonIdx).trim();
+        title = rawTitle.slice(colonIdx + 1).trim();
+      }
+
+      if (titleFilter(title)) {
+        jobs.push({ title, url: link, company, location: 'Remote', source: 'weworkremotely-rss' });
+      }
+    }
+    return jobs;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 // ── Fetch with timeout ──────────────────────────────────────────────
 
@@ -321,6 +396,35 @@ async function main() {
   });
 
   await parallelFetch(tasks, CONCURRENCY);
+
+  // 4b. Fetch open job boards (RemoteOK, Remotive, WeWorkRemotely)
+  const openBoards = config.open_boards !== false; // enabled by default, disable with open_boards: false in portals.yml
+  if (openBoards && !filterCompany) {
+    const boardSources = [
+      { name: 'RemoteOK', fn: fetchRemoteOk },
+      { name: 'Remotive', fn: fetchRemotive },
+      { name: 'WeWorkRemotely', fn: fetchWeWorkRemotely },
+    ];
+
+    for (const board of boardSources) {
+      try {
+        const jobs = await board.fn(titleFilter);
+        totalFound += jobs.length;
+
+        for (const job of jobs) {
+          if (seenUrls.has(job.url)) { totalDupes++; continue; }
+          const key = `${job.company.toLowerCase()}::${job.title.toLowerCase()}`;
+          if (seenCompanyRoles.has(key)) { totalDupes++; continue; }
+          seenUrls.add(job.url);
+          seenCompanyRoles.add(key);
+          newOffers.push(job);
+        }
+        console.log(`  ✓ ${board.name}: ${jobs.length} jobs found`);
+      } catch (err) {
+        errors.push({ company: board.name, error: err.message });
+      }
+    }
+  }
 
   // 5. Write results
   if (!dryRun && newOffers.length > 0) {
