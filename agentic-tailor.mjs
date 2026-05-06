@@ -427,7 +427,7 @@ async function tailorPackage(jd, profile, companyName) {
       // If entry still empty (not resolved from map), try direct DB lookup by ID
       if (!entry.url) {
         const [jobRecord] = await sql`
-          SELECT user_id, url, company, title
+          SELECT id, user_id, url, company, title
           FROM jobs
           WHERE id = ${jobId} AND user_id = ${userId}
         `;
@@ -435,6 +435,9 @@ async function tailorPackage(jd, profile, companyName) {
         entry = jobRecord;
       }
     }
+
+    // Debug: log what we have
+    console.log(`[DEBUG] Entry resolved: id=${entry?.id}, company=${entry?.company}`);
 
     const [profileRow] = await sql`SELECT resume_context, hf_token FROM user_profiles WHERE user_id = ${userId}`;
     if (!profileRow) throw new Error(`Profile not configured for user ${userId}. Please setup via the Dashboard Settings.`);
@@ -574,7 +577,10 @@ async function tailorPackage(jd, profile, companyName) {
         try {
           const resumePdfBuf = fs.existsSync(resumePathPdf) ? fs.readFileSync(resumePathPdf) : null;
           const clPdfBuf = fs.existsSync(clPathPdf) ? fs.readFileSync(clPathPdf) : null;
-          const baseKey = `users/${userId}/jobs/${entry.id || sanitizeFilename(entry.company)}/${Date.now()}`;
+          // ALWAYS use job ID for R2 key if available - never fall back to company name
+          const keyId = entry?.id || jobId;
+          const baseKey = `users/${userId}/jobs/${keyId}/${Date.now()}`;
+          console.log(`[R2] Generating key with id=${keyId}, baseKey=${baseKey}`);
           let resumeKey = null;
           let clKey = null;
 

@@ -398,6 +398,9 @@ async function tailorPackage(jd, profile, companyName) {
       }
     }
 
+    // Debug: log what we have
+    console.log(`[DEBUG] Entry resolved: id=${entry?.id}, company=${entry?.company}`);
+
     const [profileRow] = await sql`SELECT resume_context, hf_token FROM user_profiles WHERE user_id = ${userId}`;
     if (!profileRow) throw new Error(`Profile not configured for user ${userId}. Please setup via the Dashboard Settings.`);
 
