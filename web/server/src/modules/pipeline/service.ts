@@ -22,15 +22,13 @@ type AnyStatus = KanbanStatus | ArchiveStatus;
 export function validateTransition(from: string, to: string): boolean {
   if (from === to) return false;
 
-  const isToArchive = (ARCHIVE_STATUSES as readonly string[]).includes(to);
-  if (isToArchive) return true;
+  const allValid = [
+    ...(KANBAN_COLUMNS as readonly string[]),
+    ...(ARCHIVE_STATUSES as readonly string[]),
+  ];
 
-  const fromIdx = (KANBAN_COLUMNS as readonly string[]).indexOf(from);
-  const toIdx = (KANBAN_COLUMNS as readonly string[]).indexOf(to);
-
-  if (fromIdx === -1 || toIdx === -1) return false;
-
-  return toIdx > fromIdx;
+  // Allow any move between valid statuses
+  return allValid.includes(from) && allValid.includes(to);
 }
 
 export class PipelineService {

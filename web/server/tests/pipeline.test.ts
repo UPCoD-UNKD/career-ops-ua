@@ -14,7 +14,7 @@ describe("validateTransition", () => {
     expect(validateTransition("Applied", "Discarded")).toBe(true);
   });
   it("allows any status → SKIP", () => { expect(validateTransition("Evaluated", "SKIP")).toBe(true); });
-  it("rejects Offer → Evaluated (backwards)", () => { expect(validateTransition("Offer", "Evaluated")).toBe(false); });
+  it("allows Offer → Evaluated (backwards)", () => { expect(validateTransition("Offer", "Evaluated")).toBe(true); });
   it("rejects same → same", () => { expect(validateTransition("Applied", "Applied")).toBe(false); });
 });
 
