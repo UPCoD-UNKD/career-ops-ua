@@ -906,6 +906,17 @@
 - [!] https://jobs.lever.co/stackhawk/05c7c48f-c893-4048-a782-a224fabfc2f3 | StackHawk | AI Software Engineer | Remote - US (verify) — error: posting closed (Lever API "Document not found" on 2026-05-07T06Z); archived
 - [!] https://jobs.lever.co/jobgether/a92237c4-e6e8-4a2b-bb7d-1a7097e93f43 | Jobgether | AI Platform Engineer, Applied AI | Remote — error: posting closed (Lever API "Document not found" on 2026-05-07T06Z); archived
 
+<!-- Overnight 2026-05-07T~UTC fourth pass: Level 3 WebSearch additions (workatastartup + Ashby + Lever + Breezy + Himalayas) -->
+- [!] https://www.workatastartup.com/jobs/64761 | Glass Health | Founding Product Engineer | Remote — United States — moved to Procesadas (#623) 2026-05-07 (2.8/5 — 5+y senior gate vs Deepak's 2.5y; healthcare AI CDS YC; SKIP under threshold)
+- [!] https://www.workatastartup.com/jobs/63741 | Credal.ai | Founding Software Engineer, Full-Stack | Brooklyn, NY — In-person — moved to Procesadas (#624) 2026-05-07 (2.5/5 — Brooklyn-only veto for Kent OH F-1 OPT; YC enterprise agent control plane; SKIP)
+- [!] https://www.workatastartup.com/jobs/75755 | Codes Health | Founding Engineer | New York City — Dumbo — In-person — moved to Procesadas (#625) 2026-05-07 (3.2/5 — YC S24 medical-record retrieval; TS/React + Python/FastAPI + LLM 1:1; healthcare RAG/HIPAA match; PDF generated)
+- [!] https://www.workatastartup.com/jobs/73343 | Syntra | Founding Engineer | San Francisco, CA — On-site (remote flex per YC profile) — moved to Procesadas (#626) 2026-05-07 (3.4/5 — YC agentic medical billing/RCM at $1B+ scale; chart/claim agents 1:1 with Deepak's agentic claims fraud pipeline; PDF generated)
+- [!] https://www.workatastartup.com/jobs/74306 | Caseflood.ai | Founding Engineer | San Francisco, CA — On-site + travel — moved to Procesadas (#627) 2026-05-07 (2.4/5 — YC W25 legal-AI; SF on-site + frequent travel; "10X SWE" tone; domain off-archetype; SKIP)
+- [!] https://himalayas.app/companies/ahead/jobs/ai-consultant-ai-services | AHEAD | AI Consultant, AI Services | Remote — Work from Home (US) — moved to Procesadas (#628) 2026-05-07 (2.5/5 — consulting-track NOT engineering; archetype mismatch vs Deepak's IC builder North Star; SKIP)
+- [!] https://jobs.lever.co/CordTechnologies/2e207b48-9076-4e27-bc1a-36c7290c5dfe | Encord | Forward Deployed Engineer | London, UK — On-site — moved to Procesadas (#629) 2026-05-07 (2.0/5 — Series C $60M AI data layer; F-1 OPT geographic veto for UK; SKIP)
+- [!] https://jobs.ashbyhq.com/Mintlify/5c8d7302-6c94-429d-a3ff-bd38a71ea2d3 | Mintlify | Backend AI Engineer | Location verify — error: posting closed (Ashby GraphQL `jobPosting` returns no posting; not in current Mintlify jobBoard listing 2026-05-07T~UTC); archived. Active equivalent at id `496dc71b-…` is Senior tier (auto-filtered).
+- [!] https://ontrac-solutions-llc.breezy.hr/p/80a61d089fbd-machine-learning-engineer | OnTrac Solutions | Machine Learning Engineer | Chicago, IL — On-site Contract — moved to Procesadas (#630) 2026-05-07 (2.4/5 — staff augmentation contract $70-90/hr; F-1 OPT contract/staffing visa friction; SKIP)
+
 
 
 ## Procesadas
@@ -1283,3 +1294,5 @@
 - [x] #607 | https://www.workatastartup.com/jobs/69270 | SimCare AI | Founding Engineer | San Francisco, CA — Remote (US) accepted | 3.1/5 | PDF ✅
 - [x] #613 | https://jobs.ashbyhq.com/pulsora%20inc/40114f0d-d976-43b6-867c-23e52d6c6fff | Pulsora | Applied AI Engineer - US | Remote — United States | 3.0/5 | PDF ✅
 - [x] #621 | https://jobs.lever.co/knownwell/263a5523-c582-42a9-a01c-36f4b1194397 | knownwell | AI Product Engineer, Clinical Tools | Remote — United States | 3.7/5 | PDF ✅
+- [x] #625 | https://www.workatastartup.com/jobs/75755 | Codes Health | Founding Engineer | New York City — Dumbo — In-person | 3.2/5 | PDF ✅
+- [x] #626 | https://www.workatastartup.com/jobs/73343 | Syntra | Founding Engineer | San Francisco, CA — On-site (remote flex) | 3.4/5 | PDF ✅
