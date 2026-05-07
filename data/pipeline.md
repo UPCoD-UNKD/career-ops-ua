@@ -955,6 +955,14 @@
 - [!] https://jobs.ashbyhq.com/helios-intelligence-platforms/6eb2627a-e791-4bfc-8091-dd54af8f1395 | Helios Intelligence Platforms | Founding Forward Deployed Engineer | New York City or Washington, D.C. — likely On-site/Hybrid — moved to Procesadas (#647) 2026-05-07 (2.2/5 — gov-tech founding FDE; 5+y senior gate + US-gov domain niche + relocation; SKIP)
 - [!] https://join.com/companies/coworkedai/15828100-forward-deployed-engineer-fde | Coworked | Forward Deployed Engineer (FDE) | Remote — United States — moved to Procesadas (#648) 2026-05-07 (2.6/5 — Remote-US PM-leaning FDE; PMP+MS Project/Jira primary; off Deepak IC builder; SKIP)
 - [!] https://realitymine.teamtailor.com/jobs/7126489-machine-learning-engineer | RealityMine | Machine Learning Engineer | Location verify (UK/EU likely) — error: posting closed ("This position is no longer active" on TeamTailor 2026-05-07T20Z); archived
+- [!] https://job-boards.eu.greenhouse.io/parloa/jobs/4694390101 | Parloa | Forward Deployed Engineer, DevOps | New York Office — On-site — moved to Procesadas (#649) 2026-05-07 (2.0/5 — 5+y Senior DevOps auto-filter + GitOps/Terraform hard gaps + DevOps-primary off Applied AI North Star; $160-230K OTE NYC; SKIP)
+- [!] https://jobs.lever.co/palantir/be4ab5cb-9caa-4c2a-97b9-c73805fca4fc | Palantir | Forward Deployed Software Engineer - US Government - Federal Health and Civilian | New York, NY — Hybrid — moved to Procesadas (#650) 2026-05-07 (1.5/5 — HARD VETO US Top Secret clearance for F-1 OPT; mission-fit otherwise w/ healthcare AI bullseye; $135-200K base; SKIP)
+
+<!-- Overnight 2026-05-07T~UTC ninth pass: Level 3 WebSearch additions (Remotive small-ATS + non-standard titles + aggregators) -->
+- [!] https://remotive.com/remote/jobs/ai-ml/applied-ai-engineer-4062102 | AI Digital | Applied AI Engineer | Remote — error: Remotive HTTP 410 Gone on 2026-05-07T~UTC; aggregator listing removed; archived
+- [!] https://remotive.com/remote/jobs/ai-ml/applied-ai-engineer-4175846 | Smart Working Solutions | Applied AI Engineer | Remote — error: Remotive HTTP 404 on 2026-05-07T~UTC; aggregator listing removed; archived
+- [!] https://remotive.com/remote/jobs/ai-ml/ai-engineer-3840835 | MLabs | AI Engineer | Remote — error: Remotive HTTP 410 Gone on 2026-05-07T~UTC; aggregator listing removed; archived
+
 
 
 
