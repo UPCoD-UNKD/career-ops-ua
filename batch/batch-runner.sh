@@ -75,15 +75,24 @@ USAGE
 }
 
 # Parse arguments
+require_value() {
+  local option="$1"
+  if [[ $# -lt 2 || -z "${2-}" ]]; then
+    echo "ERROR: $option requires a value"
+    usage
+    exit 1
+  fi
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --agent) AGENT="$2"; shift 2 ;;
-    --parallel) PARALLEL="$2"; shift 2 ;;
+    --agent) require_value "$1" "${2-}"; AGENT="$2"; shift 2 ;;
+    --parallel) require_value "$1" "${2-}"; PARALLEL="$2"; shift 2 ;;
     --dry-run) DRY_RUN=true; shift ;;
     --retry-failed) RETRY_FAILED=true; shift ;;
-    --start-from) START_FROM="$2"; shift 2 ;;
-    --max-retries) MAX_RETRIES="$2"; shift 2 ;;
-    --min-score) MIN_SCORE="$2"; shift 2 ;;
+    --start-from) require_value "$1" "${2-}"; START_FROM="$2"; shift 2 ;;
+    --max-retries) require_value "$1" "${2-}"; MAX_RETRIES="$2"; shift 2 ;;
+    --min-score) require_value "$1" "${2-}"; MIN_SCORE="$2"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown option: $1"; usage; exit 1 ;;
   esac

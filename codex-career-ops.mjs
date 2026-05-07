@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { dirname, isAbsolute, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 
@@ -240,9 +240,21 @@ function buildPrompt(mode, request, files) {
     .join("\n");
 
   const fileSections = files.map((filePath) => {
+    if (isAbsolute(filePath)) {
+      fail(`Context file must be inside this repository: ${filePath}`);
+    }
     const absolutePath = resolve(ROOT, filePath);
+    const relativePath = relative(ROOT, absolutePath);
+    if (relativePath === "" || relativePath.startsWith("..") || isAbsolute(relativePath)) {
+      fail(`Context file must be inside this repository: ${filePath}`);
+    }
     if (!existsSync(absolutePath)) {
       fail(`Context file not found: ${filePath}`);
+    }
+    const realPath = realpathSync(absolutePath);
+    const realRelativePath = relative(ROOT, realPath);
+    if (realRelativePath === "" || realRelativePath.startsWith("..") || isAbsolute(realRelativePath)) {
+      fail(`Context file must be inside this repository: ${filePath}`);
     }
     return section(`User context file: ${filePath}`, readFileSync(absolutePath, "utf8").trimEnd());
   });
