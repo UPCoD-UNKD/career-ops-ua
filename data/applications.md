@@ -2,6 +2,7 @@
 
 | # | Date | Company | Role | Score | Status | PDF | Report | Notes |
 |---|------|---------|------|-------|--------|-----|--------|-------|
+| 639 | 2026-05-07 | The New York Times | ML Ops Engineer, Machine Learning & AI | 3.9/5 | Evaluated | ✅ | [639](reports/639-nyt-ml-ops-engineer-2026-05-07.md) | NYC Hybrid $110-130K base; 2+y Python/Go + CI/CD + Docker + cloud; sponsorship considered; F-1 OPT relocation; PDF generated |
 | 637 | 2026-05-07 | Chestnut | Forward Deployed Engineer (Entry-Level / Early Career) | 4.0/5 | Evaluated | ✅ | [637](reports/637-chestnut-fde-entry-level-2026-05-07.md) | Rare 0-2y FDE explicitly entry-level; Python/Go/TS + RAG/workflow auto/data enrichment 1:1; InsurTech AI-native OS; 25% travel; remote-first US; 10y exercise window; STRONG APPLY |
 | 638 | 2026-05-07 | The New York Times | Software Engineer - AI Platforms and Products | 3.8/5 | Evaluated | ✅ | [638](reports/638-nyt-software-engineer-ai-platforms-2026-05-07.md) | NYC Hybrid 2+d/wk %24104-130K base; Node/TS+React+Python+LLM+embeddings stack 1:1; 2+y exact match; relocation OK + sponsorship needed; PDF generated |
 | 631 | 2026-05-07 | Paragon | Founding Forward Deployed Engineer (FDE) | 3.5/5 | Evaluated | ✅ | [631](reports/631-paragon-founding-fde-2026-05-07.md) | YC industrial agentic AI; mainframe ERP/CRM/email integration + customer-embedded delivery; Emerson Synthesis Order-to-Cash adjacency is the differentiator; comp + sponsorship + location not disclosed (verify in screen); PDF generated |

@@ -935,6 +935,15 @@
 - [!] https://himalayas.app/companies/chestnut/jobs/forward-deployed-engineer-entry-level-early-career | Chestnut | Forward Deployed Engineer (Entry-Level / Early Career) | Remote — United States (25% travel) — moved to Procesadas (#637) 2026-05-07 (4.0/5 — rare 0-2y FDE explicitly entry-level; Python/Go/TS + RAG/workflow auto/data enrichment 1:1; InsurTech AI-native OS; 10y exercise window; STRONG APPLY; PDF generated)
 - [!] https://job-boards.greenhouse.io/thenewyorktimes/jobs/4680447005 | The New York Times | Software Engineer - AI Platforms and Products | New York City — Hybrid 2+d/wk — moved to Procesadas (#638) 2026-05-07 (3.8/5 — NYC Hybrid $104-130K base; Node/TS+React+Python+LLM+embeddings stack 1:1; 2+y exact match; relocation + sponsorship needed; PDF generated)
 
+<!-- Overnight 2026-05-07T~18Z seventh pass: Level 3 WebSearch additions (Greenhouse + TeamTailor + BreezyHR + Lever) -->
+- [!] https://job-boards.greenhouse.io/thenewyorktimes/jobs/4655096005 | The New York Times | ML Ops Engineer, Machine Learning & AI | New York, NY — Hybrid (NYC tri-state) — moved to Procesadas (#639) 2026-05-07 (3.9/5 — NYC Hybrid $110-130K base; 2+y Python/Go + CI/CD + Docker + cloud + monitoring 1:1 stack; sponsorship considered; Jenkins CI/CD + FastAPI/Docker production proof from Emerson + Progress Solutions; relocation needed; PDF generated)
+- [!] https://hiire.teamtailor.com/jobs/7681926-software-engineer-ai | Hiire (Soko) | Software Engineer - AI | Lisbon — On-site — moved to Procesadas (#640) 2026-05-07 (2.0/5 — F-1 OPT US-base hard geo veto for Lisbon on-site; 3+y Python stretch; recruiter-mediated; SKIP)
+- [!] https://accrete-ai.breezy.hr/p/96074f3c576b-machine-learning-engineer-early-career | Accrete | Machine Learning Engineer (Early Career) | Lower Manhattan, NY — Hybrid — error: posting closed (Breezy "no longer accepting candidates" 2026-05-07T18Z); archived
+- [!] https://adaptiveteams.teamtailor.com/jobs/7340335-automation-ai-engineer | Adaptive Teams | Automation & AI Engineer | Remote — error: posting closed (TeamTailor HTTP 410 Gone on 2026-05-07T18Z); archived
+- [!] https://job-boards.greenhouse.io/hoppr/jobs/4515692008 | HOPPR | Machine Learning Engineer | Remote (NYC/SF hybrid option) — F-1 OPT veto: "open exclusively to US citizens and permanent residents"; not added (per filter hygiene, citizenship-only postings auto-skip)
+- [!] https://job-boards.greenhouse.io/mcghealth/jobs/8376819002 | MCG Health | Generative AI Engineer | Remote (Seattle HQ) — error: specific job ID redirects to listing index; only "Senior Gen AI Engineer" visible (auto-filtered Senior); archived
+- [!] https://jobs.lever.co/weloglobal/00460b83-6e7e-4ab1-b0b6-74ef88446049 | Welo Global | Generative AI Data Analyst (Remote USA) | Remote — USA — error: posting closed (Lever API "Document not found" 2026-05-07T18Z); archived
+
 
 ## Procesadas
 
@@ -1316,3 +1325,4 @@
 - [x] #631 | https://www.workatastartup.com/jobs/94139 | Paragon | Founding Forward Deployed Engineer (FDE) | YC industrial-AI; SF/Bay Area HQ (verify); customer-site travel | 3.5/5 | PDF ✅
 - [x] #637 | https://himalayas.app/companies/chestnut/jobs/forward-deployed-engineer-entry-level-early-career | Chestnut | Forward Deployed Engineer (Entry-Level / Early Career) | Remote — United States (25% travel) | 4.0/5 | PDF ✅
 - [x] #638 | https://job-boards.greenhouse.io/thenewyorktimes/jobs/4680447005 | The New York Times | Software Engineer - AI Platforms and Products | New York City — Hybrid 2+d/wk | 3.8/5 | PDF ✅
+- [x] #639 | https://job-boards.greenhouse.io/thenewyorktimes/jobs/4655096005 | The New York Times | ML Ops Engineer, Machine Learning & AI | New York, NY — Hybrid (NYC tri-state) | 3.9/5 | PDF ✅
