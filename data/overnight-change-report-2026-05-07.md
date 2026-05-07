@@ -15,8 +15,8 @@
 |-------|--------|-------|
 | Phase 0 — Orientation | ✅ Complete | cv.md, profile.yml read; transcripts found; change report initialized |
 | Phase 4 — LinkedIn rewrites | ✅ Complete | All 7 entries + About section — data/linkedin-experience-rewrites-2026-05-07.md |
-| Phase 5 — Career narrative thread | ⏳ Pending | |
-| Phase 6 — System upgrades (6C–6N) | ⏳ Pending | 6A and 6E pre-done |
+| Phase 5 — Career narrative thread | ✅ Complete | data/career-narrative-thread-2026-05-07.md (23,133 bytes) |
+| Phase 6 — System upgrades (6C–6N) | ✅ Complete | 11/11 hacks done (6B deferred per spec — Gemini covers it) |
 | Phase 1 — Citation retrieval | ⏳ Pending | |
 | Phase 2+3 — Transcript mining + impact doc | ⏳ Pending | Transcripts found at ~/Downloads/VIDEOS/transcripts/ |
 | Phase 7 — GitHub audit + build-in-public | ⏳ Pending | |
@@ -49,8 +49,8 @@ All 7 entries + About section written to `data/linkedin-experience-rewrites-2026
 
 Key decisions: Trans military ban content excluded from AJ+ (correctly attributed to HuffPost Live). Entry #3 leads with 50M measles video. All character counts verified via `wc -m`.
 
-### Phase 5 — Career Narrative Thread
-[Status and results to be filled after subagent returns]
+### Phase 5 — Career Narrative Thread ✅
+Written to `data/career-narrative-thread-2026-05-07.md` (163 lines, 23,133 bytes). All per-period sections, Pattern analysis, spoken Interview Talking Points, and Objection Handlers complete. Thesis opens: "I've been building the same infrastructure twice — once in media, once in AI — and the pattern is identical." Every claim cites source file + line number. No fabricated metrics.
 
 ### Phase 6 — System Upgrades
 
@@ -61,18 +61,18 @@ Key decisions: Trans military ban content excluded from AJ+ (correctly attribute
 - Grok spend cap TOCTOU fix: ✅ (pre-done, bonus — O_EXCL atomic lock)
 
 **Tonight:**
-- 6B Quota-check probe: ⏳ (lower priority — Gemini covers this)
-- 6C Batch-in-flight lock: ⏳
-- 6D Post-worker A-G validation: ⏳
-- 6F Errors → errors.log: ⏳
-- 6G verify-pipeline gate: ⏳
-- 6H analyze-patterns auto-run: ⏳
-- 6I Archetype keywords → config/profile.yml: ⏳
-- 6J Report header versioning: ⏳
-- 6K voice-reference.md created: ⏳
-- 6L Heartbeat rows added: ⏳
-- 6M CLAUDE.md + AGENTS.md updated: ⏳
-- 6N Grok-Claude loop documented: ⏳
+- 6B Quota-check probe: ❌ deferred (Gemini fallback covers this per spec)
+- 6C Batch-in-flight lock: ✅ update-system.mjs exits if batch/.batch-running exists
+- 6D Post-worker A-G validation: ✅ batch-runner.sh validates all blocks, logs failures to errors.log
+- 6F Errors → errors.log: ✅ data/errors.log created; worker failures append ISO-8601 timestamps
+- 6G verify-pipeline gate: ✅ merge_tracker() now hard-gates on verify-pipeline.mjs
+- 6H analyze-patterns auto-run: ✅ analyze-patterns.mjs runs after batch merge
+- 6I Archetype keywords → config/profile.yml: ✅ triage: section added to profile.yml; triage-pipeline.mjs reads from it
+- 6J Report header versioning: ✅ batch-prompt.md header gains Model + Prompt-version fields
+- 6K voice-reference.md created: ✅ writing-samples/voice-reference.md (~350 words prose)
+- 6L Heartbeat rows added: ✅ 3 new rows: voice calibration, errors-today, quota schedule
+- 6M CLAUDE.md + AGENTS.md updated: ✅ session notes + Voice Calibration section added
+- 6N Grok-Claude loop documented: ✅ data/grok-claude-loop-setup.md created
 
 ### Phase 1 — Citation Retrieval
 [Status and results to be filled after subagent returns]
