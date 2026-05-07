@@ -2,6 +2,7 @@
 
 | # | Date | Company | Role | Score | Status | PDF | Report | Notes |
 |---|------|---------|------|-------|--------|-----|--------|-------|
+| 621 | 2026-05-07 | knownwell | AI Product Engineer, Clinical Tools | 3.7/5 | Evaluated | ✅ | [621](reports/621-knownwell-ai-product-engineer-clinical-2026-05-07.md) | Remote-US clinical decision support; 5-8y gap but 1:1 HIPAA RAG + chunking/embeddings/evals + AWS; Pied Piper joke = real human reviewer; PDF generated |
 | 613 | 2026-05-07 | Pulsora | Applied AI Engineer - US | 3.0/5 | Evaluated | ✅ | [613](reports/613-pulsora-applied-ai-engineer-2026-05-07.md) | Remote-US ESG SaaS; full-stack agentic LLM 1:1 archetype (OpenAI/Anthropic/Gemini multi-provider); 1-2y floor matches 2.5y; comp $50-60K is far below US-remote AI Eng market (verify offshore-arbitrage in screen); Manga Lens 4-provider Chrome ext direct mirror; PDF generated |
 | 604 | 2026-05-07 | goodfin | AI Engineer | 3.6/5 | Evaluated | ✅ | [604](reports/604-goodfin-ai-engineer-2026-05-07.md) | YC W22 fintech AI; SF on-site; $130-180K + 0.10-0.50%; 3+yr; agentic AI core for accredited investors |
 | 605 | 2026-05-07 | Metriport | Founding AI Engineer | 4.0/5 | Evaluated | ✅ | [605](reports/605-metriport-founding-ai-engineer-2026-05-07.md) | YC S22 healthcare AI; SF/Bay Area; structured extraction from HTML/PDF/text; visa sponsorship offered; FHIR/EHR adjacent |

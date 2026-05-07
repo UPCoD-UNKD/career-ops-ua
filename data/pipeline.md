@@ -894,6 +894,18 @@
 - [!] https://ats.rippling.com/bizzycar/jobs/6c967928-18be-46c4-935e-34e313e33bd7 | BizzyCar | AI Engineer | Remote — US — error: posting closed (Rippling redirects to careers index w/ `rr_message=job_not_found` 2026-05-07T04Z); archived
 - [!] https://ats.rippling.com/latitudesh-jobs/jobs/b9b35bb5-a53a-4ede-bcda-8c51a7897a8d | Latitude.sh | AI Engineer | Remote — Global — error: posting closed (Rippling redirects to careers index w/ `rr_message=job_not_found` 2026-05-07T04Z); archived
 
+<!-- Overnight 2026-05-07T~06Z third pass: Level 3 WebSearch additions (Ashby + Greenhouse + Lever + Workable + workatastartup) -->
+- [!] https://jobs.ashbyhq.com/nightfall-ai/4c65e009-b361-4d21-894e-4857cefc7484 | Nightfall AI | AI/ML Engineer (Recent Grad) | Remote - US (verify) — error: posting closed (Ashby GraphQL jobPosting null on 2026-05-07T06Z; board only lists Bengaluru/Senior roles); archived
+- [!] https://job-boards.greenhouse.io/definitivehc/jobs/5707828004 | Definitive Healthcare | Machine Learning Engineer | Remote - US (verify) — error: specific job ID redirects to listing index (only Senior MLE Framingham visible 2026-05-07T06Z); archived
+- [!] https://www.workatastartup.com/jobs/92848 | Uplane | Forward Deployed Software Engineer | San Francisco, CA — On-site — moved to Procesadas (#619) 2026-05-07 (1.8/5 — YC F25 Vue/Nuxt + Node/TS + LangGraph; "US citizen/visa only" HARD VETO for F-1 OPT; SKIP)
+- [!] https://apply.workable.com/mlabs/j/726A5E61FE/ | MLabs | Forward Deployed Software Engineer (NYC/Remote) | New York / Remote (PT hours) — error: posting closed (Workable jobs.workable.com mirror 410 Gone + apply.workable.com API 404 on 2026-05-07T06Z); archived
+- [!] https://jobs.lever.co/RyzLabs/f15d2e8b-31b6-4cff-837b-38aeed6c9791 | RYZ Labs | Applied AI Engineer | Argentina — Remote — moved to Procesadas (#620) 2026-05-07 (1.8/5 — LATAM studio for agentic travel client; F-1 OPT US-base hard geo veto + 5+y MS gate; SKIP)
+- [!] https://job-boards.greenhouse.io/axioshq1/jobs/4599188006 | Axios HQ | Software Engineer - Full Stack | Remote - US (verify) — error: Greenhouse 404 on both axioshq1 and axioshq board (2026-05-07T06Z); archived
+- [!] https://jobs.lever.co/knownwell/263a5523-c582-42a9-a01c-36f4b1194397 | knownwell | AI Product Engineer, Clinical Tools | Remote — United States — moved to Procesadas (#621) 2026-05-07 (3.7/5 — Remote-US clinical decision support; HIPAA RAG 1:1 with Progress Solutions; chunking/embeddings/evals + AWS; PDF generated)
+- [!] https://jobs.lever.co/glass-health-inc/df2660f1-6a2d-4c2b-980d-c2aee3ee15bf | Glass Health | Founding AI/Data Engineer | Remote — evaluated 2026-05-07 (3.5/5 — same role as existing #344 @ 3.6/5; merge-tracker deduped — kept #344; report 622 archived as orphan documentation)
+- [!] https://jobs.lever.co/stackhawk/05c7c48f-c893-4048-a782-a224fabfc2f3 | StackHawk | AI Software Engineer | Remote - US (verify) — error: posting closed (Lever API "Document not found" on 2026-05-07T06Z); archived
+- [!] https://jobs.lever.co/jobgether/a92237c4-e6e8-4a2b-bb7d-1a7097e93f43 | Jobgether | AI Platform Engineer, Applied AI | Remote — error: posting closed (Lever API "Document not found" on 2026-05-07T06Z); archived
+
 
 
 ## Procesadas
@@ -1270,3 +1282,4 @@
 - [x] #606 | https://www.workatastartup.com/jobs/75300 | Paratus Health | Founding Engineer | Menlo Park, CA — On-site | 4.1/5 | PDF ✅
 - [x] #607 | https://www.workatastartup.com/jobs/69270 | SimCare AI | Founding Engineer | San Francisco, CA — Remote (US) accepted | 3.1/5 | PDF ✅
 - [x] #613 | https://jobs.ashbyhq.com/pulsora%20inc/40114f0d-d976-43b6-867c-23e52d6c6fff | Pulsora | Applied AI Engineer - US | Remote — United States | 3.0/5 | PDF ✅
+- [x] #621 | https://jobs.lever.co/knownwell/263a5523-c582-42a9-a01c-36f4b1194397 | knownwell | AI Product Engineer, Clinical Tools | Remote — United States | 3.7/5 | PDF ✅
