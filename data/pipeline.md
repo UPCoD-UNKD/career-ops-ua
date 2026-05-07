@@ -917,6 +917,17 @@
 - [!] https://jobs.ashbyhq.com/Mintlify/5c8d7302-6c94-429d-a3ff-bd38a71ea2d3 | Mintlify | Backend AI Engineer | Location verify — error: posting closed (Ashby GraphQL `jobPosting` returns no posting; not in current Mintlify jobBoard listing 2026-05-07T~UTC); archived. Active equivalent at id `496dc71b-…` is Senior tier (auto-filtered).
 - [!] https://ontrac-solutions-llc.breezy.hr/p/80a61d089fbd-machine-learning-engineer | OnTrac Solutions | Machine Learning Engineer | Chicago, IL — On-site Contract — moved to Procesadas (#630) 2026-05-07 (2.4/5 — staff augmentation contract $70-90/hr; F-1 OPT contract/staffing visa friction; SKIP)
 
+<!-- Overnight 2026-05-07T~10Z fifth pass: Level 3 WebSearch additions (workatastartup + Greenhouse + Wellfound + Teamtailor + Remotive) -->
+- [!] https://www.workatastartup.com/jobs/94139 | Paragon | Founding Forward Deployed Engineer (FDE) | YC industrial-AI; SF/Bay Area HQ (verify); customer-site travel — moved to Procesadas (#631) 2026-05-07 (3.5/5 — agentic industrial workflows over messy ERP/CRM/email; Emerson Synthesis Order-to-Cash adjacency is the differentiator vs typical FDE applicants; PDF generated)
+- [!] https://wellfound.com/jobs/3880551-ai-implementation-specialist-remote | The Content Machine (NexusAI) | AI Implementation Specialist (Remote) | Remote (Wyoming HQ) — error: Wellfound returned HTTP 403 (login-gated; WebFetch unauthorized 2026-05-07T10Z); retry next run with aggregator/cached copy
+- [!] https://tooploox.teamtailor.com/jobs/3610588-machine-learning-engineer-llm | Tooploox | Machine Learning Engineer (LLM) | Warsaw / Wrocław — error: posting closed (Teamtailor body reads "This position is no longer active" on 2026-05-07T10Z); archived
+- [!] https://job-boards.greenhouse.io/withcoverage/jobs/4121502009 | WithCoverage | Applied AI Engineer | New York City — error: specific job ID redirects to listing index (only ~17 generic openings visible 2026-05-07T10Z); archived
+- [!] https://job-boards.greenhouse.io/bpcs/jobs/7514173 | Blueprint Technologies | AI Process Automation Engineer | Washington State — error: specific job ID redirects to listing index (39 generic openings visible 2026-05-07T10Z); archived
+- [!] https://job-boards.greenhouse.io/digibeeinc/jobs/4638402005 | Digibee Inc. | AI Engineer Specialist | São Paulo, Brazil — error: posting returned HTTP 404 on 2026-05-07T10Z; archived
+- [!] https://job-boards.greenhouse.io/tegnainc/jobs/4870922007 | TEGNA Inc. | AI Engineer (Prompt) | Tysons, Virginia — On-site — moved to Procesadas (#632) 2026-05-07 (2.6/5 — 5+y Senior gate + Tysons relocation veto + sponsorship unstated; LangChain/LlamaIndex/AutoGen/CrewAI/Bedrock/Snowflake stack 1:1 but seniority + on-site veto; SKIP)
+- [!] https://www.workatastartup.com/jobs/76665 | ProjectPro | LLM Developer (Agentic AI Frameworks: CrewAI/AutoGen/RAGs) | India-HQ ed-tech; location not stated — moved to Procesadas (#633) 2026-05-07 (2.6/5 — WaaS body extraction blocked; CrewAI/AutoGen/RAG stack on-archetype but role purpose ambiguous (production vs training-content); offshore-arbitrage comp risk + F-1 OPT US-base mismatch; SKIP)
+- [!] https://remotive.com/remote/jobs/ai-ml/machine-learning-engineer-4309412 | K1X | Machine Learning Engineer | Remote — USA — moved to Procesadas (#634) 2026-05-07 (2.5/5 — 6+y Senior auto-filter gate per filter hygiene + alt-investment niche + sponsorship unstated; Python/sklearn/PyTorch/spaCy stack moderate match; SKIP)
+- [!] https://remotive.com/remote/jobs/ai-ml/machine-learning-engineer-ii-3768211 | MobilityWare | Applied Machine Learning Engineer II | Remote — USA — error: posting returned HTTP 410 Gone on 2026-05-07T10Z; archived
 
 
 ## Procesadas
@@ -1296,3 +1307,4 @@
 - [x] #621 | https://jobs.lever.co/knownwell/263a5523-c582-42a9-a01c-36f4b1194397 | knownwell | AI Product Engineer, Clinical Tools | Remote — United States | 3.7/5 | PDF ✅
 - [x] #625 | https://www.workatastartup.com/jobs/75755 | Codes Health | Founding Engineer | New York City — Dumbo — In-person | 3.2/5 | PDF ✅
 - [x] #626 | https://www.workatastartup.com/jobs/73343 | Syntra | Founding Engineer | San Francisco, CA — On-site (remote flex) | 3.4/5 | PDF ✅
+- [x] #631 | https://www.workatastartup.com/jobs/94139 | Paragon | Founding Forward Deployed Engineer (FDE) | YC industrial-AI; SF/Bay Area HQ (verify); customer-site travel | 3.5/5 | PDF ✅
