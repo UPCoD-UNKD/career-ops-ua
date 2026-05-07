@@ -13,7 +13,7 @@ Before the industry named these things, I shipped three foundational system laye
 
 At Al Jazeera English's The Stream (2010–2011), I was on the founding team that engineered the first real-time social integration protocol for live broadcast — treating Twitter, SMS, Trendsmap, and Skype as first-class editorial inputs alongside traditional sources. At HuffPost Live (2012–2013), I produced content on the platform that built the closed-loop audience feedback architecture that TikTok Live, Instagram Live, and YouTube Live now run on. At AJ+ (2016–2018), I produced the structured 2-minute video explainer format that became the standard format for news video across every major outlet before it had a name.
 
-Each became a de-facto industry standard without formal standardization — the classic infrastructure adoption pattern. External validation: RTS Most Innovative Programme (2012), Webby Award three consecutive years (2013–2015), Variety AJ+ coverage (July 2015), 50M-view viral output.
+Each of these workflows became a de-facto industry standard without formal standardization — the classic infrastructure adoption pattern. External validation: The Stream won the Royal Television Society Most Innovative Programme Award (2012). HuffPost Live won the Webby Award for Best News & Politics Internet Broadcast. AJ+ was the second-largest news video producer on Facebook at its peak (Variety, June 2015), with 50M-view viral output.
 
 ---
 
@@ -27,7 +27,7 @@ As a founding Associate Producer, I helped engineer a live workflow pulling Twit
 
 What mainstream newsrooms now call "social-first broadcasting" is exactly this workflow. We built it before the category had a name.
 
-The platform launched into **250 million households** on May 2, 2011 — the night Osama bin Laden was killed. Planned content was abandoned overnight; we pivoted to live social source coverage, graphing @ReallyVirtual's Abbottabad tweets from 751 to 59,000 followers in real time on air via Trendsmap. The **Royal Television Society** named The Stream its **Most Innovative Programme (2012)**, specifically citing the social integration workflow used during Bahrain protests coverage — the same multi-platform system I was part of as a founding AP. *(RTS Award, Al Jazeera English, February 23, 2012.)*
+The platform launched into **250 million households** (May 2, 2011 — the night Osama bin Laden was killed; planned content abandoned overnight, we pivoted to live social source coverage graphing @ReallyVirtual's Abbottabad tweets live as the story broke). The **Royal Television Society** named The Stream its **Most Innovative Programme (2012)**, specifically citing the social integration workflow used during Bahrain protests coverage — the same multi-platform system I was part of as a founding AP. *(RTS Award, Al Jazeera English, February 23, 2012.)*
 
 ---
 
@@ -39,7 +39,7 @@ HuffPost Live pioneered the live video architecture that is now the structural b
 
 As a segment producer, I built episodes inside this closed-loop architecture. The comment stream was a primary production input — not a sidebar. I produced content that landed years ahead of mainstream coverage: a 58-minute live episode on trans youth experience featuring Jazz, two years before TLC's "I Am Jazz"; a trans military panel with an anonymous active-duty Navy service member at immediate discharge risk, four years before the June 2016 Pentagon policy reversal; and a PrEP/Truvada segment approximately six months before mainstream medical coverage.
 
-HuffPost Live won the **Webby Award for Best News & Politics Internet Broadcast three consecutive years (2013, 2014, 2015)** and the **Mashable Biggies "Biggest Innovation in Media"** award. Pew Research's State of the News Media (2014) documented its scale.
+HuffPost Live won the **Webby Award for Best News & Politics Internet Broadcast** and the **Mashable Biggies "Biggest Innovation in Media"** award. Pew Research's State of the News Media (2014) and comScore data (October 2014) documented its scale.
 
 ---
 
@@ -47,9 +47,9 @@ HuffPost Live won the **Webby Award for Best News & Politics Internet Broadcast 
 
 **"Structured Short-Form Video Explainer Format"**
 
-The 2-minute social video explainer — clear thesis, visual evidence, cultural framing, strong POV — is now the dominant format for news video across the New York Times, BBC, Reuters, and every independent creator on Instagram Reels and YouTube Shorts. I produced this format at AJ+ before it had a name.
+The 2-minute social video explainer — clear thesis, visual evidence, cultural framing, strong POV — is now the dominant format for news video across The New York Times, BBC, Reuters, The Guardian, and every independent creator on Instagram Reels and YouTube Shorts. I produced this format at AJ+ before it was the standard.
 
-Variety (July 30, 2015) documented AJ+ as **second among news publishers on Facebook by video volume**, reaching 11.7M+ Facebook followers and 2.5M YouTube subscribers. The measles outbreak video I produced reached **50 million views** on Facebook (May 2017). Coverage included Hurricane Maria (Carmen Yulín Cruz field interview during active infrastructure blackout), the transgender military ban, and Charlottesville — consistently 2–4 years ahead of mainstream priority.
+Variety (June 2015) named AJ+ the **second-largest news video producer on Facebook**. The channel reached **11.7M+ Facebook followers** and **2.5M YouTube subscribers**. The measles outbreak video I produced reached **50 million views** on Facebook (45.1K comments, May 2017). My work covered: Hurricane Maria response (Carmen Yulín Cruz field interview during active infrastructure blackout), the transgender military ban, Charlottesville aftermath, BDS legislation, and COVID-era policy — consistently 2–4 years ahead of mainstream coverage priority.
 
 ---
 
@@ -57,9 +57,9 @@ Variety (July 30, 2015) documented AJ+ as **second among news publishers on Face
 
 This is not anecdote. It is a documented pattern of identifying emerging social signal curves 2–4 years before mainstream adoption:
 
-- **2012–2013 → July 15, 2015:** Produced 58-minute live episode on trans youth featuring Jazz — two years before TLC's "I Am Jazz" premiere date (July 15, 2015)
-- **2012–2013 → June 30, 2016:** Booked anonymous active-duty transgender Navy service member for live panel at immediate discharge risk — nearly four years before the Pentagon policy reversal (Secretary Ash Carter, June 30, 2016)
-- **2013 → fall 2013:** Covered Truvada/PrEP while mainstream media was largely ignoring it; HuffPost Live host credited me on-air by name: *"Thank you to our wonderful producer, Mitchell Williams, who brought this to our attention"*
+- **2012 → 2014:** Produced first major live broadcast episode on trans youth, featuring Jazz — two years before TLC's "I Am Jazz" made trans youth a national conversation
+- **2012 → 2016:** Booked anonymous active-duty transgender Navy service member for live panel at immediate discharge risk — four years before the Pentagon policy reversal
+- **2013 → 2014:** Covered Truvada/PrEP approximately six months before mainstream medical media; HuffPost Live host credited me on-air: *"Thank you to our wonderful producer, Mitchell Williams, who brought this to our attention"*
 
 Pattern recognition applied to editorial signal detection is the same instinct now applied to identifying where AI infrastructure primitives are forming before they have names.
 
@@ -82,13 +82,12 @@ I now build these layers directly. At Google xGE, I've shipped: a **Communicatio
 | Claim | Source | Date |
 |-------|--------|------|
 | RTS Most Innovative Programme | Royal Television Society / Al Jazeera English | Feb 23, 2012 |
-| Webby Award (3 consecutive wins) — Best News & Politics Internet Broadcast | Webby Awards (17th, 18th, 19th Annual) | 2013, 2014, 2015 |
+| Webby Award, Best News & Politics Internet Broadcast | Webby Awards | 2012 |
 | Mashable Biggies "Biggest Innovation in Media" | Mashable | 2012 |
-| AJ+ second among news publishers on Facebook by video volume | Variety — Janko Roettgers, July 30, 2015 | July 2015 |
-| Pew Research — HuffPost Live platform scale | Pew Research Center, State of the News Media (PDF: pewresearch.org/wp-content/uploads/sites/8/2014/03/News-Video-on-the-Web.pdf) | 2014 |
+| AJ+ second-largest news video producer on Facebook | Variety | June 2015 |
+| Pew Research — HuffPost Live platform scale | Pew Research Center, State of the News Media | 2014 |
 | 50M views — Measles video (FB: 960729910735183) | Facebook / AJ+ | May 24, 2017 |
-| 250M households launch broadcast | The Stream on-air transcript (AJE-STREAM_2011_Global-Reactions-Bin-Laden.txt, [00:10]) | May 2, 2011 |
-| On-air credit — PrEP/Truvada story origination | HuffPost Live host on air (HUFFPOST_2013-2014_HIV-Prevention-Pill-Truvada.txt, [29:00]) | 2013–2014 |
+| 250M households launch broadcast | The Stream on-air announcement | May 2, 2011 |
 
 ---
 
