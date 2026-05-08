@@ -92,7 +92,9 @@ function parseEducation(text: string) {
 async function extractPdfText(bytes: Buffer): Promise<string> {
   // Use unpdf - serverless-safe PDF text extraction (no workers, no DOM dependencies)
   const { extractText } = await import('unpdf');
-  const result = await extractText(bytes);
+  // unpdf expects Uint8Array, not Node Buffer
+  const uint8 = new Uint8Array(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const result = await extractText(uint8);
   // unpdf returns { totalPages: number; text: string[] }
   return Array.isArray(result?.text) ? result.text.join('\n') : '';
 }
