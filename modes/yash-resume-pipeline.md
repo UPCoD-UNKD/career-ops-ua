@@ -129,6 +129,8 @@ Repeat until queue empty, user quits, or 3 consecutive failures:
     status: compiled | compiled-review-recommended  (review-recommended if score < 90)
     ```
 
+*(Steps 9b–12b are the cover-letter track. They run after step 10 completes and before step 11.)*
+
 9b. **Apply the cover-letter prompt:**
 
     Read `cover-letter-system-based-on-jd-and-resume.md` and apply it
@@ -167,9 +169,9 @@ Repeat until queue empty, user quits, or 3 consecutive failures:
      ```
 
      If `status: fail`:
-     - Skip the cover-letter PDF — but the stray-`.log` cleanup runs
-       inside the subcommand on both success and failure paths, so
-       `cover-letters/` stays clean.
+     - The cover-letter PDF was not produced. Continue to step 12b. The
+       stray-`.log` cleanup runs inside the subcommand on both success and
+       failure paths, so `cover-letters/` stays clean.
      - Write the sidecar `.log` (step 12b) with `status: failed` and
        `tectonic_log_tail` from the response.
      - Print warning. URL still marked processed at step 11.
@@ -183,6 +185,8 @@ Repeat until queue empty, user quits, or 3 consecutive failures:
      status: compiled | compiled-review-recommended | failed
      resume_keywords_echoed: <count>
      ```
+
+     On failure (`status: failed`), set `score: N/A` and `resume_keywords_echoed: 0`. The `deficiencies` field captures the full prompt output (or the tectonic_log_tail).
 
 11. **Mark processed and log:**
 
@@ -204,6 +208,8 @@ Repeat until queue empty, user quits, or 3 consecutive failures:
 
     Omit cover-letter args when the cover-letter step failed at 9b
     (no LaTeX) or 11b (compile crashed).
+
+    `mark-processed` records the cover-letter path and status only; `log` is the sole place the cover-letter score lives.
 
 12. **Report to user:** print the JD path, resume PDF path,
     cover-letter PDF path (or `<absent — see warning>`), resume score,
