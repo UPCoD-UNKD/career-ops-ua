@@ -2076,7 +2076,7 @@ function StatCard({ icon, label, value, color = 'stone' }: { icon: any, label: s
 
 function ConfigSection({ id, title, icon, children }: { id?: string, title: string, icon: any, children: React.ReactNode }) {
   return (
-    <div id={id} className="bg-white border border-[#e7e5e4] rounded-[2.5rem] p-10 space-y-6 scroll-mt-10">
+    <div id={id} className="bg-white border border-[#e7e5e4] rounded-[2.5rem] p-6 space-y-6 scroll-mt-10">
       <h3 className="font-bold text-lg flex items-center gap-3 text-[#1c1917] border-b border-[#f5f5f4] pb-6">{icon} {title}</h3>
       {children}
     </div>
