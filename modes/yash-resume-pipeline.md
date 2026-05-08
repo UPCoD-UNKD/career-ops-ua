@@ -104,13 +104,14 @@ Repeat until queue empty, user quits, or 3 consecutive failures:
      and `log --status fail --url <url> --reason "V2.0 hard-fail: <SENTENCE_COUNT|SKILLS_OVERFLOW>"`. Save the full output to the sidecar `.log`. Continue.
 
 8. **Write `.tex`:** save the LaTeX block (from `\documentclass` onward) to
-   `resumes/<c>_<r>_Yash_Anghan_Resume_<d>.tex`.
+   `/tmp/<c>_<r>_Yash_Anghan_Resume_<d>.tex`. Never write the `.tex` to
+   `resumes/` — that directory holds only deliverable PDFs.
 
 9. **Compile to PDF:**
 
    ```bash
    node yash-resume-pipeline.mjs compile-resume \
-       --tex resumes/<c>_<r>_Yash_Anghan_Resume_<d>.tex \
+       --tex /tmp/<c>_<r>_Yash_Anghan_Resume_<d>.tex \
        --pdf resumes/<c>_<r>_Yash_Anghan_Resume_<d>.pdf
    ```
 
