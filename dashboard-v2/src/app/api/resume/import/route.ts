@@ -90,35 +90,40 @@ function parseEducation(text: string) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  // Load parsers at runtime to avoid Turbopack ESM export issues.
-  const pdfParseMod: any = await import('pdf-parse');
-  const pdfParse: any = pdfParseMod?.default || pdfParseMod;
-  const mammothMod: any = await import('mammoth');
-  const mammoth: any = mammothMod?.default || mammothMod;
-
-  const form = await req.formData();
-  const file = form.get('file');
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: 'Missing file' }, { status: 400 });
-  }
-
-  const name = file.name || 'resume';
-  const lower = name.toLowerCase();
-  const bytes = Buffer.from(await file.arrayBuffer());
-  if (bytes.byteLength > MAX_UPLOAD_BYTES) {
-    return NextResponse.json(
-      { error: `File too large. Max ${Math.round(MAX_UPLOAD_BYTES / (1024 * 1024))}MB` },
-      { status: 413 }
-    );
-  }
-
-  let text = '';
+  let step = 'auth';
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    step = 'imports';
+    // Load parsers at runtime to avoid Turbopack/ESM export issues.
+    const pdfParseMod: any = await import('pdf-parse');
+    const pdfParse: any = pdfParseMod?.default || pdfParseMod;
+    const mammothMod: any = await import('mammoth');
+    const mammoth: any = mammothMod?.default || mammothMod;
+
+    step = 'formData';
+    const form = await req.formData();
+    const file = form.get('file');
+    if (!(file instanceof File)) {
+      return NextResponse.json({ error: 'Missing file' }, { status: 400 });
+    }
+
+    step = 'readFile';
+    const name = file.name || 'resume';
+    const lower = name.toLowerCase();
+    const bytes = Buffer.from(await file.arrayBuffer());
+    if (bytes.byteLength > MAX_UPLOAD_BYTES) {
+      return NextResponse.json(
+        { error: `File too large. Max ${Math.round(MAX_UPLOAD_BYTES / (1024 * 1024))}MB` },
+        { status: 413 }
+      );
+    }
+
+    step = 'parse';
+    let text = '';
     if (lower.endsWith('.pdf')) {
       // pdf-parse has multiple export shapes across versions.
       if (typeof pdfParse === 'function') {
@@ -131,7 +136,7 @@ export async function POST(req: NextRequest) {
         const out = await parser.getText();
         text = out?.text || '';
       } else {
-        throw new Error('PDF parser unavailable');
+        throw new Error(`PDF parser unavailable (exports: ${Object.keys(pdfParseMod || {}).join(', ')})`);
       }
     } else if (lower.endsWith('.docx')) {
       const result = await mammoth.extractRawText({ buffer: bytes });
@@ -139,35 +144,42 @@ export async function POST(req: NextRequest) {
     } else {
       return NextResponse.json({ error: 'Unsupported file type (use PDF or DOCX)' }, { status: 400 });
     }
-  } catch (e: any) {
-    return NextResponse.json({ error: `Failed to parse resume: ${e?.message || 'unknown error'}` }, { status: 500 });
-  }
 
-  text = normalizeText(text);
+    step = 'postProcess';
+    text = normalizeText(text);
 
-  const expSection =
-    extractSection(text, /^\s*(PROFESSIONAL EXPERIENCE|EXPERIENCE|WORK EXPERIENCE)\s*$/im) ||
-    extractSection(text, /^\s*(EMPLOYMENT)\s*$/im) ||
-    '';
-  const eduSection =
-    extractSection(text, /^\s*(EDUCATION)\s*$/im) ||
-    '';
+    const expSection =
+      extractSection(text, /^\s*(PROFESSIONAL EXPERIENCE|EXPERIENCE|WORK EXPERIENCE)\s*$/im) ||
+      extractSection(text, /^\s*(EMPLOYMENT)\s*$/im) ||
+      '';
+    const eduSection =
+      extractSection(text, /^\s*(EDUCATION)\s*$/im) ||
+      '';
 
-  const experience = expSection ? parseExperience(expSection) : [];
-  const education = eduSection ? parseEducation(eduSection) : [];
-  const raw_text_preview = text.slice(0, 2500);
+    const experience = expSection ? parseExperience(expSection) : [];
+    const education = eduSection ? parseEducation(eduSection) : [];
+    const raw_text_preview = text.slice(0, 2500);
 
-  return NextResponse.json({
-    ok: true,
-    // Back-compat for Dashboard UI: also expose fields at top-level.
-    experience,
-    education,
-    raw_text_preview,
-    extracted: {
+    return NextResponse.json({
+      ok: true,
+      // Back-compat for Dashboard UI: also expose fields at top-level.
       experience,
       education,
       raw_text_preview,
-    },
-  });
+      extracted: {
+        experience,
+        education,
+        raw_text_preview,
+      },
+    });
+  } catch (e: any) {
+    return NextResponse.json(
+      {
+        error: `Resume import failed at step="${step}": ${e?.message || 'unknown error'}`,
+      },
+      { status: 500 }
+    );
+  }
+
 }
 
