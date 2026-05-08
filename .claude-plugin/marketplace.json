@@ -1,0 +1,18 @@
+{
+  "name": "hireloom",
+  "metadata": {
+    "description": "Hireloom — AI career atelier. Evaluate offers, generate tailored CVs, scan portals, track applications."
+  },
+  "owner": {
+    "name": "santifer + mysticalsin",
+    "url": "https://github.com/mysticalsin/career-ops"
+  },
+  "plugins": [
+    {
+      "name": "hireloom",
+      "source": "./",
+      "description": "AI career atelier — evaluate offers, generate CVs, scan portals, track applications. Heritage-grade UX.",
+      "category": "productivity"
+    }
+  ]
+}

@@ -1,197 +1,138 @@
 # Changelog
 
-All notable changes to JobSeeker · Career-Ops are documented here. The format
-follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
-project adheres to [Semantic Versioning](https://semver.org/).
+## [1.7.0](https://github.com/santifer/career-ops/compare/career-ops-v1.6.0...career-ops-v1.7.0) (2026-05-06)
 
-## [1.7.0] — 2026-05-06
 
-The "WOW + fork-friendly" release. Career-Ops jumps from 1.3 → 1.7 by
-backporting four minor versions of upstream features in one pass:
-LaTeX CV export, Gemini evaluator, full-featured wizard schema,
-governance docs, and 7 README translations. Plus 5 quality fixes
-surfaced by a fresh-clone simulation.
+### Features
 
-### Added
+* adapt contacto mode by contact type (recruiter/HM/peer/interviewer) ([9fd5a90](https://github.com/santifer/career-ops/commit/9fd5a90896f20020f48455cd079b64fed491b89f))
+* add --min-score flag to batch runner ([#249](https://github.com/santifer/career-ops/issues/249)) ([cb0c7f7](https://github.com/santifer/career-ops/commit/cb0c7f7d7d3b9f3f1c3dc75ccac0a08d2737c01e))
+* add {{PHONE}} placeholder to CV template ([#287](https://github.com/santifer/career-ops/issues/287)) ([e71595f](https://github.com/santifer/career-ops/commit/e71595f8ba134971ecf1cc3c3420d9caf21eed43))
+* add Block G — posting legitimacy assessment ([3a636ac](https://github.com/santifer/career-ops/commit/3a636ac586659bb798ef46a0a9798478a1e28b0a))
+* add Claude Code plugin manifests (path-stable) ([62b767d](https://github.com/santifer/career-ops/commit/62b767dcc56e4c875ed70bf4fe799c254ecf8eea))
+* add follow-up cadence tracker mode ([4308c37](https://github.com/santifer/career-ops/commit/4308c375033c6df430308235f4324658a8353b81))
+* add Gemini CLI native integration and evaluator script  ([#349](https://github.com/santifer/career-ops/issues/349)) ([0853486](https://github.com/santifer/career-ops/commit/0853486d2c01a35adafea2cc6b6d8c429b843588))
+* add Gemini CLI native integration and evaluator script (closes [#344](https://github.com/santifer/career-ops/issues/344)) ([0853486](https://github.com/santifer/career-ops/commit/0853486d2c01a35adafea2cc6b6d8c429b843588))
+* add GitHub Actions CI + auto-labeler + welcome bot + /run skill ([2ddf22a](https://github.com/santifer/career-ops/commit/2ddf22a6a2731b38bcaed5786c4855c4ab9fe722))
+* add LaTeX/Overleaf CV export mode with pdflatex compilation ([#362](https://github.com/santifer/career-ops/issues/362)) ([b824953](https://github.com/santifer/career-ops/commit/b824953d0e3b7f8c6105dfcce7e17257c95ce6cd))
+* add LaTeX/Overleaf CV export mode with pdflatex compilation (closes [#47](https://github.com/santifer/career-ops/issues/47)) ([b824953](https://github.com/santifer/career-ops/commit/b824953d0e3b7f8c6105dfcce7e17257c95ce6cd))
+* add Nix flake devshell with Playwright support ([c579fcd](https://github.com/santifer/career-ops/commit/c579fcddebf793f00cfad8534fd74085c09017fb))
+* add OpenCode slash commands for career-ops ([#67](https://github.com/santifer/career-ops/issues/67)) ([93caaed](https://github.com/santifer/career-ops/commit/93caaed49cbc9f3214f9beb66fb2281c3f2370e6))
+* add scan.mjs — zero-token portal scanner ([8c19b2b](https://github.com/santifer/career-ops/commit/8c19b2b59f7087689e004f3d48e912f291911373))
+* add writing-samples folder for AI-detection-evading voice calibration ([9ae201d](https://github.com/santifer/career-ops/commit/9ae201d0682a17e7006ed7902b42db8234212e97))
+* **cv:** add cv.output_format to route between html and latex generation ([b82bb5f](https://github.com/santifer/career-ops/commit/b82bb5fb7c86ab3074a54eaf0f3186f81d41f417))
+* **dashboard:** add Catppuccin Latte light theme with auto-detection ([ff686c8](https://github.com/santifer/career-ops/commit/ff686c8af97a7bf93565fe8eeac677f998cc9ece))
+* **dashboard:** add manual refresh shortcut ([#246](https://github.com/santifer/career-ops/issues/246)) ([4b5093a](https://github.com/santifer/career-ops/commit/4b5093a8ef1733c449ec0821f722f996625fcb84))
+* **dashboard:** add progress analytics screen ([623c837](https://github.com/santifer/career-ops/commit/623c837bf3155fd5b7413554240071d40585dd7e))
+* **dashboard:** add rejected and discarded pipeline tabs ([7d05967](https://github.com/santifer/career-ops/commit/7d05967389fb6185f0d6e566a4ba583ee3824e1e))
+* **dashboard:** add vim motions to pipeline screen ([#262](https://github.com/santifer/career-ops/issues/262)) ([d149e54](https://github.com/santifer/career-ops/commit/d149e541402db0c88161a71c73899cd1836a1b2d))
+* **dashboard:** aligned tables and markdown syntax rendering in viewer ([dbd1d3f](https://github.com/santifer/career-ops/commit/dbd1d3f7177358d0384d6e661d1b0dfc1f60bd4e))
+* **dashboard:** show tracker IDs in pipeline list ([8d289c6](https://github.com/santifer/career-ops/commit/8d289c64e31f81cf447f75105b500d1feca21058))
+* expand portals.example.yml with 8 dev-tools companies + 23 search queries ([#140](https://github.com/santifer/career-ops/issues/140)) ([b7f555d](https://github.com/santifer/career-ops/commit/b7f555d7b9a7b23c875fa0d35584df534961dabe))
+* **i18n:** add Japanese README + language modes for Japan market ([20a2c81](https://github.com/santifer/career-ops/commit/20a2c817486968ca42a534aa86838c797d599c10))
+* **latex:** add tectonic engine auto-detect with pdflatex fallback ([4b71b2c](https://github.com/santifer/career-ops/commit/4b71b2cbf4fd49d3882cdd8767e31727337fab34))
+* multi-CLI support via open agent skill standard ([#572](https://github.com/santifer/career-ops/issues/572)) ([7605a5e](https://github.com/santifer/career-ops/commit/7605a5ed68d0fd559374afec1cd8798c487e3ead))
+* **portals:** add Canada/Vancouver and automation companies to example template ([590ba6e](https://github.com/santifer/career-ops/commit/590ba6e1b4b9d2d9d03893b7f5fdae920d4f9a0b))
 
-#### LaTeX CV pipeline (was: 1.7 upstream feature)
-- `generate-latex.mjs` — validates a generated `.tex` resume against the
-  required sections (Education, Work Experience, Personal Projects,
-  Technical Skills) and required commands (`\resumeSubheading`,
-  `\resumeItem`, `\resumeProjectHeading`), then compiles via `tectonic`
-  (preferred) or `pdflatex`. Exits non-zero on schema errors.
-- `templates/cv-template.tex` — Jake-Gutierrez-style ATS-friendly LaTeX CV
-  template with `\resumeSubheading` / `\resumeItem` macros.
-- `modes/latex.md` — agent mode that produces a `.tex` from `cv.md`
-  conforming to the template.
-- `npm run latex` script.
 
-#### Gemini-powered evaluator
-- `gemini-eval.mjs` — free-tier Claude alternative. Reads `modes/oferta.md`
-  + `modes/_shared.md` + `cv.md` and evaluates a JD via `gemini-2.0-flash`.
-  Requires `GEMINI_API_KEY` (free tier has 15 RPM / 1M tokens/day).
-- `npm run eval:gemini` script.
-- `GEMINI.md` — Gemini Code Assist contributor guide.
+### Bug Fixes
 
-#### Profile schema (ApplyPilot-inspired)
-Three sections every serious job-search tool eventually needs:
-- `work_authorization` (legally_authorized, sponsorship, permit_type) —
-  every US/CA application asks these two questions
-- `eeo_voluntary` (gender, race_ethnicity, veteran_status,
-  disability_status) — defaulted to "Decline to self-identify" so
-  EEO renderers always have a valid value
-- `resume_facts` (preserved_companies, preserved_projects,
-  preserved_school, real_metrics) — the immutable identity guard.
-  Tailoring/cover-letter modes MUST treat these as ground truth;
-  prevents AI from inventing companies, projects, or metrics.
+* 10 bug fixes — resource leaks, command injection, Unicode, navigation ([cb01a2c](https://github.com/santifer/career-ops/commit/cb01a2c2e3b7fc334b1c4594749ea40b0da8fc62))
+* add data/ fallback to UpdateApplicationStatus ([#55](https://github.com/santifer/career-ops/issues/55)) ([3512b8e](https://github.com/santifer/career-ops/commit/3512b8ef4eb8ca967bc967664f8798af42b58a52))
+* add stopword filtering and overlap ratio to roleMatch ([#248](https://github.com/santifer/career-ops/issues/248)) ([4da772d](https://github.com/santifer/career-ops/commit/4da772d3a4996bc9ecbe2d384d1e9d2ed75b9819))
+* align portals.example.yml indentation for new companies ([26a6751](https://github.com/santifer/career-ops/commit/26a675173e64dac09fd1524ff9a7c7061520e057))
+* **ci:** correct first-interaction@v3 input names ([c5196a8](https://github.com/santifer/career-ops/commit/c5196a8dd8ff05da51c72ea151f67e481f12c329))
+* **ci:** gracefully handle missing dependency graph in dependency-review ([#343](https://github.com/santifer/career-ops/issues/343)) ([7c5fecb](https://github.com/santifer/career-ops/commit/7c5fecb00d60521f77b33724eb345a28257d8832))
+* **ci:** gracefully handle missing dependency graph in dependency-review workflow ([#352](https://github.com/santifer/career-ops/issues/352)) ([7c5fecb](https://github.com/santifer/career-ops/commit/7c5fecb00d60521f77b33724eb345a28257d8832))
+* **ci:** use pull_request_target for labeler on fork PRs ([#260](https://github.com/santifer/career-ops/issues/260)) ([2ecf572](https://github.com/santifer/career-ops/commit/2ecf57206c2eb6e35e2a843d6b8365f7a04c53d6))
+* correct _shared.md → _profile.md reference in CUSTOMIZATION.md (closes [#137](https://github.com/santifer/career-ops/issues/137)) ([a91e264](https://github.com/santifer/career-ops/commit/a91e264b6ea047a76d8c033aa564fe01b8f9c1d9))
+* correct dashboard launch path in docs ([#80](https://github.com/santifer/career-ops/issues/80)) ([2b969ee](https://github.com/santifer/career-ops/commit/2b969eea5f6bbc8f29b9e42bedb59312379e9f02))
+* **dashboard:** show dates in pipeline list ([#298](https://github.com/santifer/career-ops/issues/298)) ([e5e2a6c](https://github.com/santifer/career-ops/commit/e5e2a6cffe9a5b9f3cec862df25410d02ecc9aa4))
+* ensure data/ and output/ dirs exist before writing in scripts ([#261](https://github.com/santifer/career-ops/issues/261)) ([4b834f6](https://github.com/santifer/career-ops/commit/4b834f6f7f8f1b647a6bf76e43b017dcbe9cd52f))
+* filter expired WebSearch links before they reach the pipeline ([#57](https://github.com/santifer/career-ops/issues/57)) ([ce1c5a3](https://github.com/santifer/career-ops/commit/ce1c5a3c7eea6ebce2c90aebba59d6e26b790d3f))
+* improve default PDF readability ([#85](https://github.com/santifer/career-ops/issues/85)) ([10034ec](https://github.com/santifer/career-ops/commit/10034ec3304c1c79ff9c9678c7826ab77c0bcbf7))
+* liveness checks ignore nav/footer Apply text, expired signals win ([3a3cb95](https://github.com/santifer/career-ops/commit/3a3cb95bdf09235509df72e30b3077623f571ea1))
+* **liveness:** detect closed postings with applications-closed banner variants ([7f8217e](https://github.com/santifer/career-ops/commit/7f8217e057b327980a797a682c4f01d3318edbbe))
+* **merge-tracker:** filter seniority and location stopwords + require overlap ratio in roleFuzzyMatch ([7821113](https://github.com/santifer/career-ops/commit/7821113261eeb32f99639ff076651ab2e7757209))
+* **pt:** restore diacritical marks in PT-BR modes ([#358](https://github.com/santifer/career-ops/issues/358)) ([3a4c596](https://github.com/santifer/career-ops/commit/3a4c596cb0a522f562ba38b35c210facaf38a503))
+* **pt:** restore diacritical marks in PT-BR modes ([#359](https://github.com/santifer/career-ops/issues/359)) ([3a4c596](https://github.com/santifer/career-ops/commit/3a4c596cb0a522f562ba38b35c210facaf38a503))
+* **release:** sync VERSION and package.json via release-please-config ([6a3dc22](https://github.com/santifer/career-ops/commit/6a3dc224337a1942bf2ebf18b9b275d94fc06e7a))
+* remove wellfound, lever and remotefront from portals.example.yml ([#286](https://github.com/santifer/career-ops/issues/286)) ([ecd013c](https://github.com/santifer/career-ops/commit/ecd013cc6f59e3a1a8ef77d34e7abc15e8075ed3))
+* replace grep -P with POSIX-compatible grep in batch-runner.sh ([637b39e](https://github.com/santifer/career-ops/commit/637b39e383d1174c8287f42e9534e9e3cdfabb19))
+* test-all.mjs scans only git-tracked files, avoids false positives ([47c9f98](https://github.com/santifer/career-ops/commit/47c9f984d8ddc70974f15c99b081667b73f1bb9a))
+* **update-system:** cross-check GitHub Releases API when VERSION file is stale ([b0ee6eb](https://github.com/santifer/career-ops/commit/b0ee6ebfcec7920ea7590ada61f3c39324d22ebc))
+* **update-system:** expand SYSTEM_PATHS to cover all language modes and current scripts ([34fe3fb](https://github.com/santifer/career-ops/commit/34fe3fbd5782f7f57faf8ef4a245fbee6275a040))
+* use candidate name from profile.yml in PDF filename ([7bcbc08](https://github.com/santifer/career-ops/commit/7bcbc08ca6184362398690234e49df0ac157567f))
+* use execFileSync to prevent shell injection in test-all.mjs ([c99d5a6](https://github.com/santifer/career-ops/commit/c99d5a6526f923b56c3790b79b0349f402fa00e2))
+* use fileURLToPath for cross platform compatible paths in tracker scripts ([#32](https://github.com/santifer/career-ops/issues/32)) ([#58](https://github.com/santifer/career-ops/issues/58)) ([ab77510](https://github.com/santifer/career-ops/commit/ab775102f4586ae4663a593b519927531be27122))
+* use hi@santifer.io in English README ([5518d3d](https://github.com/santifer/career-ops/commit/5518d3dd07716137b97bb4d8c7b5264b94e2b9e9))
 
-`dashboard-web/lib/onboard.mjs` serializeProfileYaml emits all three
-with sensible defaults; `validateOnboardPayload` accepts/validates all
-three (skip-friendly). 11 new unit tests covering each path + edges.
-E2E verified: POST /api/onboard/finalize round-trip persists all three
-sections to `config/profile.yml` correctly.
 
-#### Restored upstream scripts (CLAUDE.md referenced these but local was missing them)
-- `scan.mjs` — zero-token portal scanner (Greenhouse/Ashby/Lever direct
-  API hits, ~0 LLM cost). Verified pulls 10+ live Anthropic listings.
-- `check-liveness.mjs` + `liveness-core.mjs` — verifies postings still
-  accept applicants (expired signals win over generic Apply text).
-- `analyze-patterns.mjs` — rejection-pattern analyzer (JSON output for CI).
-- `followup-cadence.mjs` — follow-up cadence calculator (JSON output).
-- `doctor.mjs` — JSON-output system diagnostic (parallel to
-  `install.sh --doctor`; CI-friendly).
-- `npm run scan / liveness / patterns / followup / doctor` scripts.
+### Performance Improvements
 
-#### Modes (3 missing locally)
-- `modes/patterns.md` — wires up `analyze-patterns.mjs`
-- `modes/followup.md` — wires up `followup-cadence.mjs`
-- `modes/interview-prep.md` — company-specific interview intel mode
+* compress hero banner from 5.7MB to 671KB ([dac4259](https://github.com/santifer/career-ops/commit/dac425913620fe0a66916dda7ba8d8fc4c427d51))
 
-#### Governance + community
-- `CODE_OF_CONDUCT.md` — Contributor Covenant 2.1 with enforcement
-- `GOVERNANCE.md` — BDFL model with contributor ladder
-- `SECURITY.md` — private vulnerability reporting
-- `SUPPORT.md` — help-question routing (Discord/Discussions, not issues)
-- `TRADEMARK.md` — naming + logo usage policy
-- `LEGAL_DISCLAIMER.md` — auto-apply legal coverage
-- `CONTRIBUTORS.md` — recognition policy
+## [1.6.0](https://github.com/santifer/career-ops/compare/v1.5.0...v1.6.0) (2026-04-26)
 
-#### Internationalization
-- `README.cn.md` (zh-CN), `README.es.md` (Spanish), `README.ja.md`
-  (Japanese), `README.ko-KR.md` (Korean), `README.pt-BR.md` (Brazilian
-  Portuguese), `README.ru.md` (Russian), `README.zh-TW.md` (Traditional
-  Chinese). 7 new languages.
 
-#### Nix devshell
-- `flake.nix` + `flake.lock` — Nix-flake devshell with Playwright support.
-  `nix develop` brings up Node 22 + Chromium + all build deps reproducibly.
+### Features
 
-### Fixed
+* add Gemini CLI native integration and evaluator script  ([#349](https://github.com/santifer/career-ops/issues/349)) ([0853486](https://github.com/santifer/career-ops/commit/0853486d2c01a35adafea2cc6b6d8c429b843588))
+* add Gemini CLI native integration and evaluator script (closes [#344](https://github.com/santifer/career-ops/issues/344)) ([0853486](https://github.com/santifer/career-ops/commit/0853486d2c01a35adafea2cc6b6d8c429b843588))
+* add LaTeX/Overleaf CV export mode with pdflatex compilation ([#362](https://github.com/santifer/career-ops/issues/362)) ([b824953](https://github.com/santifer/career-ops/commit/b824953d0e3b7f8c6105dfcce7e17257c95ce6cd))
+* add LaTeX/Overleaf CV export mode with pdflatex compilation (closes [#47](https://github.com/santifer/career-ops/issues/47)) ([b824953](https://github.com/santifer/career-ops/commit/b824953d0e3b7f8c6105dfcce7e17257c95ce6cd))
+* **cv:** add cv.output_format to route between html and latex generation ([b82bb5f](https://github.com/santifer/career-ops/commit/b82bb5fb7c86ab3074a54eaf0f3186f81d41f417))
+* **dashboard:** add rejected and discarded pipeline tabs ([7d05967](https://github.com/santifer/career-ops/commit/7d05967389fb6185f0d6e566a4ba583ee3824e1e))
+* **dashboard:** show tracker IDs in pipeline list ([8d289c6](https://github.com/santifer/career-ops/commit/8d289c64e31f81cf447f75105b500d1feca21058))
+* **latex:** add tectonic engine auto-detect with pdflatex fallback ([4b71b2c](https://github.com/santifer/career-ops/commit/4b71b2cbf4fd49d3882cdd8767e31727337fab34))
+* **portals:** add Canada/Vancouver and automation companies to example template ([590ba6e](https://github.com/santifer/career-ops/commit/590ba6e1b4b9d2d9d03893b7f5fdae920d4f9a0b))
 
-- **Finalize ENOENT**: `dashboard-web/server.mjs` now `mkdir -p`'s
-  CONFIG_DIR before writing `profile.yml`. Fresh tmpfs / custom
-  CONFIG_DIR no longer fail finalize with a generic "finalize failed".
-- **Back→Continue blanks step-2**: when a user goes back to step 1 and
-  re-extracts, manual edits in step 2 are preserved instead of being
-  overwritten by an empty extraction.
-- **Generic finalize errors**: now maps `err.code` to specific public
-  messages (ENOENT/EACCES/EROFS/ENOSPC) and returns 500 (was 400).
-- **Windows `install.sh --uninstall` didn't kill the local server**:
-  `pkill -f` doesn't exist on Git Bash. Added `ps -ef | grep | awk |
-  kill` fallback. Verified end-to-end on Git Bash.
-- **Privacy hardening**: 4 PII leaks repaired
-  (`docs/product-strategy.md` untracked, `MISTAKES.md` placeholders,
-  `tests/onboard.test.mjs` "Tony Walteur" → "Jane Doe", comp regex
-  generalized in `dashboard-web/server.mjs:188`).
-- **`interview-prep/story-bank.md` was tracked** — accumulates personal
-  STAR+R stories. Gitignored, extracted template to
-  `templates/story-bank.template.md`, install.sh `ensure_user_files()`
-  seeds it on fresh install.
 
-### Tests
+### Bug Fixes
 
-- 140 tests across 12 suites (was 116, then 122, now 140)
-- 11 new tests for the ApplyPilot-inspired schema sections
-- 6 new integration tests for `/api/health`
+* **ci:** correct first-interaction@v3 input names ([c5196a8](https://github.com/santifer/career-ops/commit/c5196a8dd8ff05da51c72ea151f67e481f12c329))
+* **ci:** gracefully handle missing dependency graph in dependency-review ([#343](https://github.com/santifer/career-ops/issues/343)) ([7c5fecb](https://github.com/santifer/career-ops/commit/7c5fecb00d60521f77b33724eb345a28257d8832))
+* **ci:** gracefully handle missing dependency graph in dependency-review workflow ([#352](https://github.com/santifer/career-ops/issues/352)) ([7c5fecb](https://github.com/santifer/career-ops/commit/7c5fecb00d60521f77b33724eb345a28257d8832))
+* **liveness:** detect closed postings with applications-closed banner variants ([7f8217e](https://github.com/santifer/career-ops/commit/7f8217e057b327980a797a682c4f01d3318edbbe))
+* **merge-tracker:** filter seniority and location stopwords + require overlap ratio in roleFuzzyMatch ([7821113](https://github.com/santifer/career-ops/commit/7821113261eeb32f99639ff076651ab2e7757209))
+* **pt:** restore diacritical marks in PT-BR modes ([#358](https://github.com/santifer/career-ops/issues/358)) ([3a4c596](https://github.com/santifer/career-ops/commit/3a4c596cb0a522f562ba38b35c210facaf38a503))
+* **pt:** restore diacritical marks in PT-BR modes ([#359](https://github.com/santifer/career-ops/issues/359)) ([3a4c596](https://github.com/santifer/career-ops/commit/3a4c596cb0a522f562ba38b35c210facaf38a503))
+* **update-system:** cross-check GitHub Releases API when VERSION file is stale ([b0ee6eb](https://github.com/santifer/career-ops/commit/b0ee6ebfcec7920ea7590ada61f3c39324d22ebc))
+* **update-system:** expand SYSTEM_PATHS to cover all language modes and current scripts ([34fe3fb](https://github.com/santifer/career-ops/commit/34fe3fbd5782f7f57faf8ef4a245fbee6275a040))
 
-### Migration notes
+## [1.5.0](https://github.com/santifer/career-ops/compare/v1.4.0...v1.5.0) (2026-04-14)
 
-If you were on 1.3 with a working profile.yml:
 
-1. `git pull` the latest.
-2. **Your profile.yml is forward-compatible** — the new sections are
-   optional. Re-running the wizard will append `work_authorization`,
-   `eeo_voluntary`, and `resume_facts` blocks, but your existing
-   candidate/target_roles/narrative/compensation are preserved.
-3. The wizard auto-creates a `profile.yml.bak.{timestamp}` snapshot
-   before any rewrite, so rollback is one `cp` away.
-4. No data migration required for `data/`, `reports/`, or `cv.md`.
+### Features
 
-[1.7.0]: https://github.com/santifer/career-ops/releases/tag/v1.7.0
+* add --min-score flag to batch runner ([#249](https://github.com/santifer/career-ops/issues/249)) ([cb0c7f7](https://github.com/santifer/career-ops/commit/cb0c7f7d7d3b9f3f1c3dc75ccac0a08d2737c01e))
+* add {{PHONE}} placeholder to CV template ([#287](https://github.com/santifer/career-ops/issues/287)) ([e71595f](https://github.com/santifer/career-ops/commit/e71595f8ba134971ecf1cc3c3420d9caf21eed43))
+* **dashboard:** add manual refresh shortcut ([#246](https://github.com/santifer/career-ops/issues/246)) ([4b5093a](https://github.com/santifer/career-ops/commit/4b5093a8ef1733c449ec0821f722f996625fcb84))
 
-## [1.3.0] — 2026-05-05
 
-The "easy install + amazing onboarding" release. Career-Ops is now installable
-in 60 seconds with a single command on any platform, ships a single-file
-executable for users who'd rather not touch a terminal, and the 6-step
-resume-driven onboarding wizard now reads as a conversation with the AI.
+### Bug Fixes
 
-### Added
+* add stopword filtering and overlap ratio to roleMatch ([#248](https://github.com/santifer/career-ops/issues/248)) ([4da772d](https://github.com/santifer/career-ops/commit/4da772d3a4996bc9ecbe2d384d1e9d2ed75b9819))
+* **dashboard:** show dates in pipeline list ([#298](https://github.com/santifer/career-ops/issues/298)) ([e5e2a6c](https://github.com/santifer/career-ops/commit/e5e2a6cffe9a5b9f3cec862df25410d02ecc9aa4))
+* ensure data/ and output/ dirs exist before writing in scripts ([#261](https://github.com/santifer/career-ops/issues/261)) ([4b834f6](https://github.com/santifer/career-ops/commit/4b834f6f7f8f1b647a6bf76e43b017dcbe9cd52f))
+* remove wellfound, lever and remotefront from portals.example.yml ([#286](https://github.com/santifer/career-ops/issues/286)) ([ecd013c](https://github.com/santifer/career-ops/commit/ecd013cc6f59e3a1a8ef77d34e7abc15e8075ed3))
 
-#### Packaging & install
-- `install.sh` — bash installer with `--docker | --local | --update | --uninstall | --doctor` modes. Auto-generates `SESSION_SECRET`, copies `.env.example` to `.env`, opens the dashboard URL in your default browser, polls `/api/health` for boot.
-- `install.ps1` — PowerShell mirror for native Windows install. Same UX, same modes.
-- `Makefile` — 16 targets (`install`, `docker`, `docker-prod`, `local`, `start`, `stop`, `logs`, `shell`, `test`, `doctor`, `update`, `backup`, `clean`, `rebuild`, `wipe-cache`). Self-documenting via bare `make`.
-- `scripts/build-exe.sh` — esbuild bundle + Node SEA pipeline that produces a single-file `career-ops.exe` (Windows) / `career-ops` (macOS, Linux) — ~88 MiB, no Node install needed by the end user.
-- `scripts/launcher.mjs` — the EXE entrypoint: auto-detects free port, opens browser, finds project root, falls back to `~/CareerOps` if no project nearby.
-- `scripts/publish-release.sh` — `gh repo create` + push + tag + release with EXE attached, all idempotent. Refuses to publish if it detects API keys in tracked files.
-- `packaging/career-ops.service` — systemd unit with sandboxing for Linux servers / WSL2.
-- `packaging/io.santifer.career-ops.plist` — launchd agent for macOS auto-start at login.
-- `docker-compose.hardened.yml` — production overlay with read-only fs + capability drop + ulimits + log rotation.
+## [1.4.0](https://github.com/santifer/career-ops/compare/v1.3.0...v1.4.0) (2026-04-13)
 
-#### Backend
-- `GET /api/health` — lightweight liveness probe `{ ok, uptime, version, now }` with `Cache-Control: no-store`. Used by Docker `HEALTHCHECK`, the install boot probe, and external monitors.
-- Pure-Node Docker `HEALTHCHECK` (replaces `wget` which isn't in `node:22-slim`).
-- `tini` as the container entrypoint for proper PID-1 signal handling and zombie reaping (Playwright spawns Chromium subprocesses).
 
-#### Onboarding UX
-- Conversational subtitles on every wizard step ("Hi — let's start with your resume", "Did I get these right?", "Anything that's a hard no?", "Tell me what makes you, you", "Ready when you are"). Reads like the AI is talking to you, not a form wizard.
-- Post-finalize celebration: 36 prismatic confetti dots burst from the brand mark when the user ships the wizard. Respects `prefers-reduced-motion`. Lasts ~1.4 s.
-- Toast on finalize is now "Profile saved · rendering your CV — I'll handle it from here" (was "Profile saved · CV PDF generating…").
+### Features
 
-#### CI
-- New `.github/workflows/release.yml`:
-  - **smoke-install** matrix on Ubuntu / macOS / Windows runs `install.sh --doctor` + `npm test` + syntax-checks all shell scripts.
-  - **docker-build** builds the image and probes `/api/health` from a live container.
-  - **build-exe** matrix produces signed-ready binaries for the 3 platforms on every `v*` tag.
-  - **publish-release** drafts a GitHub Release, attaches all binaries + a source tarball, then un-drafts.
+* add GitHub Actions CI + auto-labeler + welcome bot + /run skill ([2ddf22a](https://github.com/santifer/career-ops/commit/2ddf22a6a2731b38bcaed5786c4855c4ab9fe722))
+* **dashboard:** add Catppuccin Latte light theme with auto-detection ([ff686c8](https://github.com/santifer/career-ops/commit/ff686c8af97a7bf93565fe8eeac677f998cc9ece))
+* **dashboard:** add progress analytics screen ([623c837](https://github.com/santifer/career-ops/commit/623c837bf3155fd5b7413554240071d40585dd7e))
+* **dashboard:** add vim motions to pipeline screen ([#262](https://github.com/santifer/career-ops/issues/262)) ([d149e54](https://github.com/santifer/career-ops/commit/d149e541402db0c88161a71c73899cd1836a1b2d))
+* **dashboard:** aligned tables and markdown syntax rendering in viewer ([dbd1d3f](https://github.com/santifer/career-ops/commit/dbd1d3f7177358d0384d6e661d1b0dfc1f60bd4e))
 
-### Changed
 
-- **Dockerfile**: multi-layer rebuild — `npm ci` when lockfile present, env defaults for `PORT`/`HOST`, `tini` entrypoint, exposes 4747, `EXPOSE 4747`, `HEALTHCHECK` baked in (no longer requires `docker-compose.yaml` to add it).
-- **docker-compose.yaml**: now exposes `4747:4747`, default command runs the dashboard (was `/bin/bash`), `restart: unless-stopped`, healthcheck via pure Node, OCI image labels.
-- **package.json**: `"type": "module"`, `"engines": { "node": ">=20" }`, `"bin": { "career-ops": "dashboard-web/server.mjs" }`. New scripts: `start`, `dev` (with `--watch`), `preview` (isolated tmp dirs), `test:watch`. Bumped 1.0.0 → 1.3.0.
-- **README**: new "Install in 60 seconds" section at top covers macOS / Linux / WSL / Windows / Make / curl-pipe-bash / auto-start templates. Original manual-install steps preserved as a fallback.
-- **`.gitignore`**: hardened against accidental secret leaks (`.env*`, `*.pem`, `*.key`, `secrets.json`), excludes `cv.md` (PII), `data/follow-ups.md`, build artifacts (`dist/`, `*.exe`, `backups/`), worktree scratch.
+### Bug Fixes
 
-### Tests
-
-- 122 total (was 116) — 6 new integration tests for `/api/health` that boot a real server on a random port and assert the contract: status 200, JSON shape, `Cache-Control: no-store`, monotonic uptime, 20 concurrent probes < 2 s.
-- `buildGmailStatus` (12) and `readJsonBody` (8) suites unchanged; all still passing.
-
-### Security
-
-- `scripts/publish-release.sh` includes a pre-flight scan that refuses to publish if any tracked file matches Anthropic / OpenRouter / Kimi / Google / GitHub token patterns. Belt-and-suspenders next to `.gitignore`.
-- Healthcheck uses a portable Node oneliner — eliminates the need for `wget` / `curl` in the container image.
-
-### Migration notes
-
-If you were already running the dashboard from this repo:
-
-1. `git pull` the latest.
-2. Restart your dashboard so `/api/health` becomes available (the Docker healthcheck depends on it).
-3. (Docker users) `docker compose down && docker compose up -d --build` to pick up the multi-layer Dockerfile + new healthcheck.
-
-Your data (`cv.md`, `config/profile.yml`, `data/`, `reports/`, `interview-prep/`) is untouched by any of these changes — they live outside the system layer per `DATA_CONTRACT.md`.
-
-[1.3.0]: https://github.com/santifer/career-ops/releases/tag/v1.3.0
+* **ci:** use pull_request_target for labeler on fork PRs ([#260](https://github.com/santifer/career-ops/issues/260)) ([2ecf572](https://github.com/santifer/career-ops/commit/2ecf57206c2eb6e35e2a843d6b8365f7a04c53d6))
+* correct _shared.md → _profile.md reference in CUSTOMIZATION.md (closes [#137](https://github.com/santifer/career-ops/issues/137)) ([a91e264](https://github.com/santifer/career-ops/commit/a91e264b6ea047a76d8c033aa564fe01b8f9c1d9))
+* replace grep -P with POSIX-compatible grep in batch-runner.sh ([637b39e](https://github.com/santifer/career-ops/commit/637b39e383d1174c8287f42e9534e9e3cdfabb19))
+* test-all.mjs scans only git-tracked files, avoids false positives ([47c9f98](https://github.com/santifer/career-ops/commit/47c9f984d8ddc70974f15c99b081667b73f1bb9a))
+* use execFileSync to prevent shell injection in test-all.mjs ([c99d5a6](https://github.com/santifer/career-ops/commit/c99d5a6526f923b56c3790b79b0349f402fa00e2))

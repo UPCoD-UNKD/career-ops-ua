@@ -12,6 +12,8 @@ import http from 'http';
 import https from 'https';
 import fs from 'fs/promises';
 import path from 'path';
+import zlib from 'zlib';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { URLSearchParams } from 'url';
 import { spawn } from 'child_process';
@@ -3443,11 +3445,17 @@ const HTML = /* html */ `<!DOCTYPE html>
     }
 
     /* ── Auto-apply ── */
+    /* Auto-apply (Playwright form-filling) — secondary CTA, aubergine
+       solid, no gradient. Distinguishes from primary oxblood "Open &
+       Mark Applied" without leaving the heritage palette. */
     .btn-auto-apply {
-      background: linear-gradient(135deg, #bf5af2, #8944d6);
-      color: #fff; font-weight: 700; letter-spacing: -.01em;
+      background: var(--purple);
+      color: rgba(245,235,225,.96);
+      font-weight: 500;
+      border-color: rgba(0,0,0,.20);
     }
-    .btn-auto-apply:hover { opacity: .9; }
+    .btn-auto-apply:hover { background: #9a82b3; }
+    .btn-auto-apply:active { background: #7d6594; }
 
     /* Autopilot toggle — when active, switches to a brass-warm sage
        gradient (the only place green appears in the brand). The pulse
@@ -4552,8 +4560,19 @@ const HTML = /* html */ `<!DOCTYPE html>
   applyTheme();
 
   /* ── Helpers ── */
+  // HTML-escape: protects element content + double-quoted attribute values.
+  // Single quotes and backticks are escaped too because the table renderer
+  // interpolates esc() output into single-quoted onclick="..." JS string
+  // literals; without escaping ' an attacker-controlled company/role/notes
+  // value (e.g. from a malicious JD) could break out of the JS string.
   function esc(s) {
-    return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return (s||'')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;')
+      .replace(/\\\`/g,'&#96;');
   }
 
   function statusClass(s) {
@@ -4623,11 +4642,11 @@ const HTML = /* html */ `<!DOCTYPE html>
       const fuTag = a.needsFollowUp ? '<span class="followup-tag">⚡ ' + a.age + 'd</span>' : '';
       const cls = a.needsFollowUp ? ' class="followup-row"' : '';
       const reportBtn = a.reportLink
-        ? '<a class="report-btn" href="/reports/' + esc(a.reportLink) + '" target="_blank" onclick="event.stopPropagation()">📄</a> '
+        ? '<a class="report-btn" href="/reports/' + esc(a.reportLink) + '" target="_blank" onclick="event.stopPropagation()" aria-label="Open report for ' + esc(a.company || a.num) + '" title="Open evaluation report">📄</a> '
         : '';
-      const openBtn = '<button class="btn-row-open" onclick="event.stopPropagation();openJobUrl(\\'' + esc(a.num) + '\\',this)" title="Open job posting in new tab">↗ Open</button>';
+      const openBtn = '<button class="btn-row-open" onclick="event.stopPropagation();openJobUrl(\\'' + esc(a.num) + '\\',this)" aria-label="Open job posting for ' + esc(a.company || a.num) + ' in new tab" title="Open job posting in new tab">↗ Open</button>';
       const applyBtn = a.status === 'evaluated'
-        ? '<button class="btn-row-apply" onclick="event.stopPropagation();applyOne(\\'' + esc(a.num) + '\\')" title="Open job URL and mark Applied">Apply →</button>'
+        ? '<button class="btn-row-apply" onclick="event.stopPropagation();applyOne(\\'' + esc(a.num) + '\\')" aria-label="Apply to ' + esc(a.company || a.num) + ' and mark applied" title="Open job URL and mark Applied">Apply →</button>'
         : '';
       return '<tr' + cls + ' onclick="rowClick(event,\\'' + esc(a.num) + '\\')">' +
         '<td class="td-num">' + esc(a.num) + '</td>' +
@@ -6483,30 +6502,44 @@ const HTML = /* html */ `<!DOCTYPE html>
 const CSP_DIRECTIVES = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",   // dashboard uses inline <script> blocks
-  "style-src 'self' 'unsafe-inline'",    // and inline style="" attributes
+  // Style: own + inline + Google Fonts CSS (Fraunces, DM Sans, JetBrains Mono)
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: https:",
-  "font-src 'self' data:",
+  // Font files are served from fonts.gstatic.com after the CSS resolves
+  "font-src 'self' data: https://fonts.gstatic.com",
   "connect-src 'self'",                  // Gmail API runs server-side, not browser-side
   "frame-ancestors 'none'",              // clickjacking protection
   "base-uri 'self'",
   "form-action 'self'",
 ].join('; ');
 
-function applySecurityHeaders(res) {
+function applySecurityHeaders(req, res) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('Referrer-Policy', 'no-referrer');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=()');
   res.setHeader('Content-Security-Policy', CSP_DIRECTIVES);
+  // HSTS — only when terminating TLS (or behind a TLS-terminating proxy
+  // signaling via X-Forwarded-Proto). Never on plain http://localhost
+  // because Chrome would refuse to downgrade to http on later visits.
+  const proto = req.headers['x-forwarded-proto'];
+  if (proto === 'https' || req.socket.encrypted) {
+    res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains');
+  }
 }
 
 // Allowed Origin values for state-changing POST requests. Empty Origin
 // (same-origin fetch) is also permitted. Configurable via env for users who
-// front the dashboard with a reverse proxy.
+// front the dashboard with a reverse proxy. ALLOWED_ORIGIN accepts a
+// comma-separated list so users with multiple front-end hosts (preview +
+// prod) don't have to fork the env var.
 const ALLOWED_ORIGINS = new Set([
   `http://localhost:${PORT}`,
   `http://127.0.0.1:${PORT}`,
-  ...(process.env.ALLOWED_ORIGIN ? [process.env.ALLOWED_ORIGIN] : []),
+  ...(process.env.ALLOWED_ORIGIN
+    ? process.env.ALLOWED_ORIGIN.split(',').map(s => s.trim()).filter(Boolean)
+    : []),
 ]);
 
 function isOriginAllowed(req) {
@@ -6534,8 +6567,87 @@ const resolveSafeReportPath = makeSafeResolver(REPORTS_DIR);
 // extractProfileFromResume) live in ./lib/onboard.mjs so they're testable
 // without booting the HTTP server.
 
+// ── Non-loopback auth gate ──────────────────────────────────────────────
+// When HOST is anything other than 127.0.0.1 or ::1 (e.g. Docker default
+// 0.0.0.0, k8s, behind reverse proxy), the dashboard MUST present an
+// AUTH_TOKEN to access any route. This prevents accidental public
+// exposure when the Dockerfile sets HOST=0.0.0.0. /api/health stays
+// unauthenticated so monitors can reach it.
+const NON_LOOPBACK = HOST !== '127.0.0.1' && HOST !== 'localhost' && HOST !== '::1';
+const AUTH_TOKEN   = process.env.AUTH_TOKEN || '';
+
+if (NON_LOOPBACK && !AUTH_TOKEN) {
+  console.error(
+    '[security] Refusing to start: HOST=' + HOST + ' is non-loopback but no\n' +
+    '            AUTH_TOKEN env var was provided. Set AUTH_TOKEN to a long\n' +
+    '            random string (e.g. `openssl rand -hex 32`) and restart, or\n' +
+    '            front this server with a reverse-proxy that handles auth.'
+  );
+  process.exit(2);
+}
+
+function isAuthorized(req) {
+  if (!NON_LOOPBACK) return true;                       // localhost: open
+  const provided = req.headers['authorization'] || '';
+  // Accept either "Bearer <token>" or a ?token= query param (for browsers).
+  if (provided === `Bearer ${AUTH_TOKEN}`) return true;
+  const url = new URL(req.url, `http://${HOST}:${PORT}`);
+  if (url.searchParams.get('token') === AUTH_TOKEN) return true;
+  return false;
+}
+
+// ── Token-bucket rate limiter ───────────────────────────────────────────
+// Per-IP bucket: 60 GET req/min, 10 mutating req/min. In-memory only, so
+// it resets on restart — fine for single-instance deployments. Buckets
+// expire after 5 min idle to bound memory.
+const RATE_BUCKETS = new Map();
+const RATE_GET_PER_MIN  = Number(process.env.RATE_GET_PER_MIN  || 60);
+const RATE_POST_PER_MIN = Number(process.env.RATE_POST_PER_MIN || 10);
+const RATE_BUCKET_TTL_MS = 5 * 60_000;
+
+function checkRateLimit(req) {
+  const ip = req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  let bucket = RATE_BUCKETS.get(ip);
+  if (!bucket || (now - bucket.last) > RATE_BUCKET_TTL_MS) {
+    bucket = { tokensGet: RATE_GET_PER_MIN, tokensPost: RATE_POST_PER_MIN, last: now };
+    RATE_BUCKETS.set(ip, bucket);
+  }
+  // Refill: linear interpolation over 60s window.
+  const elapsedMs = now - bucket.last;
+  bucket.tokensGet  = Math.min(RATE_GET_PER_MIN,  bucket.tokensGet  + (elapsedMs / 60_000) * RATE_GET_PER_MIN);
+  bucket.tokensPost = Math.min(RATE_POST_PER_MIN, bucket.tokensPost + (elapsedMs / 60_000) * RATE_POST_PER_MIN);
+  bucket.last = now;
+  const isPost = req.method !== 'GET' && req.method !== 'HEAD';
+  if (isPost) {
+    if (bucket.tokensPost < 1) return false;
+    bucket.tokensPost -= 1;
+  } else {
+    if (bucket.tokensGet < 1) return false;
+    bucket.tokensGet -= 1;
+  }
+  return true;
+}
+
+// Track unhandledRejection state for /api/health introspection.
+let LAST_UNHANDLED_REJECTION = null;
+
 async function handleRequest(req, res) {
-  applySecurityHeaders(res);
+  applySecurityHeaders(req, res);
+  // Auth gate: only allow /api/health unauthenticated when bound to a
+  // non-loopback address. Everything else needs the token.
+  const urlForAuth = new URL(req.url, `http://${HOST}:${PORT}`);
+  if (NON_LOOPBACK && urlForAuth.pathname !== '/api/health' && !isAuthorized(req)) {
+    res.writeHead(401, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'WWW-Authenticate': 'Bearer realm="Hireloom"' });
+    res.end(JSON.stringify({ ok: false, error: 'authentication required' }));
+    return;
+  }
+  // Rate limit
+  if (!checkRateLimit(req)) {
+    res.writeHead(429, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'Retry-After': '60' });
+    res.end(JSON.stringify({ ok: false, error: 'rate limit exceeded' }));
+    return;
+  }
   const urlObj = new URL(req.url, `http://localhost:${PORT}`);
   const pathname = urlObj.pathname;
 
@@ -7107,12 +7219,20 @@ GMAIL_REDIRECT_URI=${redirect}</pre>
       'Content-Type': 'application/json',
       'Cache-Control': 'no-store',
     });
+    // Surface unhandled-rejection state so monitors can alert when the
+    // process is silently degrading. lastUnhandledRejection is null
+    // until something fires; staleSinceMs is undefined when null.
+    const lastRej = LAST_UNHANDLED_REJECTION;
     res.end(JSON.stringify({
       ok: true,
       app: 'Hireloom',
       uptime: Math.round(process.uptime()),
       version: '1.7.0',
       now: new Date().toISOString(),
+      lastUnhandledRejection: lastRej ? lastRej.iso : null,
+      lastUnhandledRejectionAgoMs: lastRej ? (Date.now() - lastRej.t) : null,
+      lastUnhandledRejectionMessage: lastRej ? lastRej.message : null,
+      authMode: NON_LOOPBACK ? 'token' : 'loopback',
     }));
     return;
   }
@@ -7306,32 +7426,56 @@ GMAIL_REDIRECT_URI=${redirect}</pre>
     const filename = path.basename(filepath);
     try {
       const content = await fs.readFile(filepath, 'utf8');
+      // HTML-escape — defense-in-depth: even though path-safety blocks
+      // dangerous chars at the filesystem layer, HTML-escape is the
+      // contract for any value placed in a markup context.
+      const htmlEscape = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+      const safeFilename = htmlEscape(filename);
+      const safeTitle    = htmlEscape(filename.replace(/-/g,' ').replace('.md',''));
+      const safeBody     = htmlEscape(content);
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
-        <title>${filename}</title>
+        <title>${safeFilename}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400;9..144,500;9..144,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
         <style>
-          :root{--bg:#000;--surface:#1c1c1e;--surface2:#2c2c2e;--border:rgba(255,255,255,.08);--text:#fff;--text-sec:rgba(255,255,255,.55);--accent:#0a84ff}
+          /* Heritage palette — auto-respects prefers-color-scheme + theme attr.
+             Mirrors the dashboard so report links don't feel like a different
+             app. */
+          :root{
+            --bg:#0e0a08; --surface:#221814; --hairline:rgba(201,168,106,.10);
+            --text:rgba(245,235,225,.96); --text-sec:rgba(220,200,185,.65);
+            --link:#c9a86a; --link-hover:#d8bb7e;
+          }
+          @media (prefers-color-scheme: light){
+            :root:not([data-theme="dark"]){
+              --bg:#faf6f0; --surface:#f3ece1; --hairline:rgba(58,30,15,.10);
+              --text:rgba(38,24,12,.92); --text-sec:rgba(72,52,38,.72);
+              --link:#7a1424; --link-hover:#5a0e1c;
+            }
+          }
+          [data-theme="light"]{
+            --bg:#faf6f0; --surface:#f3ece1; --hairline:rgba(58,30,15,.10);
+            --text:rgba(38,24,12,.92); --text-sec:rgba(72,52,38,.72);
+            --link:#7a1424; --link-hover:#5a0e1c;
+          }
           *{box-sizing:border-box;margin:0;padding:0}
-          body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
-               max-width:800px;margin:0 auto;padding:40px 24px 80px;line-height:1.7;font-size:14px;-webkit-font-smoothing:antialiased}
-          h1,h2,h3{margin-top:1.8em;line-height:1.2;letter-spacing:-.01em}
-          h1{font-size:22px;margin-top:0}h2{font-size:18px}h3{font-size:15px;color:var(--text-sec)}
-          p{margin-top:.8em;color:var(--text-sec)}
-          pre,code{font-family:"SF Mono","Fira Code",ui-monospace,monospace;font-size:13px}
-          pre{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;overflow-x:auto;margin-top:1em}
+          body{background:var(--bg);color:var(--text);font-family:"DM Sans",-apple-system,system-ui,sans-serif;
+               max-width:760px;margin:0 auto;padding:40px 24px 80px;line-height:1.7;font-size:14px;-webkit-font-smoothing:antialiased}
+          h1{font-family:"Fraunces",Georgia,serif;font-variation-settings:"opsz" 48,"SOFT" 50;font-weight:500;font-size:32px;letter-spacing:-.015em;margin:0 0 12px}
           a{color:var(--link);text-decoration:none}a:hover{color:var(--link-hover);text-decoration:underline}
-          hr{border:none;border-top:.5px solid var(--border);margin:28px 0}
-          table{border-collapse:collapse;width:100%;margin:1em 0}
-          th,td{border:.5px solid var(--border);padding:8px 12px;text-align:left;font-size:13px}
-          th{background:var(--surface);color:var(--text-sec);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
-          .back{display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;color:var(--link);font-size:13px}
-          strong{color:var(--text)}
+          hr{border:none;border-top:1px solid var(--hairline);margin:24px 0}
+          pre{background:var(--surface);border:1px solid var(--hairline);border-radius:8px;padding:18px 20px;
+              font-family:"JetBrains Mono","SF Mono",ui-monospace,monospace;font-size:13px;line-height:1.6;
+              white-space:pre-wrap;word-wrap:break-word}
+          .back{display:inline-flex;align-items:center;gap:6px;margin-bottom:24px;color:var(--link);font-size:13px;font-weight:500}
         </style>
       </head><body>
         <a class="back" href="/">← Atelier</a>
-        <h1 style="margin-top:0">${filename.replace(/-/g,' ').replace('.md','')}</h1>
+        <h1>${safeTitle}</h1>
         <hr>
-        <pre>${content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
+        <pre>${safeBody}</pre>
       </body></html>`);
     } catch {
       res.writeHead(404, { 'Content-Type': 'text/plain' });
@@ -7348,10 +7492,36 @@ GMAIL_REDIRECT_URI=${redirect}</pre>
     return sendJsonError(res, 404, 'not found');
   }
 
-  // ── Main HTML ──
-  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-  res.end(HTML);
+  // ── Main HTML ── gzip + ETag, both precomputed at boot.
+  // Browsers send If-None-Match on subsequent loads; we 304 in 0ms.
+  // The ETag is invalidated automatically every server restart.
+  const ifNoneMatch = req.headers['if-none-match'];
+  if (ifNoneMatch === HTML_ETAG) {
+    res.writeHead(304, { 'ETag': HTML_ETAG, 'Cache-Control': 'private, max-age=60' });
+    res.end();
+    return;
+  }
+  const acceptsGzip = (req.headers['accept-encoding'] || '').includes('gzip');
+  const headers = {
+    'Content-Type': 'text/html; charset=utf-8',
+    'ETag': HTML_ETAG,
+    'Cache-Control': 'private, max-age=60',
+    'Vary': 'Accept-Encoding',
+  };
+  if (acceptsGzip) {
+    headers['Content-Encoding'] = 'gzip';
+    headers['Content-Length']   = HTML_GZIPPED.length;
+    res.writeHead(200, headers);
+    res.end(HTML_GZIPPED);
+  } else {
+    res.writeHead(200, headers);
+    res.end(HTML);
+  }
 }
+
+// Precompute compression + content hash so the hot path is ~zero work.
+const HTML_GZIPPED = zlib.gzipSync(HTML, { level: 9 });
+const HTML_ETAG    = '"' + crypto.createHash('sha1').update(HTML).digest('hex').slice(0, 16) + '"';
 
 // ── Autonomous pipeline cycle (scan → eval → CL → assemble) ──────────────────
 
@@ -7401,8 +7571,11 @@ async function start() {
   // autopilot/pipeline async chains crashes the whole server (Node 22+ default
   // for unhandledRejection is exit code 1). We log + survive instead. Audit Q2.
   process.on('unhandledRejection', (reason) => {
-    const msg = reason instanceof Error ? reason.stack || reason.message : String(reason);
-    console.error('[unhandledRejection]', msg);
+    const message = reason instanceof Error ? (reason.message || String(reason)) : String(reason);
+    const stack = reason instanceof Error ? reason.stack : null;
+    console.error('[unhandledRejection]', stack || message);
+    // Also expose to /api/health for external monitors.
+    LAST_UNHANDLED_REJECTION = { t: Date.now(), iso: new Date().toISOString(), message };
   });
   process.on('uncaughtException', (err) => {
     // Truly unexpected. Log it, but DO exit — uncaught sync errors leave the
