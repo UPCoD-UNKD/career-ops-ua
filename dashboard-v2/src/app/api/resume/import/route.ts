@@ -171,7 +171,9 @@ export async function POST(req: NextRequest) {
         text = parsed?.text || '';
       } else if (pdfParse?.PDFParse) {
         // pdf-parse@2.x: pass the PDF buffer via constructor options; load() takes no args.
-        const parser = new pdfParse.PDFParse({ data: bytes });
+        // IMPORTANT (Vercel): disable PDF.js worker. The worker chunk isn't available in serverless output,
+        // which causes "Setting up fake worker failed: Cannot find module ... pdf.worker.mjs".
+        const parser = new pdfParse.PDFParse({ data: bytes, disableWorker: true });
         await parser.load();
         const out = await parser.getText();
         text = out?.text || '';
