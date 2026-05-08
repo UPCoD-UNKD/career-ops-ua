@@ -166,17 +166,22 @@ export async function POST(req: NextRequest) {
     let text = '';
     if (lower.endsWith('.pdf')) {
       // pdf-parse has multiple export shapes across versions.
-      if (typeof pdfParse === 'function') {
-        const parsed = await pdfParse(bytes);
-        text = parsed?.text || '';
-      } else if (pdfParse?.PDFParse) {
+      // IMPORTANT (Vercel): Always prefer the PDFParse class path with disableWorker=true.
+      // The function export path can try to boot a PDF.js worker, which fails in serverless output.
+      const PDFParseCtor = pdfParse?.PDFParse || pdfParseMod?.PDFParse;
+      if (PDFParseCtor) {
         // pdf-parse@2.x: pass the PDF buffer via constructor options; load() takes no args.
         // IMPORTANT (Vercel): disable PDF.js worker. The worker chunk isn't available in serverless output,
         // which causes "Setting up fake worker failed: Cannot find module ... pdf.worker.mjs".
-        const parser = new pdfParse.PDFParse({ data: bytes, disableWorker: true });
+        const parser = new PDFParseCtor({ data: bytes, disableWorker: true });
         await parser.load();
         const out = await parser.getText();
         text = out?.text || '';
+      } else if (typeof pdfParse === 'function') {
+        // Fallback: some builds expose a function. This path is less reliable on Vercel.
+        // Keep it as a last resort.
+        const parsed = await pdfParse(bytes);
+        text = parsed?.text || '';
       } else {
         throw new Error(`PDF parser unavailable (exports: ${Object.keys(pdfParseMod || {}).join(', ')})`);
       }
@@ -202,7 +207,8 @@ export async function POST(req: NextRequest) {
     const education = eduSection ? parseEducation(eduSection) : [];
     const raw_text_preview = text.slice(0, 2500);
 
-    return NextResponse.json({
+    return NextResponse.json(
+      {
       ok: true,
       // Back-compat for Dashboard UI: also expose fields at top-level.
       experience,
@@ -213,7 +219,14 @@ export async function POST(req: NextRequest) {
         education,
         raw_text_preview,
       },
-    });
+      },
+      {
+        headers: {
+          // Lets us confirm Vercel picked up latest deploy.
+          'X-CareerOps-ResumeImport-Version': 'disableWorker-v2',
+        },
+      }
+    );
   } catch (e: any) {
     return NextResponse.json(
       {
