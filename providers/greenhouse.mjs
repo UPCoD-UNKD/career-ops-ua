@@ -48,7 +48,9 @@ export default {
     const apiUrl = resolveApiUrl(entry);
     if (!apiUrl) throw new Error(`greenhouse: cannot derive API URL for ${entry.name}`);
     assertGreenhouseUrl(apiUrl);
-    const json = await ctx.fetchJson(apiUrl);
+    // redirect:'error' prevents SSRF via server-side redirects; combined with
+    // assertGreenhouseUrl above it guarantees the final hostname stays in the allowlist.
+    const json = await ctx.fetchJson(apiUrl, { redirect: 'error' });
     const jobs = Array.isArray(json?.jobs) ? json.jobs : [];
     return jobs.map(j => ({
       title: j.title || '',

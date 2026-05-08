@@ -4,7 +4,7 @@
 const DEFAULT_TIMEOUT_MS = 10_000;
 const DEFAULT_USER_AGENT = 'Mozilla/5.0 (compatible; career-ops/1.3)';
 
-async function fetchWithTimeout(url, { timeoutMs = DEFAULT_TIMEOUT_MS, headers = {}, method = 'GET', body = null } = {}) {
+async function fetchWithTimeout(url, { timeoutMs = DEFAULT_TIMEOUT_MS, headers = {}, method = 'GET', body = null, redirect = 'follow' } = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -12,6 +12,7 @@ async function fetchWithTimeout(url, { timeoutMs = DEFAULT_TIMEOUT_MS, headers =
       method,
       headers: { 'user-agent': DEFAULT_USER_AGENT, ...headers },
       body,
+      redirect,
       signal: controller.signal,
     });
     if (!res.ok) {

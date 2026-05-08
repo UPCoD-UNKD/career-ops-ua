@@ -89,7 +89,13 @@ function resolveProvider(entry, providers) {
     return { provider: p };
   }
   for (const p of providers.values()) {
-    const hit = p.detect?.(entry);
+    let hit;
+    try {
+      hit = p.detect?.(entry);
+    } catch (err) {
+      console.error(`⚠️  ${p.id}: detect() threw for "${entry.name}" — ${err.message}`);
+      continue;
+    }
     if (hit) return { provider: p };
   }
   return null;
@@ -253,6 +259,10 @@ async function main() {
   const resolveErrors = [];
   for (const company of companies) {
     if (company.enabled === false) continue;
+    if (typeof company.name !== 'string' || !company.name) {
+      console.error(`⚠️  Skipping entry — missing or non-string 'name' field: ${JSON.stringify(company)}`);
+      continue;
+    }
     if (filterCompany && !company.name.toLowerCase().includes(filterCompany)) continue;
     const resolved = resolveProvider(company, providers);
     if (!resolved) { skippedCount++; continue; }
