@@ -239,11 +239,20 @@ SUBCOMMANDS['mark-processed'] = async (args) => {
   if (company.includes('|') || role.includes('|')) {
     fail('--company and --role cannot contain `|` (used as field separator in pipeline.md)');
   }
+  const coverLetter = args['cover-letter'];
+  const coverLetterStatus = args['cover-letter-status'];
+  if (coverLetter && coverLetterStatus && !['ok', 'fail'].includes(coverLetterStatus)) {
+    fail('--cover-letter-status must be ok or fail');
+  }
   const content = await readPipeline();
   const { lines } = parsePipelineSections(content);
   const cleaned = removeUrlLines(lines, url);
   const procesadasIdx = findSectionStart(cleaned, 'Procesadas');
-  const newLine = `- [x] ${url} | ${company} | ${role} | JD ✅ | Resume ✅ | Score ${score}/100`;
+  let newLine = `- [x] ${url} | ${company} | ${role} | JD ✅ | Resume ✅ | Score ${score}/100`;
+  if (coverLetter) {
+    const clMark = coverLetterStatus === 'fail' ? 'CL ❌' : 'CL ✅';
+    newLine += ` | ${clMark} | ${coverLetter}`;
+  }
   const updated = insertAtSectionEnd(cleaned, procesadasIdx, newLine);
   await writePipelineAtomic(updated.join('\n'));
   ok({});

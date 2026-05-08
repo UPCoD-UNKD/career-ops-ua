@@ -759,3 +759,54 @@ test('buildCoverLetterLogPath: returns cover-letter-logs/<slug>_Cover_Letter_<da
   const result = buildCoverLetterLogPath('LeagueInc', 'SeniorAiEngineer', '2026-05-08');
   assert.equal(result, 'cover-letter-logs/LeagueInc_SeniorAiEngineer_Yash_Anghan_Cover_Letter_2026-05-08.log');
 });
+
+test('mark-processed: with --cover-letter and --cover-letter-status appends cl: and cl-status: fields', async () => {
+  const dir = await makeTempPipelineFile([
+    '## Pendientes',
+    '- [ ] https://example.com/job',
+    '## Procesadas',
+  ].join('\n'));
+  try {
+    await execFileP('node', [SCRIPT,
+      'mark-processed',
+      '--url', 'https://example.com/job',
+      '--company', 'Acme',
+      '--role', 'AI Engineer',
+      '--jd', 'jds/JD_Acme_AiEngineer_Yash_Anghan_2026-05-08.md',
+      '--pdf', 'resumes/Acme_AiEngineer_Yash_Anghan_Resume_2026-05-08.pdf',
+      '--score', '95',
+      '--cover-letter', 'cover-letters/Acme_AiEngineer_Yash_Anghan_Cover_Letter_2026-05-08.pdf',
+      '--cover-letter-status', 'ok',
+    ], { cwd: dir });
+    const content = await readFileTest(join(dir, 'data/pipeline.md'), 'utf-8');
+    assert.match(content, /- \[x\] https:\/\/example\.com\/job/);
+    assert.match(content, /CL ✅/);
+    assert.match(content, /cover-letters\/Acme_AiEngineer_Yash_Anghan_Cover_Letter_2026-05-08\.pdf/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test('mark-processed: without --cover-letter omits cl: fields (backward compat)', async () => {
+  const dir = await makeTempPipelineFile([
+    '## Pendientes',
+    '- [ ] https://example.com/job',
+    '## Procesadas',
+  ].join('\n'));
+  try {
+    await execFileP('node', [SCRIPT,
+      'mark-processed',
+      '--url', 'https://example.com/job',
+      '--company', 'Acme',
+      '--role', 'Engineer',
+      '--jd', 'a',
+      '--pdf', 'b',
+      '--score', '90',
+    ], { cwd: dir });
+    const content = await readFileTest(join(dir, 'data/pipeline.md'), 'utf-8');
+    assert.match(content, /- \[x\] https:\/\/example\.com\/job/);
+    assert.doesNotMatch(content, /CL ✅|CL ❌|cl-status/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
