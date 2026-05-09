@@ -472,20 +472,30 @@ func (m ViewerModel) renderTableBlock(lines []string, colWidths []int, firstLine
 	}
 	result = append(result, borderStyle.Render("┌"+strings.Join(topParts, "┬")+"┐"))
 
+	// Build a separator line for reuse.
+	var sepParts []string
+	for _, w := range colWidths {
+		sepParts = append(sepParts, strings.Repeat("─", w+2))
+	}
+	midSep := borderStyle.Render("├" + strings.Join(sepParts, "┼") + "┤")
+
+	// First pass: render each row into its output lines, skipping markdown separators.
+	// We need to know total row count to skip the trailing separator.
+	type renderedRow struct {
+		outputLines []string
+		isHeader    bool
+	}
+	var renderedRows []renderedRow
+
 	isFirstDataRow := true
 	for _, line := range lines {
 		if isTableSeparator(line) {
-			var sepParts []string
-			for _, w := range colWidths {
-				sepParts = append(sepParts, strings.Repeat("─", w+2))
-			}
-			result = append(result, borderStyle.Render("├"+strings.Join(sepParts, "┼")+"┤"))
-			continue
+			continue // we draw our own separators between every row
 		}
 
 		cells := parseTableCells(line)
 
-		// Wrap each cell to its column width, producing a slice of lines per cell.
+		// Wrap each cell to its column width.
 		wrappedCells := make([][]string, maxCols)
 		rowHeight := 1
 		for i := 0; i < maxCols; i++ {
@@ -500,8 +510,8 @@ func (m ViewerModel) renderTableBlock(lines []string, colWidths []int, firstLine
 			}
 		}
 
-		// Render one output line per wrapped row.
 		border := borderStyle.Render("│")
+		var outputLines []string
 		for lineIdx := 0; lineIdx < rowHeight; lineIdx++ {
 			var rowParts []string
 			for i := 0; i < maxCols; i++ {
@@ -522,9 +532,18 @@ func (m ViewerModel) renderTableBlock(lines []string, colWidths []int, firstLine
 					rowParts = append(rowParts, dataStyle.Render(padded))
 				}
 			}
-			result = append(result, border+strings.Join(rowParts, border)+border)
+			outputLines = append(outputLines, border+strings.Join(rowParts, border)+border)
 		}
+		renderedRows = append(renderedRows, renderedRow{outputLines: outputLines, isHeader: isFirstDataRow})
 		isFirstDataRow = false
+	}
+
+	// Second pass: emit rows with a separator between each one.
+	for i, row := range renderedRows {
+		result = append(result, row.outputLines...)
+		if i < len(renderedRows)-1 {
+			result = append(result, midSep)
+		}
 	}
 
 	// Bottom border
