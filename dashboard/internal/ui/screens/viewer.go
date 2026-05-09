@@ -233,7 +233,9 @@ func (m ViewerModel) renderBody() string {
 			rendered := m.renderTableBlock(tableLines, colWidths, fullTableStart)
 			styled = append(styled, rendered...)
 		} else {
-			styled = append(styled, m.styleLine(visible[i]))
+			for _, wl := range wordWrapRaw(visible[i], m.width-6) {
+				styled = append(styled, m.styleLine(wl))
+			}
 			i++
 		}
 	}
@@ -244,6 +246,96 @@ func (m ViewerModel) renderBody() string {
 	}
 
 	return padStyle.Render(strings.Join(styled, "\n"))
+}
+
+// wordWrapRaw splits a raw (unstyled) line into multiple lines that fit within maxWidth,
+// preserving leading indent and bullet prefixes on continuation lines.
+func wordWrapRaw(line string, maxWidth int) []string {
+	if maxWidth < 10 {
+		return []string{line}
+	}
+	// Fast path: fits on one line
+	if len([]rune(line)) <= maxWidth {
+		return []string{line}
+	}
+
+	// Determine continuation indent (preserve leading spaces + extra for bullets)
+	raw := line
+	leadingSpaces := len(raw) - len(strings.TrimLeft(raw, " \t"))
+	indent := strings.Repeat(" ", leadingSpaces)
+	trimmed := strings.TrimSpace(raw)
+	if strings.HasPrefix(trimmed, "- ") || strings.HasPrefix(trimmed, "* ") {
+		indent += "  "
+	}
+
+	words := strings.Fields(raw)
+	if len(words) == 0 {
+		return []string{line}
+	}
+
+	var result []string
+	current := ""
+	firstLine := true
+
+	for _, word := range words {
+		var candidate string
+		if current == "" {
+			if firstLine {
+				candidate = word
+			} else {
+				candidate = indent + word
+			}
+		} else {
+			candidate = current + " " + word
+		}
+
+		if len([]rune(candidate)) <= maxWidth {
+			current = candidate
+		} else {
+			if current != "" {
+				result = append(result, current)
+			}
+			firstLine = false
+			current = indent + word
+		}
+	}
+	if current != "" {
+		result = append(result, current)
+	}
+	if len(result) == 0 {
+		return []string{line}
+	}
+	return result
+}
+
+// wrapCellContent wraps a cell string to fit within maxWidth, returning lines.
+func wrapCellContent(cell string, maxWidth int) []string {
+	if maxWidth < 4 {
+		return []string{cell}
+	}
+	if len([]rune(cell)) <= maxWidth {
+		return []string{cell}
+	}
+	words := strings.Fields(cell)
+	if len(words) == 0 {
+		return []string{""}
+	}
+	var lines []string
+	current := ""
+	for _, w := range words {
+		if current == "" {
+			current = w
+		} else if len([]rune(current))+1+len([]rune(w)) <= maxWidth {
+			current += " " + w
+		} else {
+			lines = append(lines, current)
+			current = w
+		}
+	}
+	if current != "" {
+		lines = append(lines, current)
+	}
+	return lines
 }
 
 // isTableLine checks if a line is part of a markdown table.
@@ -383,7 +475,6 @@ func (m ViewerModel) renderTableBlock(lines []string, colWidths []int, firstLine
 	isFirstDataRow := true
 	for _, line := range lines {
 		if isTableSeparator(line) {
-			// Render middle separator
 			var sepParts []string
 			for _, w := range colWidths {
 				sepParts = append(sepParts, strings.Repeat("─", w+2))
@@ -393,46 +484,46 @@ func (m ViewerModel) renderTableBlock(lines []string, colWidths []int, firstLine
 		}
 
 		cells := parseTableCells(line)
-		var paddedCells []string
+
+		// Wrap each cell to its column width, producing a slice of lines per cell.
+		wrappedCells := make([][]string, maxCols)
+		rowHeight := 1
 		for i := 0; i < maxCols; i++ {
 			cell := ""
 			if i < len(cells) {
 				cell = cells[i]
 			}
-			cellWidth := lipgloss.Width(cell)
-			colW := colWidths[i]
-
-			if cellWidth > colW {
-				// Truncate — need to handle multi-byte/emoji carefully
-				runes := []rune(cell)
-				truncated := string(runes)
-				for lipgloss.Width(truncated) > colW-3 && len(runes) > 0 {
-					runes = runes[:len(runes)-1]
-					truncated = string(runes)
-				}
-				cell = truncated + "..."
-				cellWidth = lipgloss.Width(cell)
+			wrapped := wrapCellContent(cell, colWidths[i])
+			wrappedCells[i] = wrapped
+			if len(wrapped) > rowHeight {
+				rowHeight = len(wrapped)
 			}
-
-			padding := colW - cellWidth
-			if padding < 0 {
-				padding = 0
-			}
-			paddedCells = append(paddedCells, " "+cell+strings.Repeat(" ", padding)+" ")
 		}
 
-		// Build row with borders
+		// Render one output line per wrapped row.
 		border := borderStyle.Render("│")
-		var rowParts []string
-		for _, cell := range paddedCells {
-			if isFirstDataRow {
-				rowParts = append(rowParts, headerStyle.Render(cell))
-			} else {
-				rowParts = append(rowParts, dataStyle.Render(cell))
+		for lineIdx := 0; lineIdx < rowHeight; lineIdx++ {
+			var rowParts []string
+			for i := 0; i < maxCols; i++ {
+				colW := colWidths[i]
+				cell := ""
+				if lineIdx < len(wrappedCells[i]) {
+					cell = wrappedCells[i][lineIdx]
+				}
+				cellWidth := lipgloss.Width(cell)
+				padding := colW - cellWidth
+				if padding < 0 {
+					padding = 0
+				}
+				padded := " " + cell + strings.Repeat(" ", padding) + " "
+				if isFirstDataRow {
+					rowParts = append(rowParts, headerStyle.Render(padded))
+				} else {
+					rowParts = append(rowParts, dataStyle.Render(padded))
+				}
 			}
+			result = append(result, border+strings.Join(rowParts, border)+border)
 		}
-		row := border + strings.Join(rowParts, border) + border
-		result = append(result, row)
 		isFirstDataRow = false
 	}
 
