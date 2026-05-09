@@ -238,3 +238,40 @@ Fallback: if you only have the direct ATS URL, first navigate to the company web
 - Adjust filtering keywords as target roles evolve
 - Add companies to `tracked_companies` when you want to follow them closely
 - Verify `careers_url` periodically — companies change ATS platforms
+
+## Canadian Job Board Strategy
+
+For candidates targeting the Canadian market, add these discovery channels alongside the standard Greenhouse/Ashby/Lever approach.
+
+### ATS Landscape for Canadian Employers
+
+| ATS | Typical Canadian Users | API Pattern |
+|-----|----------------------|-------------|
+| Greenhouse | Cohere, 1Password, League, Wealthsimple, Lightspeed | `boards-api.greenhouse.io/v1/boards/{slug}/jobs` |
+| Ashby | Ada, Waabi, Cohesity (Canada offices) | GraphQL `ApiJobBoardWithTeams` |
+| Workday | RBC, Manulife, Sun Life, TD, Bell, Rogers | `/wday/cxs/{company}/{site}/jobs` (test each slug — ~5-10% return 401) |
+| Lever | Clearco, ApplyBoard, some scaleups | `api.lever.co/v0/postings/{slug}?mode=json` |
+| Workable | eSentire, Dialogue, mid-market | `apply.workable.com/api/v1/accounts/{slug}/jobs` |
+
+### Additional Discovery (Level 3 WebSearch)
+
+Add these to `search_queries` in `portals.yml` for Canadian PM roles:
+
+| Source | Query Pattern | Notes |
+|--------|--------------|-------|
+| Adzuna Canada | `site:adzuna.ca "product manager" {city}` | Free developer API with `country=ca` parameter |
+| HN Who is Hiring | `site:news.ycombinator.com "who is hiring" "product" "canada" OR "remote"` | Use Algolia API for structured search |
+| Remote OK | `site:remoteok.com "product manager"` | Good for remote-friendly Canadian companies |
+| We Work Remotely | `site:weworkremotely.com "product manager"` | RSS feed available |
+| BetaKit Jobs | `site:betakit.com/jobs "product"` | Canadian tech startup job board |
+| Built In Toronto | `site:builtintoronto.com "product manager"` | Toronto-specific tech jobs |
+| TrueUp | `site:trueup.io "product manager" "canada"` | Toronto/Waterloo tech |
+| Job Bank (Canada) | Open data monthly CSV from `open.canada.ca` | Government job board, broad coverage |
+
+### Regional Notes
+
+- **Toronto (GTA):** Largest PM job market in Canada. Heavy fintech, enterprise SaaS, and e-commerce. Most ATS diversity.
+- **Vancouver:** Growing AI/ML and biotech scene. Smaller PM market but good remote options.
+- **Waterloo/Kitchener:** Tech hub (Google, Shopify, Blackberry). Strong platform and infra PM roles.
+- **Montreal:** Bilingual requirements common (French required or preferred). AI research hub (Mila, Element AI alumni).
+- **Ottawa:** Government and govtech PM roles. Security clearance may be required.
