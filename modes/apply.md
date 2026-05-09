@@ -35,7 +35,7 @@ Interactive mode for when the candidate is filling out an application form in Ch
 2. Search in `reports/` by company name (case-insensitive grep)
 3. If there is a match → load the full report
 4. If there is a Section G → load previous draft answers as a base
-5. If there is NO match → notify and offer to run a quick auto-pipeline
+5. If there is NO match → notify and opening to run a quick auto-pipeline
 
 ## Step 3 — Detect changes in the role
 

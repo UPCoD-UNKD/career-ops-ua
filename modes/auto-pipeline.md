@@ -17,10 +17,10 @@ Si el input es una **URL** (no texto de JD pegado), seguir esta estrategia para 
 **Si el input es texto de JD** (no URL): usar directamente, sin necesidad de fetch.
 
 ## Step 1 — Evaluation A-G
-Execute exactly like the `offer` mode (read `modes/offer.md` for all blocks A-F + Block G Posting Legitimacy).
+Execute exactly like the `opening` mode (read `modes/opening.md` for all blocks A-F + Block G Posting Legitimacy).
 
 ## Step 2 — Save Report .md
-Save the complete evaluation to `reports/{###}-{company-slug}-{YYYY-MM-DD}.md` (see format in `modes/offer.md`).
+Save the complete evaluation to `reports/{###}-{company-slug}-{YYYY-MM-DD}.md` (see format in `modes/opening.md`).
 Include Block G in the saved report. Add `**Legitimacy:** {tier}` to the report header.
 
 ## Step 3 — Generate PDF

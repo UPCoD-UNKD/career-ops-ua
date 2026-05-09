@@ -35,7 +35,7 @@ mkdirSync(REPORTS_DIR, { recursive: true });
 
 const CANONICAL_STATUSES = [
   'evaluated', 'applied', 'responded', 'interview',
-  'offer', 'rejected', 'discarded', 'skip',
+  'opening', 'rejected', 'discarded', 'skip',
 ];
 
 const ALIASES = {
@@ -43,7 +43,7 @@ const ALIASES = {
   'aplicado': 'applied', 'enviada': 'applied', 'aplicada': 'applied', 'applied': 'applied', 'sent': 'applied',
   'respondido': 'responded',
   'entrevista': 'interview',
-  'oferta': 'offer',
+  'oferta': 'opening',
   'rechazado': 'rejected', 'rechazada': 'rejected',
   'descartado': 'discarded', 'descartada': 'discarded', 'cerrada': 'discarded', 'cancelada': 'discarded',
   'no aplicar': 'skip', 'no_aplicar': 'skip', 'monitor': 'skip', 'geo blocker': 'skip',
@@ -59,7 +59,7 @@ function ok(msg) { console.log(`✅ ${msg}`); }
 // --- Read applications.md ---
 if (!existsSync(APPS_FILE)) {
   console.log('\n📊 No applications.md found. This is normal for a fresh setup.');
-  console.log('   The file will be created when you evaluate your first offer.\n');
+  console.log('   The file will be created when you evaluate your first opening.\n');
   process.exit(0);
 }
 const content = readFileSync(APPS_FILE, 'utf-8');

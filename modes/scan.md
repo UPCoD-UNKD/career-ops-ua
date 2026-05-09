@@ -1,6 +1,6 @@
-# Mode: scan — Portal Scanner (Offer Discovery)
+# Mode: scan — Portal Scanner (Opening Discovery)
 
-Scans configured job portals, filters by title relevance, and adds new offers to the pipeline for later evaluation.
+Scans configured job portals, filters by title relevance, and adds new openings to the pipeline for later evaluation.
 
 > **Note (v1.5+):** The default scanner (`scan.mjs` / `npm run scan`) is **zero-token** and only queries Greenhouse, Ashby, and Lever public APIs directly. The Playwright/WebSearch levels described below are the **agent** flow (executed by Claude/Codex), not what `scan.mjs` does. If a company has no Greenhouse/Ashby/Lever API, `scan.mjs` will skip it; for those cases, the agent must manually complete Level 1 (Playwright) or Level 3 (WebSearch).
 
@@ -30,7 +30,7 @@ Read `portals.yml` which contains:
 **For each company in `tracked_companies`:** Navigate to its `careers_url` with Playwright (`browser_navigate` + `browser_snapshot`), read ALL visible job listings, and extract title + URL from each. This is the most reliable method because:
 - Sees the page in real time (not Google-cached results)
 - Works with SPAs (Ashby, Lever, Workday)
-- Detects new offers instantly
+- Detects new openings instantly
 - Does not depend on Google indexing
 
 **Each company MUST have `careers_url` in portals.yml.** If missing, find it once, save it, and use it in future scans.
@@ -42,7 +42,7 @@ For companies with a public API or structured feed, use the JSON/XML response as
 **Currently supported (variables in `{}`):**
 - **Greenhouse**: `https://boards-api.greenhouse.io/v1/boards/{company}/jobs`
 - **Ashby**: `https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiJobBoardWithTeams`
-- **BambooHR**: list `https://{company}.bamboohr.com/careers/list`; offer detail `https://{company}.bamboohr.com/careers/{id}/detail`
+- **BambooHR**: list `https://{company}.bamboohr.com/careers/list`; opening detail `https://{company}.bamboohr.com/careers/{id}/detail`
 - **Lever**: `https://api.lever.co/v0/postings/{company}?mode=json`
 - **Teamtailor**: `https://{company}.teamtailor.com/jobs.rss`
 - **Workday**: `https://{company}.{shard}.myworkdayjobs.com/wday/cxs/{company}/{site}/jobs`
@@ -116,7 +116,7 @@ The levels are additive — all run, results are combined and deduplicated.
 
 7.5. **Verify liveness of WebSearch results (Level 3)** — BEFORE adding to pipeline:
 
-   WebSearch results may be stale (Google caches results for weeks or months). To avoid evaluating expired offers, verify with Playwright each new URL from Level 3. Levels 1 and 2 are inherently real-time and do not require this check.
+   WebSearch results may be stale (Google caches results for weeks or months). To avoid evaluating expired openings, verify with Playwright each new URL from Level 3. Levels 1 and 2 are inherently real-time and do not require this check.
 
    For each new Level 3 URL (sequential — NEVER Playwright in parallel):
    a. `browser_navigate` to the URL
@@ -124,7 +124,7 @@ The levels are additive — all run, results are combined and deduplicated.
    c. Classify:
       - **Active**: job title visible + role description + visible Apply/Submit control within main content. Do not count generic header/navbar/footer text.
       - **Expired** (any of these signals):
-        - Final URL contains `?error=true` (Greenhouse redirects this way when the offer is closed)
+        - Final URL contains `?error=true` (Greenhouse redirects this way when the opening is closed)
         - Page contains: "job no longer available" / "no longer open" / "position has been filled" / "this job has expired" / "page not found"
         - Only navbar and footer visible, no JD content (content < ~300 chars)
    d. If expired: register in `scan-history.tsv` with status `skipped_expired` and discard
@@ -132,13 +132,13 @@ The levels are additive — all run, results are combined and deduplicated.
 
    **Do not interrupt the entire scan if a URL fails.** If `browser_navigate` errors (timeout, 403, etc.), mark as `skipped_expired` and continue with the next.
 
-8. **For each new verified offer that passes filters**:
+8. **For each new verified opening that passes filters**:
    a. Add to `pipeline.md` "Pending" section: `- [ ] {url} | {company} | {title}`
    b. Register in `scan-history.tsv`: `{url}\t{date}\t{query_name}\t{title}\t{company}\tadded`
 
-9. **Offers filtered by title**: register in `scan-history.tsv` with status `skipped_title`
-10. **Duplicate offers**: register with status `skipped_dup`
-11. **Expired offers (Level 3)**: register with status `skipped_expired`
+9. **Openings filtered by title**: register in `scan-history.tsv` with status `skipped_title`
+10. **Duplicate openings**: register with status `skipped_dup`
+11. **Expired openings (Level 3)**: register with status `skipped_expired`
 
 ## Title and Company Extraction from WebSearch Results
 
@@ -175,7 +175,7 @@ https://...	2026-02-10	WebSearch — AI PM	PM AI	ClosedCo	skipped_expired
 Portal Scan — {YYYY-MM-DD}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 Queries run: N
-Offers found: N total
+Openings found: N total
 Filtered by title: N relevant
 Duplicates: N (already evaluated or in pipeline)
 Expired discarded: N (dead links, Level 3)
@@ -184,7 +184,7 @@ New added to pipeline.md: N
   + {company} | {title} | {query_name}
   ...
 
-→ Run /career-ops pipeline to evaluate new offers.
+→ Run /career-ops pipeline to evaluate new openings.
 ```
 
 ## Managing careers_url

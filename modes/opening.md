@@ -1,10 +1,10 @@
-# Mode: offer — Complete Evaluation A-G
+# Mode: opening — Complete Evaluation A-G
 
-When the candidate pastes an offer (text or URL), ALWAYS deliver all 7 blocks (A-F evaluation + G legitimacy):
+When the candidate pastes an opening (text or URL), ALWAYS deliver all 7 blocks (A-F evaluation + G legitimacy):
 
 ## Step 0 — Archetype Detection
 
-Classify the offer into one of 6 archetypes (see `_shared.md`). If hybrid, indicate the 2 closest. This determines:
+Classify the opening into one of 6 archetypes (see `_shared.md`). If hybrid, indicate the 2 closest. This determines:
 - Which proof points to prioritise in block B
 - How to rewrite the summary in block E
 - Which STAR stories to prepare in block F

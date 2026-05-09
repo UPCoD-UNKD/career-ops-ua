@@ -37,7 +37,7 @@ const ALIASES = {
   'applied': 'applied', 'sent': 'applied',
   'respondido': 'responded',
   'entrevista': 'interview',
-  'oferta': 'offer',
+  'oferta': 'opening',
   'rechazado': 'rejected', 'rechazada': 'rejected',
   'descartado': 'discarded', 'descartada': 'discarded',
   'cerrada': 'discarded', 'cancelada': 'discarded',
@@ -52,7 +52,7 @@ function normalizeStatus(raw) {
 
 function classifyOutcome(status) {
   const s = normalizeStatus(status);
-  if (['interview', 'offer', 'responded', 'applied'].includes(s)) return 'positive';
+  if (['interview', 'opening', 'responded', 'applied'].includes(s)) return 'positive';
   if (['rejected', 'discarded'].includes(s)) return 'negative';
   if (['skip'].includes(s)) return 'self_filtered';
   return 'pending'; // evaluated
@@ -388,7 +388,7 @@ function analyze() {
   if (geoBlocker && geoBlocker.percentage >= 20) {
     recommendations.push({
       action: `Tighten location filters in portals.yml -- ${geoBlocker.percentage}% of applications hit a geo-restriction blocker`,
-      reasoning: `${geoBlocker.frequency} of ${enriched.length} offers are location-restricted (US/Canada-only). These are wasted evaluation effort.`,
+      reasoning: `${geoBlocker.frequency} of ${enriched.length} openings are location-restricted (US/Canada-only). These are wasted evaluation effort.`,
       impact: 'high',
     });
   }
@@ -478,7 +478,7 @@ function printSummary(result) {
   // Funnel
   console.log('CONVERSION FUNNEL');
   console.log('-'.repeat(40));
-  const funnelOrder = ['evaluated', 'applied', 'responded', 'interview', 'offer', 'rejected', 'discarded', 'skip'];
+  const funnelOrder = ['evaluated', 'applied', 'responded', 'interview', 'opening', 'rejected', 'discarded', 'skip'];
   for (const status of funnelOrder) {
     if (funnel[status]) {
       const pct = Math.round((funnel[status] / metadata.total) * 100);

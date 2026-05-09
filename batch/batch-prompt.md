@@ -1,6 +1,6 @@
 # career-ops Batch Worker — Complete Evaluation + PDF + Tracker Line
 
-You are a job offer evaluation worker for the candidate (read name from config/profile.yml). You receive an offer (URL + JD text) and produce:
+You are a job opening evaluation worker for the candidate (read name from config/profile.yml). You receive an opening (URL + JD text) and produce:
 
 1. Complete A-G evaluation (report .md)
 2. Personalised ATS-optimised PDF
@@ -31,11 +31,11 @@ You are a job offer evaluation worker for the candidate (read name from config/p
 
 | Placeholder | Description |
 |-------------|-------------|
-| `{{URL}}` | Offer URL |
+| `{{URL}}` | Opening URL |
 | `{{JD_FILE}}` | Path to the file with JD text |
 | `{{REPORT_NUM}}` | Report number (3 digits, zero-padded: 001, 002...) |
 | `{{DATE}}` | Current date YYYY-MM-DD |
-| `{{ID}}` | Unique offer ID in batch-input.tsv |
+| `{{ID}}` | Unique opening ID in batch-input.tsv |
 
 ---
 
@@ -53,7 +53,7 @@ Read `cv.md`. Execute ALL blocks:
 
 #### Step 0 — Archetype Detection
 
-Classify the offer into one of the 6 archetypes. If hybrid, indicate the 2 closest.
+Classify the opening into one of the 6 archetypes. If hybrid, indicate the 2 closest.
 
 **The 6 archetypes (all equally valid):**
 
@@ -183,7 +183,7 @@ Where `{company-slug}` is the company name in lowercase, no spaces, with hyphens
 **Archetype:** {detected}
 **Score:** {X/5}
 **Legitimacy:** {High Confidence | Proceed with Caution | Suspicious}
-**URL:** {original offer URL}
+**URL:** {original opening URL}
 **PDF:** career-ops/output/cv-candidate-{company-slug}-{{DATE}}.pdf
 **Batch ID:** {{ID}}
 
@@ -318,7 +318,7 @@ TSV format (single line, no header, 9 tab-separated columns):
 
 **IMPORTANT:** TSV order has status BEFORE score (col 5→status, col 6→score). In applications.md the order is reversed (col 5→score, col 6→status). merge-tracker.mjs handles the conversion.
 
-**Valid canonical statuses:** `Evaluated`, `Applied`, `Responded`, `Interview`, `Offer`, `Rejected`, `Discarded`, `SKIP`
+**Valid canonical statuses:** `Evaluated`, `Applied`, `Responded`, `Interview`, `Opening`, `Rejected`, `Discarded`, `SKIP`
 
 Where `{next_num}` is calculated by reading the last line of `data/applications.md`.
 

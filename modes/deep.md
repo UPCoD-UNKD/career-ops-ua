@@ -44,4 +44,4 @@ Given my profile (read from cv.md and profile.yml for specific experience):
 - What story should I tell in the interview?
 ```
 
-Personalise each section with the specific context of the evaluated offer.
+Personalise each section with the specific context of the evaluated opening.

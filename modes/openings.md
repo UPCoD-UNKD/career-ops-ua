@@ -1,4 +1,4 @@
-# Mode: offers — Multi-Offer Comparison
+# Mode: openings — Multi-Opening Comparison
 
 Scoring matrix of 10 weighted dimensions:
 
@@ -12,10 +12,10 @@ Scoring matrix of 10 weighted dimensions:
 | Remote Quality | 5% | 5=full remote async, 1=onsite only |
 | Company Reputation | 5% | 5=top employer, 1=red flags |
 | Tech Stack Modernity | 5% | 5=cutting edge AI/ML, 1=legacy |
-| Speed to Offer | 5% | 5=fast process, 1=6+ months |
+| Speed to Opening | 5% | 5=fast process, 1=6+ months |
 | Culture Signals | 5% | 5=builder culture, 1=bureaucratic |
 
-For each offer: score on each dimension, weighted total score.
-Final ranking + recommendation with time-to-offer considerations.
+For each opening: score on each dimension, weighted total score.
+Final ranking + recommendation with time-to-opening considerations.
 
-Ask the user for the offers if not already in context. Can be text, URLs, or references to offers already evaluated in the tracker.
+Ask the user for the openings if not already in context. Can be text, URLs, or references to openings already evaluated in the tracker.

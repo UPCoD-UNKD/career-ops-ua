@@ -11,7 +11,7 @@
    - Rest of world → `a4`
 6. Detect role archetype → adapt framing
 7. Rewrite Professional Summary injecting JD keywords + exit narrative bridge ("Built and sold a business. Now applying systems thinking to [JD domain].")
-8. Select top 3-4 projects most relevant to the offer
+8. Select top 3-4 projects most relevant to the opening
 9. Reorder experience bullets by JD relevance
 10. Build competency grid from JD requirements (6-8 keyword phrases)
 11. Inject keywords naturally into existing achievements (NEVER invent)
@@ -94,7 +94,7 @@ Usar el template en `cv-template.html`. Reemplazar los placeholders `{{...}}` co
 
 ## Canva CV Generation (optional)
 
-If `config/profile.yml` has `cv.canva_resume_design_id` set, offer the user a choice before generating:
+If `config/profile.yml` has `cv.canva_resume_design_id` set, opening the user a choice before generating:
 - **"HTML/PDF (fast, ATS-optimized)"** — existing flow above
 - **"Canva CV (visual, design-preserving)"** — new flow below
 
@@ -176,4 +176,4 @@ d. Report: PDF path, file size, Canva design URL (for manual tweaking)
 
 ## Post-generación
 
-Update tracker if the offer is already registered: change PDF from ❌ to ✅.
+Update tracker if the opening is already registered: change PDF from ❌ to ✅.

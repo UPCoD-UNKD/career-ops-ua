@@ -159,7 +159,7 @@ console.log('\n5. Data contract validation');
 const systemFiles = [
   'CLAUDE.md', 'VERSION', 'DATA_CONTRACT.md',
   'modes/_shared.md', 'modes/_profile.template.md',
-  'modes/offer.md', 'modes/pdf.md', 'modes/scan.md',
+  'modes/opening.md', 'modes/pdf.md', 'modes/scan.md',
   'templates/states.yml', 'templates/cv-template.html',
   '.claude/skills/career-ops/SKILL.md',
 ];
@@ -259,9 +259,9 @@ if (!absPathResult) {
 console.log('\n8. Mode file integrity');
 
 const expectedModes = [
-  '_shared.md', '_profile.template.md', 'offer.md', 'pdf.md', 'scan.md',
+  '_shared.md', '_profile.template.md', 'opening.md', 'pdf.md', 'scan.md',
   'batch.md', 'apply.md', 'auto-pipeline.md', 'contact.md', 'deep.md',
-  'offers.md', 'pipeline.md', 'project.md', 'tracker.md', 'training.md',
+  'openings.md', 'pipeline.md', 'project.md', 'tracker.md', 'training.md',
 ];
 
 for (const mode of expectedModes) {
@@ -287,7 +287,7 @@ console.log('\n9. AGENTS.md integrity');
 const agents = readFile('AGENTS.md');
 const requiredSections = [
   'Data Contract', 'Update Check', 'Ethical Use',
-  'Offer Verification', 'Canonical States', 'TSV Format',
+  'Opening Verification', 'Canonical States', 'TSV Format',
   'First Run', 'Onboarding',
 ];
 

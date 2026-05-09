@@ -16,7 +16,7 @@ Run these WebSearch queries. Extract structured data, not summaries. Cite source
 
 | Query | What to extract |
 |-------|-----------------|
-| `"{company} {role} interview questions site:glassdoor.com"` | Actual questions asked, difficulty rating, experience rating, process timeline, number of rounds, offer/reject ratio |
+| `"{company} {role} interview questions site:glassdoor.com"` | Actual questions asked, difficulty rating, experience rating, process timeline, number of rounds, opening/reject ratio |
 | `"{company} interview process site:teamblind.com"` | Candid process descriptions, recent data points, comp negotiation details, hiring bar |
 | `"{company} {role} interview site:leetcode.com/discuss"` | Specific coding/technical problems, system design topics, round structure |
 | `"{company} engineering blog"` | Tech stack, values, what they publish about, technical priorities |
