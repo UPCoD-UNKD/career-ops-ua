@@ -5,6 +5,18 @@
 
 If the user is sitting down to build application materials → open `data/TODAY.md` first (master nav), then `data/APPLY-NOW.md` (ranked queue), then follow `data/HOW-TO-APPLY.md`. Pre-flight via `data/pre-flight-checklist.md` before submitting.
 
+## Session Notes — 2026-05-09 (Workday fix + source expansion — 89 new offers)
+- scan.mjs: Workday LIMIT 100→20 (API hard cap, limit>20 returns HTTP 400) — fixes NVIDIA/Micron/Adobe HTTP 400
+- scan.mjs: fetchWorkday maxResults=500 cap + dynamic timeout (prevents timeout on Micron's 2,889-job board)
+- scan.mjs: appendToPipeline(date) bug fixed — date was referenced but not passed as parameter (Fatal crash)
+- scan-rss.mjs: parseHNrss() added — hnrss.org keyword-filtered RSS adapter; extracts ATS URLs from comment HTML
+- scan-rss.mjs: 5 hnrss.org/whoishiring feeds added (forward deployed, solutions architect, applied AI, AI enablement, company-specific); complement to Algolia full-thread
+- portals.yml (gitignored): Coinbase → enabled: false (Greenhouse board dead, HTTP 404); Waymo + Fireworks AI → NEW entries (greenhouse API confirmed 2026-05-09)
+- data/pipeline.md (gitignored): Anthropic "Strategic Operations Manager, Claude Marketplace" added from Gmail alert (GH ID 5175013008)
+- Full scan result: 43 companies, 5,281 jobs found, 89 new offers written to pipeline (Waymo 38, Micron 27, NVIDIA 12, Adobe 5, Fireworks AI 7)
+- ATS status confirmed 2026-05-09: AMD uses iCIMS (not SmartRecruiters), Groq/Cerebras have no public ATS API
+- Noah Greenberg LinkedIn alerts: no automated Gmail scraping — alerts are keyword-based, not person-based; OpenAI/Anthropic job alert emails surfaced Claude Marketplace role
+
 ## Session Notes — 2026-05-09 (freshness-aware triage + source quality cleanup)
 - triage.mjs: scan-history.tsv loaded at startup into Map; per-URL age computed; source-specific TTLs applied (LinkedIn 10d, Glassdoor 0, Workday 14d, Amazon 28d, GH/Ashby/Lever 21d); stale URLs auto-expired before quota spending; fresh items sorted newest-first
 - scan.mjs + scan-email.mjs: ISO date stamp added to each pipeline.md write (`| ${date}`)
