@@ -139,3 +139,40 @@ After delivering the report:
 - **Cite everything.** Every question, every stat, every claim gets a source or an `[inferred]` tag.
 - Generate in the language of the JD (EN default).
 - Be direct. This is a working prep document, not a pep talk.
+
+## PM Interview Patterns
+
+When preparing for Product Manager interviews, adapt the standard prep to include these PM-specific rounds and frameworks:
+
+### Common PM Interview Round Types
+
+| Round Type | What They Test | Typical Duration |
+|-----------|---------------|-----------------|
+| Product Sense / Product Design | Customer empathy, feature prioritization, tradeoff reasoning | 45-60 min |
+| Execution / Metrics | Goal setting, metric selection, root cause analysis, experiment design | 45-60 min |
+| Strategy / Behavioral | Leadership, stakeholder management, failure reflection, influence | 45-60 min |
+| Technical / Estimation | Back-of-envelope sizing, system understanding, data literacy | 30-45 min |
+| Case Study / Take-Home | Full product spec, PRD, or strategy document | 2-8 hours |
+
+### PM Interview Frameworks to Prepare
+
+1. **CIRCLES Method** (for product design): Comprehend → Identify users → Report pain points → Cut prioritization → List solutions → Evaluate tradeoffs → Summarize
+2. **RESOLVED Method** (for execution/metrics): Root cause exploration → Establish metrics → Suggest experiments → Look for guardrails → Validate with data → Execute with milestones → Decision framework
+3. **STAR+R** (for behavioral): Situation, Task, Action, Result, + Reflection (what you'd do differently)
+
+### PM-Specific Questions to Anticipate
+
+- "How would you improve [product]?" — product sense with metric reasoning
+- "What metric would you use to measure [X]?" — execution framework
+- "Tell me about a time you had to say no to a stakeholder" — influence without authority
+- "How would you prioritize [feature list]?" — RICE, ICE, or custom framework
+- "Design [product] for [user]" — end-to-end product thinking
+- "What's your favorite product and why?" — product taste + articulation
+- "Estimate the market size for [X] in Canada" — TAM/SAM/SOM with Canadian market context
+
+### Canadian PM Interview Nuances
+
+- **Bilingual interviews**: Toronto/Vancouver are English-only. Montreal roles often require French fluency (written AND verbal). Quebec's Charter of the French Language means PM roles targeting Quebec users must operate in French.
+- **Comp discussions**: Canadian PM comp is typically discussed as base + bonus + RSUs (not total comp as in US). Reference CAD figures. Equity at Canadian companies is usually smaller.
+- **Work-life balance questions**: Canadian companies often value work-life balance explicitly. Asking about it in the interview is normal and not a red flag.
+- **Cultural fit**: "culture add" framing is becoming more common than "culture fit" at progressive Canadian employers.
