@@ -217,6 +217,31 @@ Default modes are in `modes/` (English). Additional language-specific modes are 
 - `article-digest.md` has detailed proof points (optional)
 - **NEVER hardcode metrics** -- read them from these files at evaluation time
 
+### Application Workflow Files (added 2026-05-07)
+
+When the user asks "what should I work on tonight" or "I'm sitting down to apply", route through these:
+
+| File | Purpose |
+|------|---------|
+| `data/TODAY.md` | Master nav for today's session work — opens here first |
+| `data/APPLY-NOW.md` | Ranked apply-now queue (18 rows ≥ 4.0); per-company guide pointers |
+| `data/HOW-TO-APPLY.md` | Step-by-step workflow for tonight's app build (~60-70 min/app) |
+| `data/pre-flight-checklist.md` | 9-section checklist before submitting |
+| `data/tailored-resume-bullets.md` | 35 archetype-tailored bullets with cv.md line citations |
+| `data/outreach-templates.md` | 5 channels × 2-3 variants for LinkedIn DM / cold email |
+| `templates/cover-letter-template.md` | 4-block cover-letter shape |
+| `interview-prep/story-bank.md` | 10 STAR+R stories (used in cover letters AND interviews) |
+| `corpus/sample-outputs/` | Voice anchor reference samples |
+| `data/apply-now-queue.json` | Machine-readable apply-now queue (Atlas / dashboard consumption) |
+
+### Scripts (added 2026-05-07)
+
+- `scripts/build-apply-pack.mjs --row=N` — lightweight scaffold for a single apply-pack (cv / cover-letter / linkedin-dm / README stubs)
+- `scripts/build-apply-packs.mjs --top=N` — canonical full pack builder (cover-letter, form-fields, interview prep, ATS check, formatting guide, LinkedIn DMs, one-pager, pre-flight checklist, Grok intel, tailored CV PDF). Use this for full packs.
+- `scripts/grok-research.mjs` — daily Grok research runner (`--dry-run` / `--tools-only` / production)
+- `scripts/apply-pending-diff.mjs` — review tool for `data/pending-diffs/` (`--list` / `--view {file}` / `--mark-reviewed {file}` / interactive)
+- npm aliases: `npm run apply-pack`, `npm run apply-packs`, `npm run grok-research`, `npm run pending-diffs`, `npm run heartbeat`
+
 ---
 
 ## Ethical Use -- CRITICAL
@@ -255,6 +280,10 @@ Default modes are in `modes/` (English). Additional language-specific modes are 
 - **Security**: private vulnerability reporting via email (see `SECURITY.md`)
 - **Support**: help questions go to Discord/Discussions, not issues (see `SUPPORT.md`)
 - **Discord**: https://discord.gg/8pRpHETxa4
+
+## Performance — Context Pre-bake
+
+Run `node scripts/prebake-context.mjs` before batch sessions to bundle static context files into `data/baked-context.md`. Auto-skips if source files are unchanged (SHA-256 hash check). The baked file is read by `batch-runner-batches.mjs` instead of reading each source file separately — reduces 5 per-session file reads to 1.
 
 ## Headless / Batch Mode
 
