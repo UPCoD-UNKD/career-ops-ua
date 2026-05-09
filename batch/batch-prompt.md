@@ -39,7 +39,7 @@ You are a job opening evaluation worker for the candidate (read name from config
 
 ---
 
-## Pipeline (ejecutar en orden)
+## Pipeline (execute in order)
 
 ### Step 1 — Get JD
 
@@ -59,12 +59,12 @@ Classify the opening into one of the 6 archetypes. If hybrid, indicate the 2 clo
 
 | Archetype | Theme axes | What they're buying |
 |-----------|------------|---------------------|
-| **AI Platform / LLMOps Engineer** | Evaluation, observability, reliability, pipelines | Someone who puts AI in production with metrics |
-| **Agentic Workflows / Automation** | HITL, tooling, orchestration, multi-agent | Someone who builds reliable agent systems |
-| **Technical AI Product Manager** | GenAI/Agents, PRDs, discovery, delivery | Someone who translates business → AI product |
-| **AI Solutions Architect** | Hyperautomation, enterprise, integrations | Someone who designs AI architectures end-to-end |
-| **AI Forward Deployed Engineer** | Client-facing, fast delivery, prototyping | Someone who delivers AI solutions to clients fast |
-| **AI Transformation Lead** | Change management, adoption, org enablement | Someone who leads AI change in an organisation |
+| **Product Manager (Core)** | Roadmaps, stakeholder alignment, user research, prioritization | Someone who ships the right product by understanding users and business |
+| **Technical AI PM** | AI/ML product strategy, model lifecycle, cross-functional delivery | Someone who bridges AI engineering and product strategy |
+| **Growth PM** | Experimentation, funnels, retention, metrics-driven | Someone who drives user and revenue growth through rapid experiments |
+| **Platform / Infrastructure PM** | APIs, developer experience, internal tools, platform strategy | Someone who builds platforms other teams depend on |
+| **AI Solutions Architect** | Enterprise architecture, integrations, consulting, pre-sales | Someone who designs AI systems end-to-end for clients |
+| **AI Transformation Lead** | Change management, adoption, org enablement | Someone who leads AI transformation in organisations |
 
 **Adaptive framing:**
 
@@ -72,20 +72,20 @@ Classify the opening into one of the 6 archetypes. If hybrid, indicate the 2 clo
 
 | If the role is... | Emphasize about the candidate... | Proof point sources |
 |-------------------|----------------------------------|---------------------|
-| Platform / LLMOps | Production systems builder, observability, evals, closed-loop | article-digest.md + cv.md |
-| Agentic / Automation | Multi-agent orchestration, HITL, reliability, cost | article-digest.md + cv.md |
-| Technical AI PM | Product discovery, PRDs, metrics, stakeholder mgmt | cv.md + article-digest.md |
+| Product Manager (Core) | Product discovery, roadmaps, stakeholder alignment, metrics-driven delivery | cv.md + article-digest.md |
+| Technical AI PM | AI/ML product strategy, cross-functional leadership, model lifecycle | cv.md + article-digest.md |
+| Growth PM | Experimentation culture, data-driven decisions, funnel optimization | cv.md + article-digest.md |
+| Platform / Infrastructure PM | Developer empathy, API design, platform thinking, internal tools | article-digest.md + cv.md |
 | Solutions Architect | System design, integrations, enterprise-ready | article-digest.md + cv.md |
-| Forward Deployed Engineer | Fast delivery, client-facing, prototype → prod | cv.md + article-digest.md |
 | AI Transformation Lead | Change management, team enablement, adoption | cv.md + article-digest.md |
 
-**Cross-cutting advantage**: Frame profile as a **"Technical builder"** who adapts framing to the role:
-- For PM: "builder who reduces uncertainty with prototypes then productionises with discipline"
-- For FDE: "builder who delivers fast with observability and metrics from day 1"
-- For SA: "builder who designs end-to-end systems with real integration experience"
-- For LLMOps: "builder who puts AI in production with closed-loop quality systems — read metrics from article-digest.md"
-
-Convert "builder" into a professional signal, not "hobby maker." The framing changes, the truth stays the same.
+**Cross-cutting advantage**: Frame profile as a **"Strategic product leader"** who adapts framing to the role:
+- For Core PM: "leader who ships by understanding users deeply and prioritizing ruthlessly"
+- For Technical AI PM: "leader who bridges engineering and business — speaks both languages"
+- For Growth PM: "leader who drives metrics with disciplined experimentation"
+- For Platform PM: "leader who builds platforms other teams love"
+- For SA: "leader who designs end-to-end systems with real integration experience"
+- For Transformation: "leader who makes AI adoption stick through change management"
 
 #### Block A — Role Summary
 
@@ -96,11 +96,11 @@ Table with: Detected archetype, Domain, Function, Seniority, Remote, Team size, 
 Read `cv.md`. Table with each JD requirement mapped to exact CV lines or i18n.ts keys.
 
 **Adapted to archetype:**
-- FDE → prioritise fast delivery and client-facing
+- Core PM → prioritise product discovery, roadmaps, and stakeholder alignment
+- Technical AI PM → prioritise AI/ML product strategy, model lifecycle, cross-functional delivery
+- Growth PM → prioritise experimentation, funnel optimization, and metrics
+- Platform PM → prioritise developer empathy, API design, and platform thinking
 - SA → prioritise system design and integrations
-- PM → prioritise product discovery and metrics
-- LLMOps → prioritise evals, observability, pipelines
-- Agentic → prioritise multi-agent, HITL, orchestration
 - Transformation → prioritise change management, adoption, scaling
 
 **Gaps** section with mitigation strategy for each:
@@ -229,8 +229,8 @@ Where `{company-slug}` is the company name in lowercase, no spaces, with hyphens
 9. Build competency grid (6-8 keyword phrases)
 10. Inject keywords into existing achievements (**NEVER invent**)
 11. Generate full HTML from template (read `templates/cv-template.html`)
-12. Escribe HTML a `/tmp/cv-candidate-{company-slug}.html`
-13. Ejecuta:
+12. Write HTML to `/tmp/cv-candidate-{company-slug}.html`
+13. Run:
 ```bash
 node generate-pdf.mjs \
   /tmp/cv-candidate-{company-slug}.html \
@@ -266,7 +266,7 @@ node generate-pdf.mjs \
 
 | Placeholder | Content |
 |-------------|---------|
-| `{{LANG}}` | `en` or `es` |
+| `{{LANG}}` | `en`, `fr`, or `es` |
 | `{{PAGE_WIDTH}}` | `8.5in` (letter) or `210mm` (A4) |
 | `{{NAME}}` | (from profile.yml) |
 | `{{EMAIL}}` | (from profile.yml) |
@@ -275,24 +275,24 @@ node generate-pdf.mjs \
 | `{{PORTFOLIO_URL}}` | (from profile.yml) |
 | `{{PORTFOLIO_DISPLAY}}` | (from profile.yml) |
 | `{{LOCATION}}` | (from profile.yml) |
-| `{{SECTION_SUMMARY}}` | Professional Summary / Resumen Profesional |
+| `{{SECTION_SUMMARY}}` | Professional Summary / Résumé Professionnel |
 | `{{SUMMARY_TEXT}}` | Personalised summary with keywords |
-| `{{SECTION_COMPETENCIES}}` | Core Competencies / Competencias Core |
+| `{{SECTION_COMPETENCIES}}` | Core Competencies / Compétences Clés |
 | `{{COMPETENCIES}}` | `<span class="competency-tag">keyword</span>` × 6-8 |
-| `{{SECTION_EXPERIENCE}}` | Work Experience / Experiencia Laboral |
+| `{{SECTION_EXPERIENCE}}` | Work Experience / Expérience Professionnelle |
 | `{{EXPERIENCE}}` | HTML for each role with reordered bullets |
-| `{{SECTION_PROJECTS}}` | Projects / Proyectos |
+| `{{SECTION_PROJECTS}}` | Projects / Projets |
 | `{{PROJECTS}}` | HTML for top 3-4 projects |
-| `{{SECTION_EDUCATION}}` | Education / Formación |
+| `{{SECTION_EDUCATION}}` | Education / Formation |
 | `{{EDUCATION}}` | HTML for education |
-| `{{SECTION_CERTIFICATIONS}}` | Certifications / Certificaciones |
+| `{{SECTION_CERTIFICATIONS}}` | Certifications / Certifications |
 | `{{CERTIFICATIONS}}` | HTML for certifications |
-| `{{SECTION_SKILLS}}` | Skills / Competencias |
+| `{{SECTION_SKILLS}}` | Skills / Compétences |
 | `{{SKILLS}}` | HTML for skills |
 
 ### Step 5 — Tracker Line
 
-Escribir una línea TSV a:
+Write one TSV line to:
 ```
 batch/tracker-additions/{{ID}}.tsv
 ```
@@ -324,7 +324,7 @@ Where `{next_num}` is calculated by reading the last line of `data/applications.
 
 ### Step 6 — Final Output
 
-Al terminar, imprime por stdout un resumen JSON para que el orquestador lo parsee:
+When finished, print a JSON summary to stdout for the orchestrator to parse:
 
 ```json
 {
@@ -341,7 +341,7 @@ Al terminar, imprime por stdout un resumen JSON para que el orquestador lo parse
 }
 ```
 
-Si algo falla:
+If something fails:
 ```json
 {
   "status": "failed",
