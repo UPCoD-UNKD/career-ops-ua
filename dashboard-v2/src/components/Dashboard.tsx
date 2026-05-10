@@ -577,6 +577,11 @@ export default function Dashboard() {
       setToast({ show: true, message: `[OK] ✔ Deleted ${deleteTarget.company} — ${deleteTarget.title}` });
       setTimeout(() => setToast({ show: false, message: '' }), 3000);
       setDeleteConfirmOpen(false);
+      if (jobDetailsOpen && jobDetails?.id === deleteTarget.id) {
+        setJobDetailsOpen(false);
+        setJobDetails(null);
+        setJobDetailsError(null);
+      }
       setDeleteTarget(null);
     } catch (e: any) {
       setToast({ show: true, message: `[ERR] ✗ Delete failed: ${e?.message || 'Unknown error'}` });
@@ -953,6 +958,20 @@ export default function Dashboard() {
                               className="px-4 py-2 bg-[#f5f5f4] border border-[#e7e5e4] text-[#1c1917] rounded-xl font-bold text-xs hover:bg-[#e7e5e4] transition-all"
                             >
                               Details
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openDeleteConfirm(
+                                  Number(job.pipeline_id),
+                                  String(job.company || 'Job'),
+                                  String(job.title || 'Unknown role')
+                                )
+                              }
+                              className="p-2 rounded-xl border border-[#e7e5e4] text-[#a8a29e] hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all"
+                              title="Remove from pipeline"
+                            >
+                              <Trash2 size={16} />
                             </button>
                           </div>
                         </td>

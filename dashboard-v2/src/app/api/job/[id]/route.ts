@@ -29,8 +29,7 @@ export async function GET(_: Request, ctx: { params: Promise<{ id: string }> }) 
           source,
           score,
           jd_text,
-          created_at,
-          updated_at
+          created_at
         FROM jobs
         WHERE id = ${jobId} AND user_id = ${userId}
         LIMIT 1
@@ -45,8 +44,7 @@ export async function GET(_: Request, ctx: { params: Promise<{ id: string }> }) 
           url,
           source,
           score,
-          created_at,
-          updated_at
+          created_at
         FROM jobs
         WHERE id = ${jobId} AND user_id = ${userId}
         LIMIT 1
@@ -67,10 +65,10 @@ export async function GET(_: Request, ctx: { params: Promise<{ id: string }> }) 
       score: job.score,
       jd_text: job.jd_text || null,
       created_at: job.created_at,
-      updated_at: job.updated_at,
+      // Many deployments have no `updated_at` on `jobs`; clients can treat this as "last known change".
+      updated_at: job.created_at,
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-
