@@ -8,8 +8,8 @@ if (!rawUserId) {
   throw new Error('SCAN_USER_ID environment variable is required. Set it to the user ID to rank jobs for.');
 }
 const userId = Number.parseInt(String(rawUserId), 10);
-if (!Number.isFinite(userId)) {
-  throw new Error(`Invalid SCAN_USER_ID: ${rawUserId}`);
+if (!/^\d+$/.test(String(rawUserId).trim()) || !Number.isFinite(userId)) {
+  throw new Error(`Invalid SCAN_USER_ID: "${rawUserId}" — must be a positive integer.`);
 }
 
 // scoring weights for ranking
@@ -95,6 +95,7 @@ async function run() {
 
   } catch (err) {
     console.error("❌ Ranking failed:", err.message);
+    process.exit(1);
   } finally {
     process.exit(0);
   }

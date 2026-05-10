@@ -734,13 +734,13 @@
     </div>
     <div class="terminal-input-row">
       <span class="prompt">~/career-ops $</span>
-      <input class="term-input" id="term-input-full" placeholder="scan · pdf · apply · merge · tracker · help …" autocomplete="off" spellcheck="false">
+      <input class="term-input" id="term-input-full" placeholder="scan · pdf · apply · merge · tracker · help …" autocomplete="off" spellcheck="false" aria-label="Terminal command">
     </div>
   </div>
 </div>
 
 <script>
-const CMDS = ['merge','verify','normalize','dedup','doctor','sync-check','update:check'];
+const CMDS = ['merge','verify','normalize','dedup','doctor','sync-check','update:check','liveness'];
 let cmdRunning = false;
 
 // Terminal output
@@ -795,7 +795,8 @@ function streamJob(jobId) {
       closeES();
       cmdRunning = false;
       document.getElementById('kill-btn')?.setAttribute('disabled', '');
-      CMDS.forEach(c => document.getElementById(`btn-${c}`)?.classList.remove('running'));
+      // Normalise command keys: colon → dash to match button IDs
+      CMDS.forEach(c => document.getElementById(`btn-${c.replace(/:/g, '-')}`)?.classList.remove('running'));
       loadData();
     }
   };
@@ -877,7 +878,11 @@ async function killCmd() {
 function resetCmdUi() {
   cmdRunning = false;
   document.getElementById('kill-btn')?.setAttribute('disabled', '');
-  CMDS.forEach(c => document.getElementById(`btn-${c}`)?.classList.remove('running'));
+  // Normalise command keys: colon → dash to match button IDs (e.g. 'update:check' → 'btn-update-check')
+  CMDS.forEach(c => {
+    const btnId = `btn-${c.replace(/:/g, '-')}`;
+    document.getElementById(btnId)?.classList.remove('running');
+  });
 }
 
 
@@ -1123,39 +1128,69 @@ async function loadAnalytics() {
 
     const sRender = document.getElementById('sources-render');
     if (sRender) {
+      sRender.innerHTML = '';
       const maxVal = sources[0]?.count || 1;
-      sRender.innerHTML = sources.map(s => `
-        <div class="source-row">
-          <div style="width:100px; color:var(--subtext1)">${s.source}</div>
-          <div class="source-bar-bg"><div class="source-bar-fg" style="width:${(s.count/maxVal*100)}%"></div></div>
-          <div style="width:40px; text-align:right; font-weight:700">${s.count}</div>
-        </div>
-      `).join('');
+      sources.forEach(s => {
+        const row = document.createElement('div');
+        row.className = 'source-row';
+        const label = document.createElement('div');
+        label.style.cssText = 'width:100px; color:var(--subtext1)';
+        label.textContent = String(s.source);
+        const barBg = document.createElement('div');
+        barBg.className = 'source-bar-bg';
+        const barFg = document.createElement('div');
+        barFg.className = 'source-bar-fg';
+        barFg.style.width = `${(s.count / maxVal * 100)}%`;
+        barBg.appendChild(barFg);
+        const count = document.createElement('div');
+        count.style.cssText = 'width:40px; text-align:right; font-weight:700';
+        count.textContent = String(s.count);
+        row.appendChild(label);
+        row.appendChild(barBg);
+        row.appendChild(count);
+        sRender.appendChild(row);
+      });
     }
 
     const vRender = document.getElementById('velocity-render');
     if (vRender) {
+      vRender.innerHTML = '';
       const maxVel = Math.max(...velocity.map(v => v.count), 0) || 1;
-      vRender.innerHTML = velocity.map(v => `
-        <div class="velocity-bar" style="height:${(v.count/maxVel*100)}%">
-          <div class="velocity-label">${v.day.substring(5)}</div>
-        </div>
-      `).join('');
+      velocity.forEach(v => {
+        const bar = document.createElement('div');
+        bar.className = 'velocity-bar';
+        bar.style.height = `${(v.count / maxVel * 100)}%`;
+        const lbl = document.createElement('div');
+        lbl.className = 'velocity-label';
+        lbl.textContent = String(v.day).substring(5);
+        bar.appendChild(lbl);
+        vRender.appendChild(bar);
+      });
     }
 
     const fRender = document.getElementById('funnel-render');
     if (fRender) {
+      fRender.innerHTML = '';
       const steps = [
         { label: 'Scanned', val: funnel.scanned, color: 'var(--blue)' },
-        { label: 'Scored', val: funnel.scored, color: 'var(--mauve)' },
-        { label: 'Applied', val: funnel.applied, color: 'var(--green)' }
+        { label: 'Scored',  val: funnel.scored,  color: 'var(--mauve)' },
+        { label: 'Applied', val: funnel.applied,  color: 'var(--green)' }
       ];
-      fRender.innerHTML = steps.map(s => `
-        <div class="funnel-step">
-          <div class="funnel-label">${s.label}</div>
-          <div class="funnel-box" style="border: 1px solid ${s.color}; color:${s.color}">${s.val}</div>
-        </div>
-      `).join('');
+      steps.forEach(s => {
+        const step = document.createElement('div');
+        step.className = 'funnel-step';
+        const lbl = document.createElement('div');
+        lbl.className = 'funnel-label';
+        lbl.textContent = String(s.label);
+        const box = document.createElement('div');
+        box.className = 'funnel-box';
+        box.textContent = String(s.val);
+        box.style.borderColor = s.color;
+        box.style.color = s.color;
+        step.appendChild(lbl);
+        step.appendChild(box);
+        fRender.appendChild(step);
+      });
     }
   } catch (err) { console.error('Analytics load failed:', err); }
 }
@@ -1349,7 +1384,13 @@ async function loadData() {
       tbody.innerHTML = apps.map(a => {
         const score = parseFloat(a.score) || 0;
         return `
-          <tr onclick="window.open('${a.url}', '_blank')">
+          <tr
+            tabindex="0"
+            role="link"
+            aria-label="Open ${a.company} job posting"
+            onclick="window.open('${a.url}', '_blank')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){window.open('${a.url}','_blank');event.preventDefault();}"
+          >
             <td style="color:var(--overlay0);font-size:11px">${a.id || '#'}</td>
             <td>
               <div class="company-cell">
@@ -1376,7 +1417,15 @@ async function loadData() {
       pl.innerHTML = `<div class="empty-state">pipeline is empty.</div>`;
     } else {
       pl.innerHTML = pipeline.map((p,i) => `
-        <div class="pipeline-item" onclick="window.open('${p.url}', '_blank')" style="cursor:pointer">
+        <div
+          class="pipeline-item"
+          style="cursor:pointer"
+          tabindex="0"
+          role="link"
+          aria-label="Open ${p.company} job posting"
+          onclick="window.open('${p.url}', '_blank')"
+          onkeydown="if(event.key==='Enter'||event.key===' '){window.open('${p.url}','_blank');event.preventDefault();}"
+        >
           <span class="p-prefix">${String(i+1).padStart(2,'0')}.</span>
           <div>
             <div class="p-co">${p.company}</div>

@@ -10,6 +10,10 @@ if (!rawUserId) {
   console.error('Error: SCAN_USER_ID environment variable is required.');
   process.exit(1);
 }
+if (!/^\d+$/.test(String(rawUserId).trim())) {
+  console.error(`Error: Invalid SCAN_USER_ID: "${rawUserId}" — must be a positive integer.`);
+  process.exit(1);
+}
 const userId = rawUserId;
 
 function normalizePortalId(value) {

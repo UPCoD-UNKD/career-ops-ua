@@ -280,7 +280,7 @@ async function main() {
   // Scrape JD
   let scrape;
   try {
-    scrape = await scrapeJD(url);
+    scrape = await scrapeJD(rawUrl);
     console.log(`✓ Scraped ${scrape.text.length} characters`);
   } catch (e) {
     console.error(`❌ Failed to scrape: ${e.message}`);

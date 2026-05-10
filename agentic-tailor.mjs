@@ -28,6 +28,7 @@ if (!idOrUrl) {
 }
 
 async function getHfClient(token) {
+  // Assign the token first so hfTokenInUse is preserved even if we return early
   hfTokenInUse = token || process.env.HUGGINGFACE_TOKEN || '';
   if (hfUnavailable) return null;
   if (hf) return hf;
@@ -591,7 +592,7 @@ async function tailorPackage(jd, profile, companyName) {
         core_competencies: (profile?.narrative?.superpowers || []).slice(0, 12),
         experience: (profile?.experience?.[0]?.bullets || []).slice(0, 3),
       },
-      cover_letter: `${companyName}'s ${jd.substring(0, 60).replace(/\n/g, ' ')}... requirements match what I've built: ${(profile?.narrative?.superpowers || []).slice(0, 2).join(', ')}.\n\nI can start contributing immediately. Reach me at ${profile?.candidate?.email || ''} or ${profile?.candidate?.phone || ''} to discuss.`
+      cover_letter: `${companyName}'s ${jd.substring(0, 60).replace(/\n/g, ' ')}... requirements match what I've built: ${(profile?.narrative?.superpowers || []).slice(0, 2).join(', ')}.\n\nI can start contributing immediately. Reach me at ${profile?.candidate?.email || ''} to discuss.`
     };
   }
 
@@ -868,8 +869,11 @@ OUTPUT FORMAT (JSON ONLY):
 
     const sanitizeFilename = (str) => str.replace(/[^a-z0-9]/gi, '_').replace(/_{2,}/g, '_').substring(0, 50);
     const companySlug = sanitizeFilename(entry.company);
-    const resumePathHtml = `output/Resume_Akash_Kaintura_SSE_${companySlug}.html`;
-    const resumePathPdf = `output/Resume_Akash_Kaintura_SSE_${companySlug}.pdf`;
+    // Scope filenames to userId + jobId/timestamp to prevent multi-user collisions in shared runtimes
+    const jobSlug = entry.id ? `job${entry.id}` : `t${Date.now()}`;
+    const filePrefix = `u${userId}_${jobSlug}_${companySlug}`;
+    const resumePathHtml = `output/Resume_${filePrefix}.html`;
+    const resumePathPdf = `output/Resume_${filePrefix}.pdf`;
 
     if (!fs.existsSync('output')) fs.mkdirSync('output');
     fs.writeFileSync(resumePathHtml, resumeHtml);
@@ -888,24 +892,32 @@ OUTPUT FORMAT (JSON ONLY):
       clHtml = clHtml.replace(new RegExp(`{{${key}}}`, 'g'), val || '');
     });
 
-    const clPathHtml = `output/Cover_Letter_Akash_Kaintura_SSE_${companySlug}.html`;
-    const clPathPdf = `output/Cover_Letter_Akash_Kaintura_SSE_${companySlug}.pdf`;
+    const clPathHtml = `output/Cover_Letter_${filePrefix}.html`;
+    const clPathPdf = `output/Cover_Letter_${filePrefix}.pdf`;
     fs.writeFileSync(clPathHtml, clHtml);
 
     console.log(`✅ Package ready: ${resumePathHtml} & ${clPathHtml}`);
 
-    // Persist to Neon DB so it can be viewed on the Vercel dashboard!
+    // Guard: only run schema migration once per process to avoid DDL locks on every tailor invocation
+    if (!tailorPackage._schemaEnsured) {
+      tailorPackage._schemaEnsured = true;
+      try {
+        await sql`
+          ALTER TABLE jobs
+            ADD COLUMN IF NOT EXISTS resume_html TEXT,
+            ADD COLUMN IF NOT EXISTS cover_letter_html TEXT,
+            ADD COLUMN IF NOT EXISTS resume_pdf_key TEXT,
+            ADD COLUMN IF NOT EXISTS cover_letter_pdf_key TEXT,
+            ADD COLUMN IF NOT EXISTS canonical_url TEXT,
+            ADD COLUMN IF NOT EXISTS jd_text TEXT;
+        `;
+      } catch {
+        // ignore — columns may already exist
+      }
+    }
+
+    // Persist HTML assets to Neon DB so they can be viewed on the Vercel dashboard
     try {
-      await sql`
-        ALTER TABLE jobs
-          ADD COLUMN IF NOT EXISTS resume_html TEXT,
-          ADD COLUMN IF NOT EXISTS cover_letter_html TEXT,
-          ADD COLUMN IF NOT EXISTS resume_pdf_key TEXT,
-          ADD COLUMN IF NOT EXISTS cover_letter_pdf_key TEXT,
-          ADD COLUMN IF NOT EXISTS canonical_url TEXT,
-          ADD COLUMN IF NOT EXISTS jd_text TEXT;
-      `;
-      
       // We assume entry.id exists if it came from DB, else we try to find it by URL
       if (entry.id) {
         await sql`
