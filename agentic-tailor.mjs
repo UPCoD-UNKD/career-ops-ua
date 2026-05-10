@@ -28,8 +28,10 @@ if (!idOrUrl) {
 }
 
 async function getHfClient(token) {
-  // Assign the token first so hfTokenInUse is preserved even if we return early
-  hfTokenInUse = token || process.env.HUGGINGFACE_TOKEN || '';
+  // Fix: Only update hfTokenInUse if token is provided or we don't have one yet
+  if (token) hfTokenInUse = token;
+  else if (!hfTokenInUse) hfTokenInUse = process.env.HUGGINGFACE_TOKEN || '';
+  
   if (hfUnavailable) return null;
   if (hf) return hf;
   try {
@@ -224,28 +226,30 @@ function renderExperience(exp, tailoredBullets, jdText = '', maxPages = 2) {
     const hasRoleInCompany = company.toLowerCase().includes(role.toLowerCase()) && role.length > 3;
     
     let titleLeft = '';
+    const eRole = escapeHtml(role);
+    const eCompany = escapeHtml(company);
+    const eDates = escapeHtml(dates);
+
     if (company && role && !hasCompanyInRole && !hasRoleInCompany) {
-      titleLeft = `<span class="job-company">${company}</span> — <span class="job-title">${role}</span>`;
+      titleLeft = `<span class="job-company">${eCompany}</span> — <span class="job-title">${eRole}</span>`;
     } else if (role && hasCompanyInRole) {
-      // Role already contains company - just show role
-      titleLeft = `<span class="job-title">${role}</span>`;
+      titleLeft = `<span class="job-title">${eRole}</span>`;
     } else if (company && hasRoleInCompany) {
-      // Company contains role - just show company
-      titleLeft = `<span class="job-company">${company}</span>`;
+      titleLeft = `<span class="job-company">${eCompany}</span>`;
     } else if (company) {
-      titleLeft = `<span class="job-company">${company}</span>`;
+      titleLeft = `<span class="job-company">${eCompany}</span>`;
     } else if (role) {
-      titleLeft = `<span class="job-title">${role}</span>`;
+      titleLeft = `<span class="job-title">${eRole}</span>`;
     }
 
     return `
     <div class="job">
       <div class="job-header">
         <div>${titleLeft}</div>
-        <div class="job-dates">${dates}</div>
+        <div class="job-dates">${eDates}</div>
       </div>
       <ul>
-        ${bullets.map(b => `<li>${b}</li>`).join('')}
+        ${bullets.map(b => `<li>${escapeHtml(b)}</li>`).join('')}
       </ul>
     </div>
   `}).join('');
@@ -254,7 +258,7 @@ function renderExperience(exp, tailoredBullets, jdText = '', maxPages = 2) {
 function renderEducation(edu) {
   if (!Array.isArray(edu) || edu.length === 0) return '';
   return edu.map(e => `
-    <div>${e.degree}${e.school ? `, ${e.school}` : ''}${e.period ? ` (${e.period})` : ''}</div>
+    <div>${escapeHtml(e.degree)}${e.school ? `, ${escapeHtml(e.school)}` : ''}${e.period ? ` (${escapeHtml(e.period)})` : ''}</div>
   `).join('');
 }
 
@@ -262,7 +266,7 @@ function renderProjects(projects) {
   if (!projects) return '';
   return projects.map(p => `
     <div class="project">
-      <span style="font-weight: bold;">${p.name}:</span> ${p.hero_metric}
+      <span style="font-weight: bold;">${escapeHtml(p.name)}:</span> ${escapeHtml(p.hero_metric)}
     </div>
   `).join('');
 }
@@ -318,7 +322,7 @@ function renderCategorizedSkills(skills) {
     if (skillList.length > 0) {
       // Remove duplicates and limit to reasonable number
       const unique = [...new Set(skillList)].slice(0, 8);
-      html += `<div class="skill-line"><span class="skill-label">${name}:</span> ${unique.join(', ')}</div>`;
+      html += `<div class="skill-line"><span class="skill-label">${escapeHtml(name)}:</span> ${unique.map(s => escapeHtml(s)).join(', ')}</div>`;
     }
   }
 
@@ -517,7 +521,28 @@ async function scrapeJD(url) {
     return next;
   };
 
+  const validateUrl = (uStr) => {
+    let u;
+    try {
+      u = new URL(uStr);
+    } catch { return; }
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') {
+      throw new Error(`Forbidden protocol: ${u.protocol}`);
+    }
+    const h = u.hostname.toLowerCase();
+    if (
+      h === 'localhost' || h.endsWith('.local') ||
+      /^127\./.test(h) || /^10\./.test(h) ||
+      /^192\.168\./.test(h) || /^172\.(1[6-9]|2[0-9]|3[01])\./.test(h) ||
+      /^169\.254\./.test(h) || h === '::1' ||
+      h.startsWith('fc') || h.startsWith('fe80')
+    ) {
+      throw new Error(`SSRF Prevention: Internal/Private hostname not allowed: ${h}`);
+    }
+  };
+
   const targetUrl = normalizeUrl(url);
+  validateUrl(targetUrl);
   console.log(`🌐 Scraping job description from: ${targetUrl}`);
   const chromium = await getChromium();
   if (chromium) {
@@ -849,7 +874,7 @@ OUTPUT FORMAT (JSON ONLY):
 
     // Build portfolio link (conditional)
     const portfolioLink = c.github
-      ? ` | <a href="https://${c.github}">${c.github.replace(/^github.com\//, '')}</a>`
+      ? ` | <a href="https://${escapeHtml(c.github)}">${escapeHtml(c.github.replace(/^github.com\//, ''))}</a>`
       : '';
 
     // Hide sections if missing data (never show blank Education/Experience)
@@ -913,23 +938,6 @@ OUTPUT FORMAT (JSON ONLY):
 
     console.log(`✅ Package ready: ${resumePathHtml} & ${clPathHtml}`);
 
-    // Guard: only run schema migration once per process to avoid DDL locks on every tailor invocation
-    if (!tailorPackage._schemaEnsured) {
-      tailorPackage._schemaEnsured = true;
-      try {
-        await sql`
-          ALTER TABLE jobs
-            ADD COLUMN IF NOT EXISTS resume_html TEXT,
-            ADD COLUMN IF NOT EXISTS cover_letter_html TEXT,
-            ADD COLUMN IF NOT EXISTS resume_pdf_key TEXT,
-            ADD COLUMN IF NOT EXISTS cover_letter_pdf_key TEXT,
-            ADD COLUMN IF NOT EXISTS canonical_url TEXT,
-            ADD COLUMN IF NOT EXISTS jd_text TEXT;
-        `;
-      } catch {
-        // ignore — columns may already exist
-      }
-    }
 
     // Persist HTML assets to Neon DB so they can be viewed on the Vercel dashboard
     try {
@@ -976,7 +984,11 @@ OUTPUT FORMAT (JSON ONLY):
           const resumePdfBuf = fs.existsSync(resumePathPdf) ? fs.readFileSync(resumePathPdf) : null;
           const clPdfBuf = fs.existsSync(clPathPdf) ? fs.readFileSync(clPathPdf) : null;
           // ALWAYS use job ID for R2 key if available - never fall back to company name
-          const keyId = entry?.id || jobId;
+          const keyId = entry?.id || (idOrUrl && /^\d+$/.test(idOrUrl) ? idOrUrl : null);
+          if (!keyId) {
+            console.warn('[R2] Skipping PDF upload: No jobId available (direct URL run without persisted row).');
+            return;
+          }
           const baseKey = `users/${userId}/jobs/${keyId}/${Date.now()}`;
           console.log(`[R2] Generating key with id=${keyId}, baseKey=${baseKey}`);
           let resumeKey = null;
