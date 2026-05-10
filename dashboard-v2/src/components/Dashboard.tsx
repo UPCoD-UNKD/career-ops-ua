@@ -943,6 +943,22 @@ export default function Dashboard() {
                                 <FileText size={14} />
                               </button>
                             )}
+                            {app?.job_id && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openDeleteConfirm(
+                                    Number(app.job_id),
+                                    String(app.company || 'Job'),
+                                    String(app.role || 'Unknown role')
+                                  )
+                                }
+                                className="p-2 border border-[#e7e5e4] rounded-lg text-[#a8a29e] hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all"
+                                title="Delete application and job record"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -1988,7 +2004,7 @@ System Initialized — v2.0`}
                   <div className="text-xs text-[#78716c]">{deleteTarget.title}</div>
                 </div>
                 <p className="text-xs text-[#a8a29e] mt-4">
-                  This will remove the job from your pipeline and delete all associated documents (resumes, cover letters, and job description).
+                  This deletes the job record (and application row, if present) plus any stored resumes, cover letters, and job description for this posting.
                 </p>
               </div>
 
