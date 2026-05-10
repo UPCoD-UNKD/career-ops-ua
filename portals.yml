@@ -1,0 +1,681 @@
+# Portal Scanner Configuration — Real Estate & Property Management (US Remote)
+# Targeting data professionals with 14+ years of experience.
+# Companies: PropTech, REITs, property management SaaS, commercial RE, residential platforms, mortgage tech.
+#
+# Strategy (3 levels):
+#   1. Playwright → careers_url of each company (real-time, reliable)
+#   2. Greenhouse API → structured JSON (fast, Greenhouse-only)
+#   3. WebSearch with site: filters (broad discovery, may be stale)
+
+# -- Title filter --
+# At least 1 positive must match AND 0 negatives must match (case-insensitive).
+
+title_filter:
+  positive:
+    # -- Data Engineering --
+    - "Data Engineer"
+    - "Senior Data Engineer"
+    - "Staff Data Engineer"
+    - "Principal Data Engineer"
+    - "Lead Data Engineer"
+    - "Analytics Engineer"
+    - "Data Platform Engineer"
+    - "Data Infrastructure"
+    - "Data Architect"
+    - "Data Warehouse"
+    - "ETL"
+    - "ELT"
+    - "dbt"
+    - "Databricks"
+    - "Snowflake"
+    # -- Data Science & ML --
+    - "Data Scientist"
+    - "Machine Learning Engineer"
+    - "ML Engineer"
+    - "Applied Scientist"
+    - "Research Scientist"
+    - "Quantitative Analyst"
+    - "MLOps"
+    - "AI Engineer"
+    # -- Analytics & BI --
+    - "Data Analyst"
+    - "Business Intelligence"
+    - "BI Engineer"
+    - "BI Developer"
+    - "Analytics"
+    - "Reporting Engineer"
+    - "Insights Engineer"
+    - "Product Analyst"
+    # -- Data Leadership --
+    - "Head of Data"
+    - "Director of Data"
+    - "VP of Data"
+    - "Director of Analytics"
+    - "VP Analytics"
+    - "Chief Data Officer"
+    # -- Full Stack / Platform (data-adjacent) --
+    - "Full Stack Engineer"
+    - "Full-Stack Engineer"
+    - "Platform Engineer"
+    - "Backend Engineer"
+    - "Software Engineer"
+  negative:
+    - "Junior"
+    - "Intern"
+    - "Entry Level"
+    - "Entry-Level"
+    - "iOS"
+    - "Android"
+    - "Embedded"
+    - "Firmware"
+    - "FPGA"
+    - "Blockchain"
+    - "Web3"
+    - "Crypto"
+    - "Mainframe"
+    - "COBOL"
+    - "SAP "
+    - "Salesforce Admin"
+    - "Oracle EBS"
+  seniority_boost:
+    - "Senior"
+    - "Staff"
+    - "Principal"
+    - "Lead"
+    - "Head"
+    - "Director"
+    - "VP"
+    - "Manager"
+
+# -- Search queries --
+# Focused on real estate + data professional roles, US remote.
+
+search_queries:
+  # -- Greenhouse: real estate data roles --
+  - name: Greenhouse — RE Data Engineer remote
+    query: 'site:job-boards.greenhouse.io "data engineer" OR "analytics engineer" "real estate" OR "property" remote'
+    enabled: true
+
+  - name: Greenhouse — RE Data Scientist remote
+    query: 'site:job-boards.greenhouse.io "data scientist" OR "machine learning" "real estate" OR "proptech" remote'
+    enabled: true
+
+  - name: Greenhouse — RE BI & Analytics remote
+    query: 'site:job-boards.greenhouse.io "business intelligence" OR "BI engineer" OR "data analyst" "real estate" OR "property management" remote'
+    enabled: true
+
+  # -- Lever: real estate data roles --
+  - name: Lever — RE Data roles remote
+    query: 'site:jobs.lever.co "data engineer" OR "data scientist" OR "analytics engineer" "real estate" OR "property" OR "proptech" remote'
+    enabled: true
+
+  # -- Ashby: real estate data roles --
+  - name: Ashby — RE Data roles remote
+    query: 'site:jobs.ashbyhq.com "data engineer" OR "analytics engineer" OR "data scientist" "real estate" OR "property" remote'
+    enabled: true
+
+  # -- LinkedIn / broad aggregators --
+  - name: LinkedIn — PropTech Data Engineer remote US
+    query: '"data engineer" OR "analytics engineer" "real estate" OR "proptech" OR "property management" remote site:linkedin.com/jobs'
+    enabled: true
+
+  - name: LinkedIn — PropTech Data Scientist remote US
+    query: '"data scientist" OR "machine learning engineer" "real estate" OR "proptech" remote site:linkedin.com/jobs'
+    enabled: true
+
+  # -- Indeed --
+  - name: Indeed — RE Data Engineer remote
+    query: 'site:indeed.com "data engineer" "real estate" OR "property management" remote'
+    enabled: true
+
+  - name: Indeed — RE Data Scientist remote
+    query: 'site:indeed.com "data scientist" OR "ML engineer" "real estate" OR "proptech" remote'
+    enabled: true
+
+  # -- Remote job boards --
+  - name: Himalayas — RE Data remote
+    query: 'site:himalayas.app "data engineer" OR "data scientist" OR "analytics" "real estate" OR "property"'
+    enabled: true
+
+  - name: WeWorkRemotely — Data roles RE
+    query: 'site:weworkremotely.com "data" "real estate" OR "property management" OR "proptech"'
+    enabled: true
+
+  - name: RemoteOK — Data roles RE
+    query: 'site:remoteok.com "data engineer" OR "data scientist" "real estate" OR "proptech"'
+    enabled: true
+
+  # -- HN Who's Hiring --
+  - name: HN Who's Hiring — RE Data remote
+    query: 'site:news.ycombinator.com "data engineer" OR "data scientist" "real estate" OR "proptech" remote'
+    enabled: true
+
+# -- Tracked companies --
+# Real estate and property management companies known to hire data professionals.
+# scan_method: playwright (default), websearch, greenhouse_api
+
+tracked_companies:
+
+  # ================================================================
+  # PROPTECH — RESIDENTIAL MARKETPLACE
+  # ================================================================
+
+  - name: Zillow
+    careers_url: https://job-boards.greenhouse.io/zillow
+    api: https://boards-api.greenhouse.io/v1/boards/zillow/jobs
+    notes: "Seattle / Remote US. Largest RE marketplace. Large data/ML org (Zestimate, pricing models)."
+    enabled: true
+
+  - name: Redfin
+    careers_url: https://job-boards.greenhouse.io/redfin
+    api: https://boards-api.greenhouse.io/v1/boards/redfin/jobs
+    notes: "Seattle / Remote US. RE brokerage + marketplace. Data and ML engineering roles."
+    enabled: true
+
+  - name: Compass
+    careers_url: https://job-boards.greenhouse.io/compass
+    api: https://boards-api.greenhouse.io/v1/boards/compass/jobs
+    notes: "NYC / Remote US. Tech-forward brokerage. Data platform, analytics engineering."
+    enabled: true
+
+  - name: Opendoor
+    careers_url: https://job-boards.greenhouse.io/opendoor
+    api: https://boards-api.greenhouse.io/v1/boards/opendoor/jobs
+    notes: "SF / Remote US. iBuyer leader. Heavy data science (pricing, risk, acquisition models)."
+    enabled: true
+
+  - name: Offerpad
+    careers_url: https://www.offerpad.com/careers
+    scan_method: websearch
+    scan_query: '"offerpad" "data engineer" OR "data scientist" OR "analytics" site:linkedin.com OR site:indeed.com'
+    notes: "Chandler AZ / Remote US. iBuyer. Data roles in pricing and ops."
+    enabled: true
+
+  - name: HomeLight
+    careers_url: https://job-boards.greenhouse.io/homelight
+    api: https://boards-api.greenhouse.io/v1/boards/homelight/jobs
+    notes: "SF / Remote US. Agent matching and home trade-in platform. Data and ML roles."
+    enabled: true
+
+  - name: Orchard
+    careers_url: https://job-boards.greenhouse.io/orchard
+    api: https://boards-api.greenhouse.io/v1/boards/orchard/jobs
+    notes: "NYC / Remote US. Buy-before-you-sell platform. Data engineering and analytics."
+    enabled: true
+
+  - name: Knock
+    careers_url: https://job-boards.greenhouse.io/knock
+    api: https://boards-api.greenhouse.io/v1/boards/knock/jobs
+    notes: "Remote US. Home trade-in and bridge financing. Data and product analytics."
+    enabled: true
+
+  - name: Realtor.com (Move Inc.)
+    careers_url: https://www.realtor.com/careers
+    scan_method: websearch
+    scan_query: '"realtor.com" OR "move inc" "data engineer" OR "data scientist" OR "analytics" remote site:linkedin.com OR site:indeed.com'
+    notes: "Santa Clara CA / Remote US. Realtor.com marketplace (News Corp). Large data org."
+    enabled: true
+
+  - name: Homes.com (CoStar)
+    careers_url: https://www.costar.com/about/careers
+    scan_method: websearch
+    scan_query: 'site:costar.com "data engineer" OR "data scientist" OR "analytics engineer" remote'
+    notes: "Remote US. CoStar's residential portal. Data, BI, ML engineering."
+    enabled: true
+
+  # ================================================================
+  # PROPTECH — COMMERCIAL REAL ESTATE
+  # ================================================================
+
+  - name: CoStar Group
+    careers_url: https://www.costar.com/about/careers
+    scan_method: websearch
+    scan_query: 'site:costar.com "data engineer" OR "data scientist" OR "analytics" OR "BI" remote'
+    notes: "Remote US. Commercial RE data and analytics giant. LoopNet, CoStar, Homes.com. Large data org."
+    enabled: true
+
+  - name: VTS
+    careers_url: https://jobs.lever.co/vts
+    notes: "NYC / Remote US. Commercial RE leasing and asset management platform. Data and analytics roles."
+    enabled: true
+
+  - name: Crexi
+    careers_url: https://job-boards.greenhouse.io/crexi
+    api: https://boards-api.greenhouse.io/v1/boards/crexi/jobs
+    notes: "LA / Remote US. Commercial RE marketplace. Data engineering, analytics."
+    enabled: true
+
+  - name: CompStak
+    careers_url: https://jobs.lever.co/compstak
+    notes: "NYC / Remote US. Commercial RE lease and sale comp data. Data engineering and analytics."
+    enabled: true
+
+  - name: Reonomy
+    careers_url: https://www.reonomy.com/careers
+    scan_method: websearch
+    scan_query: '"reonomy" "data engineer" OR "data scientist" OR "analytics" remote site:linkedin.com OR site:greenhouse.io'
+    notes: "NYC / Remote US. Commercial property data and AI (part of CoStar). Data roles."
+    enabled: true
+
+  - name: Cherre
+    careers_url: https://www.cherre.com/careers
+    scan_method: websearch
+    scan_query: '"cherre" "data engineer" OR "data scientist" OR "analytics" remote site:linkedin.com OR site:greenhouse.io'
+    notes: "NYC / Remote US. Real estate data platform and data lake. Heavy data engineering."
+    enabled: true
+
+  - name: Buildout
+    careers_url: https://job-boards.greenhouse.io/buildout
+    api: https://boards-api.greenhouse.io/v1/boards/buildout/jobs
+    notes: "Chicago / Remote US. CRE marketing and deal management. Data and analytics."
+    enabled: true
+
+  # ================================================================
+  # PROPERTY MANAGEMENT SaaS
+  # ================================================================
+
+  - name: AppFolio
+    careers_url: https://job-boards.greenhouse.io/appfolio
+    api: https://boards-api.greenhouse.io/v1/boards/appfolio/jobs
+    notes: "Santa Barbara CA / Remote US. Property management SaaS. Strong data and ML org."
+    enabled: true
+
+  - name: RealPage
+    careers_url: https://www.realpage.com/company/careers/
+    scan_method: websearch
+    scan_query: 'site:realpage.com "data engineer" OR "data scientist" OR "analytics" OR "BI" remote'
+    notes: "Richardson TX / Remote US. Largest property management software. Big data org."
+    enabled: true
+
+  - name: Yardi Systems
+    careers_url: https://www.yardi.com/about/careers/
+    scan_method: websearch
+    scan_query: 'site:yardi.com "data engineer" OR "data scientist" OR "analytics" OR "BI" remote'
+    notes: "Santa Barbara CA / Remote US. Enterprise property management ERP. Data and reporting roles."
+    enabled: true
+
+  - name: Entrata
+    careers_url: https://job-boards.greenhouse.io/entrata
+    api: https://boards-api.greenhouse.io/v1/boards/entrata/jobs
+    notes: "Lehi UT / Remote US. Property management platform. Data engineering and analytics."
+    enabled: true
+
+  - name: Buildium (RealPage)
+    careers_url: https://job-boards.greenhouse.io/buildium
+    api: https://boards-api.greenhouse.io/v1/boards/buildium/jobs
+    notes: "Remote US. SMB property management SaaS (owned by RealPage). Analytics roles."
+    enabled: true
+
+  - name: MRI Software
+    careers_url: https://www.mrisoftware.com/about/careers/
+    scan_method: websearch
+    scan_query: 'site:mrisoftware.com "data engineer" OR "data scientist" OR "analytics" OR "BI" remote'
+    notes: "Solon OH / Remote US. Enterprise RE and property management software. Data and BI roles."
+    enabled: true
+
+  - name: ResMan
+    careers_url: https://www.resman.com/company/careers/
+    scan_method: websearch
+    scan_query: '"ResMan" "data" OR "analytics" OR "engineer" remote site:linkedin.com OR site:indeed.com'
+    notes: "Plano TX / Remote US. Multifamily property management platform."
+    enabled: true
+
+  - name: Knock CRM
+    careers_url: https://jobs.lever.co/knockcrm
+    notes: "Remote US. Multifamily leasing CRM. Data and analytics roles."
+    enabled: true
+
+  - name: Funnel Leasing
+    careers_url: https://job-boards.greenhouse.io/funnelleasing
+    api: https://boards-api.greenhouse.io/v1/boards/funnelleasing/jobs
+    notes: "Remote US. Multifamily leasing automation platform. Data roles."
+    enabled: true
+
+  # ================================================================
+  # SHORT-TERM RENTAL & HOSPITALITY
+  # ================================================================
+
+  - name: Vacasa
+    careers_url: https://job-boards.greenhouse.io/vacasa
+    api: https://boards-api.greenhouse.io/v1/boards/vacasa/jobs
+    notes: "Portland OR / Remote US. Largest North American vacation rental manager. Data and ML roles."
+    enabled: true
+
+  - name: Sonder
+    careers_url: https://job-boards.greenhouse.io/sonder
+    api: https://boards-api.greenhouse.io/v1/boards/sonder/jobs
+    notes: "SF / Remote US. Apartment-hotel hybrid operator. Data engineering and analytics."
+    enabled: true
+
+  - name: AvantStay
+    careers_url: https://jobs.lever.co/avantstay
+    notes: "LA / Remote US. Premium short-term rental operator. Data and analytics."
+    enabled: true
+
+  - name: Evolve
+    careers_url: https://job-boards.greenhouse.io/evolve
+    api: https://boards-api.greenhouse.io/v1/boards/evolve/jobs
+    notes: "Denver CO / Remote US. Short-term rental management and marketplace. Data roles."
+    enabled: true
+
+  # ================================================================
+  # COMMERCIAL RE SERVICES (BIG 3 + OTHERS)
+  # ================================================================
+
+  - name: CBRE
+    careers_url: https://careers.cbre.com
+    scan_method: websearch
+    scan_query: 'site:cbre.com "data engineer" OR "data scientist" OR "analytics" OR "machine learning" remote'
+    notes: "Remote US. World's largest CRE services firm. Growing data and digital team."
+    enabled: true
+
+  - name: JLL (Jones Lang LaSalle)
+    careers_url: https://www.us.jll.com/en/careers
+    scan_method: websearch
+    scan_query: '"JLL" OR "jones lang lasalle" "data engineer" OR "data scientist" OR "analytics" remote site:linkedin.com OR site:jll.com'
+    notes: "Chicago / Remote US. Global CRE services. JLL Technologies (JLLT) is a major data employer."
+    enabled: true
+
+  - name: Cushman & Wakefield
+    careers_url: https://www.cushmanwakefield.com/en/careers
+    scan_method: websearch
+    scan_query: '"cushman wakefield" "data engineer" OR "data scientist" OR "analytics" remote site:linkedin.com'
+    notes: "Chicago / Remote US. Global CRE services. Data and digital transformation roles."
+    enabled: true
+
+  - name: Colliers
+    careers_url: https://www.colliers.com/en/careers
+    scan_method: websearch
+    scan_query: '"colliers" "data engineer" OR "data scientist" OR "analytics" remote US site:linkedin.com'
+    notes: "Remote US. Global CRE services. Growing data and tech platform."
+    enabled: true
+
+  - name: Newmark
+    careers_url: https://www.nmrk.com/careers
+    scan_method: websearch
+    scan_query: '"newmark" "data engineer" OR "data scientist" OR "analytics" remote site:linkedin.com OR site:indeed.com'
+    notes: "NYC / Remote US. Commercial RE advisory. Data analytics and engineering."
+    enabled: true
+
+  # ================================================================
+  # MORTGAGE & REAL ESTATE FINTECH
+  # ================================================================
+
+  - name: Better.com
+    careers_url: https://job-boards.greenhouse.io/better
+    api: https://boards-api.greenhouse.io/v1/boards/better/jobs
+    notes: "NYC / Remote US. Digital mortgage lender. Data science (pricing, risk, fraud)."
+    enabled: true
+
+  - name: Blend Labs
+    careers_url: https://job-boards.greenhouse.io/blend
+    api: https://boards-api.greenhouse.io/v1/boards/blend/jobs
+    notes: "SF / Remote US. Mortgage and consumer banking platform. Data engineering and ML."
+    enabled: true
+
+  - name: Rocket Companies
+    careers_url: https://www.rocketcompanies.com/careers/
+    scan_method: websearch
+    scan_query: 'site:rocketcompanies.com "data engineer" OR "data scientist" OR "analytics" OR "machine learning" remote'
+    notes: "Detroit MI / Remote US. Rocket Mortgage parent. Large data and AI org."
+    enabled: true
+
+  - name: loanDepot
+    careers_url: https://www.loandepot.com/careers
+    scan_method: websearch
+    scan_query: '"loandepot" "data engineer" OR "data scientist" OR "analytics" remote site:linkedin.com OR site:indeed.com'
+    notes: "Remote US. Non-bank mortgage lender. Data and analytics roles."
+    enabled: true
+
+  - name: UWM (United Wholesale Mortgage)
+    careers_url: https://www.uwm.com/careers
+    scan_method: websearch
+    scan_query: '"UWM" OR "united wholesale mortgage" "data engineer" OR "data scientist" OR "analytics" remote site:linkedin.com'
+    notes: "Pontiac MI / Remote US. Largest wholesale mortgage lender. Data org."
+    enabled: true
+
+  - name: Pennymac
+    careers_url: https://job-boards.greenhouse.io/pennymac
+    api: https://boards-api.greenhouse.io/v1/boards/pennymac/jobs
+    notes: "Westlake Village CA / Remote US. Large mortgage lender and servicer. Data and analytics."
+    enabled: true
+
+  - name: Sagent
+    careers_url: https://job-boards.greenhouse.io/sagent
+    api: https://boards-api.greenhouse.io/v1/boards/sagent/jobs
+    notes: "Remote US. Mortgage servicing technology. Data engineering and analytics."
+    enabled: true
+
+  - name: Homepoint
+    careers_url: https://job-boards.greenhouse.io/homepoint
+    api: https://boards-api.greenhouse.io/v1/boards/homepoint/jobs
+    notes: "Ann Arbor MI / Remote US. Wholesale mortgage lender."
+    enabled: true
+
+  # ================================================================
+  # REAL ESTATE DATA & ANALYTICS PLATFORMS
+  # ================================================================
+
+  - name: HouseCanary
+    careers_url: https://job-boards.greenhouse.io/housecanary
+    api: https://boards-api.greenhouse.io/v1/boards/housecanary/jobs
+    notes: "SF / Remote US. AVM and home value analytics. Core data science and engineering roles."
+    enabled: true
+
+  - name: Attom Data Solutions
+    careers_url: https://www.attomdata.com/company/careers/
+    scan_method: websearch
+    scan_query: '"attom data" "data engineer" OR "data scientist" OR "analytics" remote site:linkedin.com OR site:indeed.com'
+    notes: "Remote US. RE data aggregator (property, mortgage, foreclosure). Heavy data eng."
+    enabled: true
+
+  - name: CoreLogic
+    careers_url: https://www.corelogic.com/careers/
+    scan_method: websearch
+    scan_query: 'site:corelogic.com "data engineer" OR "data scientist" OR "analytics" OR "machine learning" remote'
+    notes: "Irvine CA / Remote US. Property data and analytics giant. Large data and ML org."
+    enabled: true
+
+  - name: Black Knight (ICE Mortgage Technology)
+    careers_url: https://www.icemortgagetechnology.com/about/careers
+    scan_method: websearch
+    scan_query: '"black knight" OR "ICE mortgage technology" "data engineer" OR "data scientist" OR "analytics" remote site:linkedin.com'
+    notes: "Remote US. Mortgage data and analytics (acquired by ICE/NYSE). Large data org."
+    enabled: true
+
+  - name: First American Financial
+    careers_url: https://careers.firstam.com
+    scan_method: websearch
+    scan_query: 'site:firstam.com "data engineer" OR "data scientist" OR "analytics" remote'
+    notes: "Santa Ana CA / Remote US. Title insurance and RE data services. Data and analytics."
+    enabled: true
+
+  # ================================================================
+  # CONSTRUCTION & PROJECT MANAGEMENT TECH (RE-ADJACENT)
+  # ================================================================
+
+  - name: Procore
+    careers_url: https://job-boards.greenhouse.io/procore
+    api: https://boards-api.greenhouse.io/v1/boards/procore/jobs
+    notes: "Carpinteria CA / Remote US. Construction management platform. Data engineering and ML."
+    enabled: true
+
+  - name: PlanGrid (Autodesk Construction)
+    careers_url: https://www.autodesk.com/careers/overview
+    scan_method: websearch
+    scan_query: '"autodesk construction" OR "plangrid" "data engineer" OR "data scientist" remote site:linkedin.com OR site:greenhouse.io'
+    notes: "Remote US. Construction and RE project management. Data roles."
+    enabled: true
+
+  - name: Buildxact
+    careers_url: https://jobs.lever.co/buildxact
+    notes: "Remote US. Construction estimating and project management. Data and analytics."
+    enabled: true
+
+  # ================================================================
+  # RESIDENTIAL RENTAL & MULTIFAMILY TECH
+  # ================================================================
+
+  - name: Rentpath (Rent.com)
+    careers_url: https://www.rentpath.com/careers
+    scan_method: websearch
+    scan_query: '"rentpath" OR "rent.com" "data engineer" OR "data scientist" OR "analytics" remote site:linkedin.com'
+    notes: "Atlanta GA / Remote US. Apartment search platform. Data and analytics."
+    enabled: true
+
+  - name: Apartments.com (CoStar)
+    careers_url: https://www.costar.com/about/careers
+    scan_method: websearch
+    scan_query: '"apartments.com" OR "costar" "data engineer" OR "data scientist" OR "analytics" remote site:linkedin.com'
+    notes: "Remote US. CoStar's multifamily marketplace. Shares data platform with CoStar."
+    enabled: true
+
+  - name: Zumper
+    careers_url: https://jobs.ashbyhq.com/zumper
+    notes: "SF / Remote US. Rental marketplace. Data engineering and analytics."
+    enabled: true
+
+  - name: Rentberry
+    careers_url: https://www.rentberry.com/careers
+    scan_method: websearch
+    scan_query: '"rentberry" "data" OR "engineer" OR "analytics" remote site:linkedin.com'
+    notes: "Remote. Long-term rental platform. Data roles."
+    enabled: true
+
+  - name: Lessen
+    careers_url: https://job-boards.greenhouse.io/lessen
+    api: https://boards-api.greenhouse.io/v1/boards/lessen/jobs
+    notes: "Remote US. Property maintenance and turn management SaaS. Data engineering."
+    enabled: true
+
+  - name: Snappt
+    careers_url: https://jobs.lever.co/snappt
+    notes: "Remote US. Fraud detection for rental applications (AI + document verification)."
+    enabled: true
+
+  # ================================================================
+  # SINGLE-FAMILY RENTAL (SFR) TECH
+  # ================================================================
+
+  - name: Invitation Homes
+    careers_url: https://www.invitationhomes.com/careers
+    scan_method: websearch
+    scan_query: '"invitation homes" "data engineer" OR "data scientist" OR "analytics" remote site:linkedin.com OR site:indeed.com'
+    notes: "Dallas TX / Remote US. Largest SFR REIT. Growing data and tech org."
+    enabled: true
+
+  - name: American Homes 4 Rent
+    careers_url: https://ir.ah4r.com/careers
+    scan_method: websearch
+    scan_query: '"american homes 4 rent" OR "AMH" "data engineer" OR "data scientist" OR "analytics" remote site:linkedin.com'
+    notes: "Las Vegas NV / Remote US. Large SFR REIT. Data and analytics roles."
+    enabled: true
+
+  - name: Tricon Residential
+    careers_url: https://www.triconresidential.com/careers
+    scan_method: websearch
+    scan_query: '"tricon residential" "data" OR "analytics" OR "engineer" remote site:linkedin.com'
+    notes: "Remote US. SFR and multifamily operator (Blackstone). Data roles."
+    enabled: true
+
+  # ================================================================
+  # INVESTMENT MANAGEMENT & REAL ESTATE TECH
+  # ================================================================
+
+  - name: Roofstock
+    careers_url: https://job-boards.greenhouse.io/roofstock
+    api: https://boards-api.greenhouse.io/v1/boards/roofstock/jobs
+    notes: "Oakland CA / Remote US. SFR investment marketplace. Data science and analytics."
+    enabled: true
+
+  - name: Cadre
+    careers_url: https://jobs.lever.co/cadre
+    notes: "NYC / Remote US. Institutional RE investment platform. Data engineering and analytics."
+    enabled: true
+
+  - name: Fundrise
+    careers_url: https://job-boards.greenhouse.io/fundrise
+    api: https://boards-api.greenhouse.io/v1/boards/fundrise/jobs
+    notes: "Washington DC / Remote US. Online REIT and RE investment platform. Data and ML."
+    enabled: true
+
+  - name: CrowdStreet
+    careers_url: https://job-boards.greenhouse.io/crowdstreet
+    api: https://boards-api.greenhouse.io/v1/boards/crowdstreet/jobs
+    notes: "Austin TX / Remote US. Commercial RE crowdfunding platform. Data and analytics."
+    enabled: true
+
+  - name: Yieldstreet
+    careers_url: https://job-boards.greenhouse.io/yieldstreet
+    api: https://boards-api.greenhouse.io/v1/boards/yieldstreet/jobs
+    notes: "NYC / Remote US. Alternative investment platform (RE heavy). Data science."
+    enabled: true
+
+  - name: Groundfloor
+    careers_url: https://jobs.ashbyhq.com/groundfloor
+    notes: "Atlanta GA / Remote US. RE debt investment platform. Data and analytics."
+    enabled: true
+
+  # ================================================================
+  # TITLE & INSURANCE TECH (REAL ESTATE)
+  # ================================================================
+
+  - name: Doma (States Title)
+    careers_url: https://job-boards.greenhouse.io/doma
+    api: https://boards-api.greenhouse.io/v1/boards/doma/jobs
+    notes: "Remote US. AI-powered title insurance. Heavy ML (instant decisioning)."
+    enabled: true
+
+  - name: Spruce (title tech)
+    careers_url: https://job-boards.greenhouse.io/spruce
+    api: https://boards-api.greenhouse.io/v1/boards/spruce/jobs
+    notes: "NYC / Remote US. Digital title and escrow platform. Data and engineering."
+    enabled: true
+
+  - name: Qualia
+    careers_url: https://job-boards.greenhouse.io/qualia
+    api: https://boards-api.greenhouse.io/v1/boards/qualia/jobs
+    notes: "SF / Remote US. Digital closing and escrow platform. Data engineering and analytics."
+    enabled: true
+
+  # ================================================================
+  # AI-POWERED RE PLATFORMS
+  # ================================================================
+
+  - name: Lofty (Chime Technologies)
+    careers_url: https://www.lofty.com/careers
+    scan_method: websearch
+    scan_query: '"lofty" OR "chime technologies" "data" OR "analytics" OR "engineer" remote site:linkedin.com'
+    notes: "Remote US. AI-powered RE CRM and marketing. Data roles."
+    enabled: true
+
+  - name: Veev
+    careers_url: https://job-boards.greenhouse.io/veev
+    api: https://boards-api.greenhouse.io/v1/boards/veev/jobs
+    notes: "Hayward CA / Remote US. Tech-forward homebuilder. Data and engineering."
+    enabled: true
+
+  - name: Landed
+    careers_url: https://jobs.lever.co/landed
+    notes: "SF / Remote US. Down payment assistance and shared equity. Data and analytics."
+    enabled: true
+
+  - name: Flyhomes
+    careers_url: https://job-boards.greenhouse.io/flyhomes
+    api: https://boards-api.greenhouse.io/v1/boards/flyhomes/jobs
+    notes: "Seattle WA / Remote US. AI-powered homebuying. Data science and engineering."
+    enabled: true
+
+  - name: Trestle (PropStream parent)
+    careers_url: https://www.trestleiq.com/careers
+    scan_method: websearch
+    scan_query: '"trestle" OR "propstream" "data engineer" OR "data scientist" OR "analytics" remote site:linkedin.com'
+    notes: "Remote US. MLS data standardization platform. Data engineering."
+    enabled: true
+
+  - name: Restb.ai
+    careers_url: https://restb.ai/careers
+    scan_method: websearch
+    scan_query: '"restb.ai" OR "restb" "data" OR "engineer" OR "machine learning" remote site:linkedin.com'
+    notes: "Remote US. Computer vision AI for real estate (photo analysis). ML roles."
+    enabled: true
