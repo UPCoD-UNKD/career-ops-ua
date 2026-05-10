@@ -70,6 +70,10 @@ export default function Dashboard() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; company: string; title: string } | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  const [clearPipelineOpen, setClearPipelineOpen] = useState(false);
+  const [clearPipelineScope, setClearPipelineScope] = useState<'all' | 'visible'>('all');
+  const [clearPipelineLoading, setClearPipelineLoading] = useState(false);
+
   const appendTerminalLine = (line: string) => {
     setLogs((prev) => [...prev, { type: 'stdout', content: `\n${line}\n` }]);
   };
@@ -89,6 +93,10 @@ export default function Dashboard() {
   const filteredDocs = (data?.pdfs || []).filter((doc: any) =>
     matches(doc.company) || matches(doc.title) || matches(doc.name)
   );
+
+  const pipelineTotal = data?.pipeline?.length ?? 0;
+  const pipelineFiltered = filteredPipeline.length;
+  const pipelineFilterActive = q.length > 0 && pipelineFiltered < pipelineTotal;
 
   useEffect(() => {
     if (!isSearchOpen) return;
@@ -591,6 +599,57 @@ export default function Dashboard() {
     }
   };
 
+  const openClearPipelineModal = () => {
+    setClearPipelineScope(pipelineFilterActive ? 'visible' : 'all');
+    setClearPipelineOpen(true);
+  };
+
+  const handleClearPipeline = async () => {
+    if (clearPipelineScope === 'visible' && pipelineFiltered === 0) {
+      setToast({ show: true, message: '[ERR] ✗ No visible jobs to delete' });
+      setTimeout(() => setToast({ show: false, message: '' }), 4000);
+      return;
+    }
+    setClearPipelineLoading(true);
+    try {
+      const body =
+        clearPipelineScope === 'visible'
+          ? {
+              scope: 'ids',
+              ids: filteredPipeline.map((j: any) => Number(j.pipeline_id)).filter((n: number) => Number.isFinite(n)),
+            }
+          : { scope: 'all' };
+      const res = await fetch('/api/pipeline/clear', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || 'Clear failed');
+
+      const refreshRes = await fetch('/api/data');
+      if (refreshRes.ok) {
+        const freshData = await refreshRes.json();
+        setData(freshData);
+      }
+
+      setToast({
+        show: true,
+        message: `[OK] ✔ Removed ${json.deletedCount ?? 0} job(s) from pipeline`,
+      });
+      setTimeout(() => setToast({ show: false, message: '' }), 4000);
+      setClearPipelineOpen(false);
+      setJobDetailsOpen(false);
+      setJobDetails(null);
+      setJobDetailsError(null);
+    } catch (e: any) {
+      setToast({ show: true, message: `[ERR] ✗ ${e?.message || 'Clear failed'}` });
+      setTimeout(() => setToast({ show: false, message: '' }), 5000);
+    } finally {
+      setClearPipelineLoading(false);
+    }
+  };
+
   useEffect(() => {
     const term = document.getElementById('terminal-logs');
     if (term) {
@@ -896,8 +955,17 @@ export default function Dashboard() {
 
           {activeTab === 'pipeline' && (
             <motion.div key="pipeline" className="bg-white border border-[#e7e5e4] rounded-[2rem] overflow-hidden shadow-2xl shadow-black/[0.02]">
-              <div className="p-8 border-b border-[#e7e5e4] bg-[#faf9f6]">
+              <div className="p-8 border-b border-[#e7e5e4] bg-[#faf9f6] flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <h2 className="text-xl font-bold text-[#1c1917]">Live Job Pipeline</h2>
+                {pipelineTotal > 0 && (
+                  <button
+                    type="button"
+                    onClick={openClearPipelineModal}
+                    className="shrink-0 px-4 py-2.5 rounded-xl border border-rose-200 bg-white text-rose-700 text-xs font-bold uppercase tracking-widest hover:bg-rose-50 transition-colors"
+                  >
+                    Clear pipeline…
+                  </button>
+                )}
               </div>
               <div className="overflow-x-auto text-sm max-h-[600px]">
                 <table className="w-full text-left">
@@ -1942,6 +2010,115 @@ System Initialized — v2.0`}
                     <>
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       <span>Deleting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={16} />
+                      <span>Delete</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Clear entire pipeline (bulk delete) */}
+      <AnimatePresence>
+        {clearPipelineOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[95] flex items-center justify-center p-4 sm:p-6"
+            onClick={() => !clearPipelineLoading && setClearPipelineOpen(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="w-full max-w-md bg-white rounded-3xl border border-rose-200 shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6 bg-gradient-to-r from-rose-50 to-white border-b border-rose-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center">
+                    <Trash2 size={22} className="text-rose-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-[#1c1917] text-lg">Clear pipeline</h3>
+                    <p className="text-xs text-[#78716c]">One request — removes jobs from the database</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 space-y-4">
+                <p className="text-sm text-[#78716c]">
+                  Choose what to remove. Application-tracked jobs are never included.
+                </p>
+                {pipelineFilterActive ? (
+                  <div className="space-y-3">
+                    <label className="flex items-start gap-3 cursor-pointer rounded-2xl border border-[#e7e5e4] p-4 hover:bg-[#faf9f6] has-[:checked]:border-rose-300 has-[:checked]:bg-rose-50/40">
+                      <input
+                        type="radio"
+                        name="clear-pipeline-scope"
+                        className="mt-1"
+                        checked={clearPipelineScope === 'visible'}
+                        onChange={() => setClearPipelineScope('visible')}
+                      />
+                      <span>
+                        <span className="font-bold text-[#1c1917]">Visible rows only</span>
+                        <span className="block text-xs text-[#78716c] mt-1">
+                          Delete {pipelineFiltered} job{pipelineFiltered === 1 ? '' : 's'} matching your search ({pipelineTotal} total in pipeline).
+                        </span>
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-3 cursor-pointer rounded-2xl border border-[#e7e5e4] p-4 hover:bg-[#faf9f6] has-[:checked]:border-rose-300 has-[:checked]:bg-rose-50/40">
+                      <input
+                        type="radio"
+                        name="clear-pipeline-scope"
+                        className="mt-1"
+                        checked={clearPipelineScope === 'all'}
+                        onChange={() => setClearPipelineScope('all')}
+                      />
+                      <span>
+                        <span className="font-bold text-[#1c1917]">Entire pipeline</span>
+                        <span className="block text-xs text-[#78716c] mt-1">
+                          Delete all {pipelineTotal} job{pipelineTotal === 1 ? '' : 's'} (ignores search).
+                        </span>
+                      </span>
+                    </label>
+                  </div>
+                ) : (
+                  <div className="bg-[#faf9f6] rounded-2xl p-4 border border-[#e7e5e4] text-sm text-[#57534e]">
+                    This will delete <strong className="text-[#1c1917]">{pipelineTotal}</strong> pipeline job
+                    {pipelineTotal === 1 ? '' : 's'} and any stored JDs / tailored assets for those rows.
+                  </div>
+                )}
+              </div>
+              <div className="p-4 border-t border-[#e7e5e4] flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setClearPipelineOpen(false)}
+                  disabled={clearPipelineLoading}
+                  className="flex-1 px-4 py-3 rounded-xl border border-[#e7e5e4] text-[#78716c] font-bold text-sm hover:bg-[#f5f5f4] transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearPipeline}
+                  disabled={
+                    clearPipelineLoading ||
+                    (clearPipelineScope === 'visible' && pipelineFiltered === 0) ||
+                    (clearPipelineScope === 'all' && pipelineTotal === 0)
+                  }
+                  className="flex-1 px-4 py-3 rounded-xl bg-rose-600 text-white font-bold text-sm hover:bg-rose-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {clearPipelineLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Deleting…</span>
                     </>
                   ) : (
                     <>
