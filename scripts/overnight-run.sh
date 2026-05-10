@@ -2,7 +2,9 @@
 # scripts/overnight-run.sh
 # Chains: /career-ops scan -> /career-ops pipeline -> cleanup -> verify
 # Called by the GitHub Actions workflow AND runnable locally.
-# Requires: ANTHROPIC_API_KEY env var, @anthropic-ai/claude-code CLI installed.
+# Requires: @anthropic-ai/claude-code CLI installed and ONE of:
+#   - CLAUDE_CODE_OAUTH_TOKEN (Claude.ai Pro/Max subscription, generated via `claude setup-token`)
+#   - ANTHROPIC_API_KEY       (Anthropic Console account)
 
 set -u
 ERRLOG="data/overnight-errors.log"

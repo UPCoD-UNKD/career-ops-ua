@@ -53,6 +53,7 @@ jobs:
       - name: Run orchestration (scan + pipeline + cleanup)
         id: run
         env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           bash scripts/overnight-run.sh
@@ -60,6 +61,7 @@ jobs:
       - name: Retry once on failure
         if: failure() && steps.run.outcome == 'failure'
         env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           echo "First attempt failed — retrying once..."
