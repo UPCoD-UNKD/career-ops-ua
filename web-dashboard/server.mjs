@@ -8,7 +8,25 @@ import sql from '../db/client.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
-const SHELL = process.env.SHELL || '/bin/zsh';
+const NODE = process.execPath;
+
+// Explicitly allow only these entrypoint scripts (CodeRabbit security fix)
+const ALLOWED_SCRIPTS = {
+  'merge':        'merge-tracker.mjs',
+  'verify':       'verify-pipeline.mjs',
+  'normalize':    'normalize-statuses.mjs',
+  'dedup':        'dedup-tracker.mjs',
+  'doctor':       'doctor.mjs',
+  'sync-check':   'cv-sync-check.mjs',
+  'update-check': 'update-system.mjs',
+  'liveness':     'check-liveness.mjs',
+  'scan':         'scratch-scan.mjs',
+  'rank':         'rank-pipeline.mjs',
+  'tailor':       'agentic-tailor.mjs',
+  'apply':        'auto-apply.mjs',
+  'pdf':          'prepare-pdf.mjs',
+  'migrate':      'db/migrate.mjs'
+};
 
 const jobsMap = new Map();
 const PROFILE_PATH = join(ROOT, 'config/profile.yml');
@@ -82,7 +100,15 @@ async function getDashboardData() {
 
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  
+  // Hardened CORS & Host validation (CodeRabbit security fix)
+  const host = req.headers.host;
+  if (host !== 'localhost:4242' && host !== '127.0.0.1:4242') {
+    res.writeHead(403);
+    res.end('Forbidden: Dashboard only accessible via localhost');
+    return;
+  }
+  res.setHeader('Access-Control-Allow-Origin', 'null'); // Block cross-origin AJAX
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
@@ -144,10 +170,23 @@ const server = createServer(async (req, res) => {
     let body = '';
     req.on('data', d => body += d);
     req.on('end', () => {
-      let cmd;
-      try { cmd = JSON.parse(body).cmd?.trim(); } catch {}
-      if (!cmd) { res.writeHead(400); res.end(JSON.stringify({ error: 'no cmd' })); return; }
-      if (currentProc) { res.writeHead(409); res.end(JSON.stringify({ error: 'A command is already running' })); return; }
+      let payload;
+      try { payload = JSON.parse(body); } catch { res.writeHead(400); res.end(); return; }
+      
+      const { scriptKey, args = [] } = payload;
+      const scriptFile = ALLOWED_SCRIPTS[scriptKey];
+      
+      if (!scriptFile) {
+        res.writeHead(400);
+        res.end(JSON.stringify({ error: `Forbidden or unknown script: ${scriptKey}` }));
+        return;
+      }
+      
+      if (currentProc) {
+        res.writeHead(409);
+        res.end(JSON.stringify({ error: 'A command is already running' }));
+        return;
+      }
 
       const jobId = Date.now().toString(36);
       createJob(jobId);
@@ -155,15 +194,21 @@ const server = createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ ok: true, jobId }));
 
-      const nvmDir = process.env.NVM_DIR || `${process.env.HOME}/.nvm`;
-      pushToJob(jobId, { type: 'start', text: `$ ${cmd}` });
+      // Secure spawn: No shell interpolation, fixed script file, strictly array-based args
+      const scriptPath = join(ROOT, scriptFile);
+      pushToJob(jobId, { type: 'start', text: `$ node ${scriptFile} ${args.join(' ')}` });
 
-      // spawn the shell and source nvm just in case
-      currentProc = spawn(SHELL, ['-c', `source "${nvmDir}/nvm.sh" 2>/dev/null; ${cmd}`], {
-        cwd: ROOT, env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1', TERM: 'dumb' }
+      currentProc = spawn(NODE, [scriptPath, ...args], {
+        cwd: ROOT,
+        env: { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1', TERM: 'dumb' }
       });
-      currentProc.stdout.on('data', d => d.toString().split('\n').forEach(l => pushToJob(jobId, { type: 'stdout', text: l })));
-      currentProc.stderr.on('data', d => d.toString().split('\n').forEach(l => pushToJob(jobId, { type: 'stderr', text: l })));
+      
+      currentProc.stdout.on('data', d => d.toString().split('\n').forEach(l => {
+        if (l.trim()) pushToJob(jobId, { type: 'stdout', text: l });
+      }));
+      currentProc.stderr.on('data', d => d.toString().split('\n').forEach(l => {
+        if (l.trim()) pushToJob(jobId, { type: 'stderr', text: l });
+      }));
       currentProc.on('close', code => { finishJob(jobId, code ?? 0); currentProc = null; });
       currentProc.on('error', err => { pushToJob(jobId, { type: 'stderr', text: err.message }); finishJob(jobId, 1); currentProc = null; });
     });
@@ -191,6 +236,26 @@ const server = createServer(async (req, res) => {
   if (url.pathname === '/api/status') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ running: !!currentProc, jobId: currentJobId }));
+    return;
+  }
+
+  if (url.pathname.startsWith('/output/') || url.pathname.startsWith('/reports/')) {
+    const isOutput = url.pathname.startsWith('/output/');
+    const dir = isOutput ? OUTPUT_DIR : REPORTS_DIR;
+    const file = url.pathname.substring(isOutput ? 8 : 9);
+    // Path traversal prevention: ensure the filename doesn't contain parent dirs
+    if (file.includes('..') || file.includes('/') || file.includes('\\')) {
+      res.writeHead(403); res.end('Forbidden'); return;
+    }
+    const fullPath = join(dir, file);
+    if (existsSync(fullPath)) {
+      const ext = file.split('.').pop();
+      const mime = { 'pdf': 'application/pdf', 'html': 'text/html', 'md': 'text/markdown' }[ext] || 'application/octet-stream';
+      res.writeHead(200, { 'Content-Type': mime });
+      res.end(readFileSync(fullPath));
+    } else {
+      res.writeHead(404); res.end('Not found');
+    }
     return;
   }
 

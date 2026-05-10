@@ -740,14 +740,18 @@
 </div>
 
 <script>
-const CMDS = ['merge','verify','normalize','dedup','doctor','sync-check','update:check','liveness'];
-let cmdRunning = false;
+// ─── UTILS ──────────────────────────────────────────────────────────────────
+function escapeHtml(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
-// Terminal output
-// Write to ALL visible terminals simultaneously
-function termLine(text, cls='term-out') {
-  ['term-out', 'term-out-full'].forEach(id => {
-    const el = document.getElementById(id);
+function termLine(text, cls = 'term-out') {
+  window.requestAnimationFrame(() => {
+    const el = document.getElementById('term-out-full');
     if (!el) return;
     const span = document.createElement('span');
     span.className = `term-line ${cls}`;
@@ -756,14 +760,15 @@ function termLine(text, cls='term-out') {
     el.scrollTop = el.scrollHeight;
   });
 }
+
+const CMDS = ['merge','verify','normalize','dedup','doctor','sync-check','update:check','liveness'];
+let cmdRunning = false;
+
 function clearTerm() {
-  ['term-out', 'term-out-full'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = '';
-  });
+  const el = document.getElementById('term-out-full');
+  if (el) el.innerHTML = '';
   termLine('$ terminal cleared', 'term-dim');
 }
-
 
 // ─── Real-time terminal via SSE ──────────────────────────────────────────────
 let currentES = null;
@@ -795,7 +800,6 @@ function streamJob(jobId) {
       closeES();
       cmdRunning = false;
       document.getElementById('kill-btn')?.setAttribute('disabled', '');
-      // Normalise command keys: colon → dash to match button IDs
       CMDS.forEach(c => document.getElementById(`btn-${c.replace(/:/g, '-')}`)?.classList.remove('running'));
       loadData();
     }
@@ -811,64 +815,50 @@ function streamJob(jobId) {
   };
 }
 
-async function execShell(shellCmd) {
+async function execShell(scriptKey, args = []) {
   if (cmdRunning) {
-    termLine('⚠  a command is still running — press ✕ kill to stop it', 'term-err');
-    return;
+    termLine('⚠ a command is still running — press ✕ kill to stop it', 'term-err');
+    return false;
   }
   cmdRunning = true;
-  termLine(`$ ${shellCmd}`, 'term-cmd');
+  termLine(`$ node ${scriptKey}.mjs ${args.join(' ')}`, 'term-cmd');
   document.getElementById('kill-btn')?.removeAttribute('disabled');
 
-  let resp, body;
   try {
-    resp = await fetch('/api/exec', {
+    const resp = await fetch('/api/exec', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cmd: shellCmd })
+      body: JSON.stringify({ scriptKey, args })
     });
-    body = await resp.json();
+    const body = await resp.json();
+    if (!body.ok) {
+      termLine(`✗ ${body.error}`, 'term-err');
+      resetCmdUi();
+      return false;
+    }
+    streamJob(body.jobId);
+    return true;
   } catch (e) {
     termLine(`✗ server error: ${e.message}`, 'term-err');
     resetCmdUi();
-    return;
+    return false;
   }
-
-  if (!body.ok) {
-    termLine(`✗ ${body.error}`, 'term-err');
-    resetCmdUi();
-    return;
-  }
-
-  // Open SSE — server replays any already-buffered lines then pushes new ones live
-  streamJob(body.jobId);
 }
 
-// npm-script → shell command mapping
-const NPM_SCRIPTS = {
-  'merge':        'node merge-tracker.mjs',
-  'verify':       'node verify-pipeline.mjs',
-  'normalize':    'node normalize-statuses.mjs',
-  'dedup':        'node dedup-tracker.mjs',
-  'doctor':       'node doctor.mjs',
-  'sync-check':   'node cv-sync-check.mjs',
-  'update:check': 'node update-system.mjs check',
-  'liveness':     'grep -o "https://[^ |]*" data/pipeline.md | head -10 | xargs node check-liveness.mjs',
-  'scan':         'node scratch-scan.mjs',
-  'offer-list':   'node rank-pipeline.mjs',
-  'offer-match':  'node agentic-tailor.mjs',
-  'ofertas':      'node rank-pipeline.mjs',
-  'oferta':       'node agentic-tailor.mjs',
-  'apply':        'node auto-apply.mjs',
-  'pdf':          'node prepare-pdf.mjs',
-};
-
 async function runCmd(cmd) {
+  const MAP = {
+    'merge': 'merge', 'verify': 'verify', 'normalize': 'normalize', 'dedup': 'dedup',
+    'doctor': 'doctor', 'sync-check': 'sync-check', 'update:check': 'update-check',
+    'liveness': 'liveness', 'scan': 'scan', 'offer-list': 'rank', 'offer-match': 'tailor',
+    'ofertas': 'rank', 'oferta': 'tailor', 'apply': 'apply', 'pdf': 'pdf'
+  };
+  const key = MAP[cmd];
+  if (!key) { termLine(`✗ Error: Unknown command mapping for '${cmd}'`, 'term-err'); return; }
+
   const btnId = `btn-${cmd.replace(/:/g, '-')}`;
   const btn = document.getElementById(btnId);
   
-  // Attempt to start the job. Only set UI to 'running' if the backend accepts.
-  const success = await execShell(NPM_SCRIPTS[cmd] || `npm run ${cmd}`);
+  const success = await execShell(key);
   if (success && btn) {
     btn.classList.add('running');
   }
@@ -880,22 +870,15 @@ async function killCmd() {
   resetCmdUi();
 }
 
-// Reset ALL terminal UI state — called from kill, error, and failed-start paths
 function resetCmdUi() {
   cmdRunning = false;
   document.getElementById('kill-btn')?.setAttribute('disabled', '');
-  // Normalise command keys: colon → dash to match button IDs (e.g. 'update:check' → 'btn-update-check')
   CMDS.forEach(c => {
     const btnId = `btn-${c.replace(/:/g, '-')}`;
     document.getElementById(btnId)?.classList.remove('running');
   });
 }
 
-
-
-
-
-// Natural language intent router
 const AGENT_CMDS = {
   scan:     { desc: 'Scan 30+ portals for new job matches',            hint: '/scan or "scan for new jobs"' },
   pdf:      { desc: 'Generate a tailored CV PDF for a role',           hint: '"generate PDF for [company]"' },
@@ -923,7 +906,6 @@ const INTENT_MAP = [
   { patterns: ['update:check','update check'],          action: 'npm:update:check' },
   { patterns: ['liveness'],      action: 'npm:liveness' },
   { patterns: ['clear','cls'],   action: 'clear' },
-  // AI agent commands
   { patterns: ['scan','search portals','find jobs','new jobs'],  action: 'agent:scan' },
   { patterns: ['pdf','generate pdf','tailored cv'],              action: 'agent:pdf' },
   { patterns: ['offer-match','evaluate this','eval job'],       action: 'agent:offer-match' },
@@ -937,9 +919,7 @@ const INTENT_MAP = [
   { patterns: ['project','proof of work'],                       action: 'agent:project' },
 ];
 
-// Display AI agent command instructions in terminal
 function agentCmd(key) {
-  // These can be run directly
   const RUNNABLE = { 
     scan: 'node scratch-scan.mjs',
     'offer-list': 'node rank-pipeline.mjs',
@@ -949,7 +929,6 @@ function agentCmd(key) {
     runCmd(key);
     return;
   }
-  // Others need AI assistance — describe them
   const cmd = AGENT_CMDS[key];
   if (!cmd) return;
   termLine('');
@@ -958,41 +937,23 @@ function agentCmd(key) {
   termLine(`  tell your AI: ${cmd.hint}`, 'term-dim');
 }
 
-
-
 function resolveIntent(input) {
   const raw = input.trim();
-
-  // If user types "apply https://...", intercept and run auto-apply script directly
-  if (raw.toLowerCase().startsWith('apply http')) {
-    const url = raw.substring(6).trim();
-    return null; // Force null so it falls through to execShell(`node auto-apply.mjs ${url}`)
-  }
-
-  // If it looks like a real shell command, skip NL intent resolution entirely
+  if (raw.toLowerCase().startsWith('apply http')) return null;
   const SHELL_PREFIXES = /^(node|npm|npx|ls|cat|git|python|python3|sh|bash|zsh|echo|cd|pwd|grep|find|which|curl|open)\b/i;
   const SHELL_SUFFIXES = /\.(mjs|js|sh|py|ts)(\s|$)/i;
-  if (SHELL_PREFIXES.test(raw) || SHELL_SUFFIXES.test(raw) || raw.includes(' ') && raw.includes('/')) {
-    return null; 
-  }
-
+  if (SHELL_PREFIXES.test(raw) || SHELL_SUFFIXES.test(raw) || (raw.includes(' ') && raw.includes('/'))) return null;
   const lower = raw.toLowerCase().replace(/^[/\\]/, '').trim();
   const stripped = lower.replace(/^npm run\s+/, '');
-
   for (const intent of INTENT_MAP) {
-    // Exact match OR whole-word match (not substring)
     if (intent.patterns.some(p => {
       if (stripped === p || lower === p) return true;
-      // whole word match: pattern must be surrounded by word boundaries
       const re = new RegExp(`(^|\\s)${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\s|$)`, 'i');
       return re.test(lower);
-    })) {
-      return intent.action;
-    }
+    })) return intent.action;
   }
   return null;
 }
-
 
 function handleIntent(action) {
   if (action === 'help') {
@@ -1025,7 +986,6 @@ function handleIntent(action) {
     return;
   }
   if (action === 'clear') { clearTerm(); return; }
-
   if (action === 'tracker') {
     fetch('/api/data').then(r => r.json()).then(({ apps, metrics }) => {
       termLine('');
@@ -1036,17 +996,16 @@ function handleIntent(action) {
       } else {
         termLine(`  ${'#'.padEnd(5)}${'Company'.padEnd(20)}${'Score'.padEnd(8)}Status`, 'term-dim');
         apps.forEach(a => {
-          const idStr = String(a.id || '').padEnd(5);
+          const idStr = escapeHtml(String(a.id || '')).padEnd(5);
           const score = parseFloat(a.score) || 0;
           const scoreStr = (score > 0 ? score.toFixed(1) : '  —').padEnd(8);
-          termLine(`  ${idStr}${a.company.substring(0,18).padEnd(20)}${scoreStr}${a.status}`);
+          termLine(`  ${idStr}${escapeHtml(a.company).substring(0,18).padEnd(20)}${scoreStr}${escapeHtml(a.status)}`);
         });
       }
       termLine(`  ─── total:${metrics.total}  applied:${metrics.applied}  avg:${metrics.avgScore}/5`, 'term-dim');
     });
     return;
   }
-
   if (action === 'pipeline') {
     fetch('/api/data').then(r => r.json()).then(({ pipeline, metrics }) => {
       termLine('');
@@ -1056,7 +1015,7 @@ function handleIntent(action) {
         termLine('  pipeline is empty. paste a job URL to add.', 'term-dim');
       } else {
         pipeline.slice(0, 12).forEach((p, i) => {
-          termLine(`  ${String(i+1).padStart(2,'0')}. ${p.company.padEnd(16)} ${p.title.substring(0,38)}`);
+          termLine(`  ${String(i+1).padStart(2,'0')}. ${escapeHtml(p.company).padEnd(16)} ${escapeHtml(p.title).substring(0,38)}`);
         });
         if (metrics.pendingPipeline > 12) {
           termLine(`  … and ${metrics.pendingPipeline - 12} more. check data/pipeline.md`, 'term-dim');
@@ -1065,47 +1024,36 @@ function handleIntent(action) {
     });
     return;
   }
-
-  if (action === 'scan_info' || (action && action.startsWith('agent:'))) {
-    const key = action === 'scan_info' ? 'scan' : action.replace('agent:', '');
-    agentCmd(key);
+  if (action.startsWith('agent:')) {
+    agentCmd(action.replace('agent:', ''));
     return;
   }
-
-  if (action && action.startsWith('npm:')) {
+  if (action.startsWith('npm:')) {
     runCmd(action.replace('npm:', ''));
     return;
   }
 }
 
-// Shared input handler — NL intents first, then raw shell passthrough
 function onTermInput(e) {
   if (e.key !== 'Enter') return;
   const val = e.target.value.trim();
   e.target.value = '';
   if (!val) return;
-
-  // Intercept "apply 1" or just "1"
   const applyMatch = val.match(/^(?:apply\s+)?(https?:\/\/[^\s]+|\d+)$/i);
   if (applyMatch) {
     const target = applyMatch[1];
-    // Before applying, we run tailor to ensure it's fit (if target is an index)
     if (/^\d+$/.test(target)) {
-       termLine(`$ node agentic-tailor.mjs ${target} && node auto-apply.mjs ${target}`, 'term-cmd');
        execShell(`node agentic-tailor.mjs ${target} && node auto-apply.mjs ${target}`);
     } else {
        execShell(`node auto-apply.mjs ${target}`);
     }
     return;
   }
-
-  // Intercept "tailor 1"
   const tailorMatch = val.match(/^tailor\s+(\d+)$/i);
   if (tailorMatch) {
     execShell(`node agentic-tailor.mjs ${tailorMatch[1]}`);
     return;
   }
-
   const action = resolveIntent(val);
   if (action) {
     // Known intent (tracker, help, clear, agent:*) — handle in browser
@@ -1248,24 +1196,24 @@ async function renderCVTab() {
     document.getElementById('cv-narrative').innerHTML = `
       <div>
         <div class="metric-label" style="margin-bottom:8px">headline</div>
-        <div style="color:var(--text);line-height:1.6">${nar.headline}</div>
+        <div style="color:var(--text);line-height:1.6">${escapeHtml(nar.headline)}</div>
       </div>
       <div>
         <div class="metric-label" style="margin-bottom:8px">target roles</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          ${profile.target_roles.primary.map(r => `<span class="status-tag st-Applied">${r}</span>`).join('')}
+          ${(profile.target_roles?.primary || []).map(r => `<span class="status-tag st-Applied">${escapeHtml(r)}</span>`).join('')}
         </div>
       </div>
       <div>
         <div class="metric-label" style="margin-bottom:8px">superpowers</div>
         <div style="color:var(--subtext1);line-height:1.8;font-size:12px">
-          ${nar.superpowers.map(s => `▸ ${s}`).join('<br>')}
+          ${(nar.superpowers || []).map(s => `▸ ${escapeHtml(s)}`).join('<br>')}
         </div>
       </div>
       <div>
         <div class="metric-label" style="margin-bottom:8px">proof points</div>
         <div style="color:var(--subtext1);line-height:1.8;font-size:12px">
-          ${nar.proof_points.map(p => `▸ ${p.hero_metric} — ${p.name}`).join('<br>')}
+          ${(nar.proof_points || []).map(p => `▸ ${escapeHtml(p.hero_metric)} — ${escapeHtml(p.name)}`).join('<br>')}
         </div>
       </div>
     `;
@@ -1280,14 +1228,14 @@ async function renderCVTab() {
           style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--surface0);border-radius:6px;border:1px solid var(--surface1); cursor:pointer" 
           tabindex="0"
           role="link"
-          aria-label="Open PDF ${f.name}"
-          onclick="window.open('/output/${f.name}', '_blank', 'noopener')"
-          onkeydown="if(event.key==='Enter'||event.key===' '){window.open('/output/${f.name}','_blank','noopener');event.preventDefault();}"
+          aria-label="Open PDF ${escapeHtml(f.name)}"
+          onclick="window.open('/output/${encodeURIComponent(f.name)}', '_blank', 'noopener')"
+          onkeydown="if(event.key==='Enter'||event.key===' '){window.open('/output/${encodeURIComponent(f.name)}','_blank','noopener');event.preventDefault();}"
         >
           <span style="color:var(--green);font-size:18px">📄</span>
           <div style="flex:1">
-            <div style="font-weight:600">${f.name}</div>
-            <div style="font-size:11px;color:var(--subtext0)">${f.size} · generated ${new Date(f.mtime).toLocaleDateString()}</div>
+            <div style="font-weight:600">${escapeHtml(f.name)}</div>
+            <div style="font-size:11px;color:var(--subtext0)">${escapeHtml(f.size)} · generated ${new Date(f.mtime).toLocaleDateString()}</div>
           </div>
         </div>
       `).join('');
@@ -1298,11 +1246,11 @@ async function renderCVTab() {
     document.getElementById('cv-comp').innerHTML = `
       <div style="flex:1;padding:14px;background:var(--surface0);border-radius:6px;border:1px solid var(--surface1);">
         <div class="metric-label">Target Range</div>
-        <div class="metric-value" style="color:var(--green);font-size:18px">${comp.target_range}</div>
+        <div class="metric-value" style="color:var(--green);font-size:18px">${escapeHtml(comp.target_range)}</div>
       </div>
       <div style="flex:1;padding:14px;background:var(--surface0);border-radius:6px;border:1px solid var(--surface1);">
         <div class="metric-label">Minimum</div>
-        <div class="metric-value" style="color:var(--blue);font-size:18px">${comp.minimum}</div>
+        <div class="metric-value" style="color:var(--blue);font-size:18px">${escapeHtml(comp.minimum)}</div>
       </div>
     `;
   } catch (err) { console.error('CV load failed:', err); }
@@ -1322,13 +1270,13 @@ async function renderReportsTab() {
           style="padding:16px;background:var(--base);border:1px solid var(--surface0);border-radius:8px;display:flex;align-items:center;gap:16px;cursor:pointer" 
           tabindex="0"
           role="link"
-          aria-label="Open report ${r.name}"
-          onclick="window.open('/reports/${r.name}', '_blank', 'noopener')"
-          onkeydown="if(event.key==='Enter'||event.key===' '){window.open('/reports/${r.name}','_blank','noopener');event.preventDefault();}"
+          aria-label="Open report ${escapeHtml(r.name)}"
+          onclick="window.open('/reports/${encodeURIComponent(r.name)}', '_blank', 'noopener')"
+          onkeydown="if(event.key==='Enter'||event.key===' '){window.open('/reports/${encodeURIComponent(r.name)}','_blank','noopener');event.preventDefault();}"
         >
           <div style="width:40px;height:40px;background:var(--surface0);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📊</div>
           <div style="flex:1">
-            <div style="font-weight:600">${r.name}</div>
+            <div style="font-weight:600">${escapeHtml(r.name)}</div>
             <div style="font-size:11px;color:var(--subtext0);margin-top:3px">generated ${new Date(r.mtime).toLocaleString()}</div>
           </div>
           <span class="status-tag st-Evaluated">Doc</span>
@@ -1363,9 +1311,9 @@ function renderScanTab() {
     tbody.innerHTML = pipeline.map((p,i) => `
       <tr>
         <td style="color:var(--overlay0);font-size:11px">${String(i+1).padStart(3,'0')}</td>
-        <td><span style="font-weight:600;color:var(--text)">${p.company}</span></td>
-        <td style="color:var(--subtext1);font-size:12px">${p.title.length>70?p.title.substring(0,70)+'…':p.title}</td>
-        <td><a href="${p.url}" target="_blank" rel="noopener noreferrer" style="color:var(--blue);text-decoration:none;font-size:11px">open ↗</a></td>
+        <td><span style="font-weight:600;color:var(--text)">${escapeHtml(p.company)}</span></td>
+        <td style="color:var(--subtext1);font-size:12px">${escapeHtml(p.title).length>70?escapeHtml(p.title).substring(0,70)+'…':escapeHtml(p.title)}</td>
+        <td><a href="${escapeHtml(p.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--blue);text-decoration:none;font-size:11px">open ↗</a></td>
       </tr>
     `).join('');
   });
@@ -1392,8 +1340,8 @@ async function loadData() {
       { label: 'scanned',   value: metrics.latestScanJobs,  color: 'var(--overlay0)' },
     ].map(m => `
       <div class="metric">
-        <div class="metric-label">${m.label}</div>
-        <div class="metric-value" style="color:${m.color}">${m.value}</div>
+        <div class="metric-label">${escapeHtml(m.label)}</div>
+        <div class="metric-value" style="color:${m.color}">${escapeHtml(m.value)}</div>
       </div>
     `).join('');
 
@@ -1405,26 +1353,29 @@ async function loadData() {
     } else {
       tbody.innerHTML = apps.map(a => {
         const score = parseFloat(a.score) || 0;
+        const eUrl = escapeHtml(a.url);
+        const eCo = escapeHtml(a.company);
+        const eRole = escapeHtml(a.role || 'Software Engineer');
         return `
           <tr
             tabindex="0"
             role="link"
-            aria-label="Open ${a.company} job posting"
-            onclick="window.open('${a.url}', '_blank', 'noopener')"
-            onkeydown="if(event.key==='Enter'||event.key===' '){window.open('${a.url}','_blank','noopener');event.preventDefault();}"
+            aria-label="Open ${eCo} job posting"
+            onclick="window.open('${eUrl}', '_blank', 'noopener')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){window.open('${eUrl}','_blank','noopener');event.preventDefault();}"
           >
             <td style="color:var(--overlay0);font-size:11px">${a.id || '#'}</td>
             <td>
               <div class="company-cell">
                 <div class="company-sigil">${getInitials(a.company)}</div>
                 <div>
-                  <div class="company-name">${a.company}</div>
-                  <div class="company-role">${a.role || 'Software Engineer'}</div>
+                  <div class="company-name">${eCo}</div>
+                  <div class="company-role">${eRole}</div>
                 </div>
               </div>
             </td>
             <td>${score > 0 ? `<span class="score-tag ${scoreClass(score)}">${score.toFixed(1)}</span>` : '<span style="color:var(--overlay0)">—</span>'}</td>
-            <td><span class="status-tag ${stClass(a.status)}">${a.status}</span></td>
+            <td><span class="status-tag ${stClass(a.status)}">${escapeHtml(a.status)}</span></td>
             <td style="text-align:center">${a.resume_file ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--overlay0)">✗</span>'}</td>
             <td style="color:var(--subtext0);font-size:11px">${a.applied_at ? new Date(a.applied_at).toLocaleDateString() : '—'}</td>
           </tr>
@@ -1438,23 +1389,28 @@ async function loadData() {
     if (!pipeline.length) {
       pl.innerHTML = `<div class="empty-state">pipeline is empty.</div>`;
     } else {
-      pl.innerHTML = pipeline.map((p,i) => `
-        <div
-          class="pipeline-item"
-          style="cursor:pointer"
-          tabindex="0"
-          role="link"
-          aria-label="Open ${p.company} job posting"
-          onclick="window.open('${p.url}', '_blank', 'noopener')"
-          onkeydown="if(event.key==='Enter'||event.key===' '){window.open('${p.url}','_blank','noopener');event.preventDefault();}"
-        >
-          <span class="p-prefix">${String(i+1).padStart(2,'0')}.</span>
-          <div>
-            <div class="p-co">${p.company}</div>
-            <div class="p-title">${p.title.length > 55 ? p.title.substring(0,55)+'…' : p.title}</div>
+      pl.innerHTML = pipeline.map((p,i) => {
+        const eCo = escapeHtml(p.company);
+        const eTitle = escapeHtml(p.title);
+        const eUrl = escapeHtml(p.url);
+        return `
+          <div
+            class="pipeline-item"
+            style="cursor:pointer"
+            tabindex="0"
+            role="link"
+            aria-label="Open ${eCo} job posting"
+            onclick="window.open('${eUrl}', '_blank', 'noopener')"
+            onkeydown="if(event.key==='Enter'||event.key===' '){window.open('${eUrl}','_blank','noopener');event.preventDefault();}"
+          >
+            <span class="p-prefix">${String(i+1).padStart(2,'0')}.</span>
+            <div>
+              <div class="p-co">${eCo}</div>
+              <div class="p-title">${eTitle.length > 55 ? eTitle.substring(0,55)+'…' : eTitle}</div>
+            </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
   } catch (e) {
     console.error('loadData failed:', e);
