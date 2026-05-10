@@ -141,12 +141,50 @@ function extractTitleFromJd(jdText) {
   return lines[0]?.slice(0, 100) || 'Unknown Role';
 }
 
+// Allowed URL schemes for scraping (SSRF protection)
+const ALLOWED_SCHEMES = new Set(['http:', 'https:']);
+
+// Validate URL before scraping — reject private/internal schemes (SSRF guard)
+function validateJobUrl(rawUrl) {
+  let u;
+  try {
+    u = new URL(rawUrl);
+  } catch {
+    throw new Error(`Invalid URL: ${rawUrl}`);
+  }
+  if (!ALLOWED_SCHEMES.has(u.protocol)) {
+    throw new Error(`Disallowed URL scheme: ${u.protocol} — only http/https are permitted`);
+  }
+  // Reject obvious private/loopback hostnames (lightweight check; DNS-level TOCTOU noted by CodeRabbit)
+  const h = u.hostname.toLowerCase();
+  if (
+    h === 'localhost' ||
+    h.endsWith('.local') ||
+    /^127\./.test(h) ||
+    /^10\./.test(h) ||
+    /^192\.168\./.test(h) ||
+    /^172\.(1[6-9]|2[0-9]|3[01])\./.test(h) ||
+    /^169\.254\./.test(h) ||
+    h === '::1' ||
+    h.startsWith('fc') ||
+    h.startsWith('fe80')
+  ) {
+    throw new Error(`URL resolves to a private/internal address and is not allowed: ${h}`);
+  }
+  return u;
+}
+
 // Scrape JD using Playwright
 async function scrapeJD(url) {
+  // SSRF guard — validate before any navigation
+  validateJobUrl(url);
+
   console.log(`🌐 Scraping job description from: ${url}`);
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
+  let browser = null;
   try {
+    browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage();
+
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForTimeout(2000);
 
@@ -197,13 +235,12 @@ async function scrapeJD(url) {
       jdText = await page.evaluate(() => document.body.innerText);
     }
 
-    await browser.close();
     const text = jdText.trim();
-    const meta = { ...linkedInMeta, text };
-    return meta;
+    return { ...linkedInMeta, text };
   } catch (err) {
-    await browser.close();
     throw new Error(`Scrape failed: ${err.message}`);
+  } finally {
+    if (browser) await browser.close().catch(() => {});
   }
 }
 

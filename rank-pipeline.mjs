@@ -3,7 +3,10 @@ import fs from 'fs';
 
 const OUTPUT_JSON = 'data/current_eval.json';
 
-const rawUserId = process.env.SCAN_USER_ID || 1;
+const rawUserId = process.env.SCAN_USER_ID;
+if (!rawUserId) {
+  throw new Error('SCAN_USER_ID environment variable is required. Set it to the user ID to rank jobs for.');
+}
 const userId = Number.parseInt(String(rawUserId), 10);
 if (!Number.isFinite(userId)) {
   throw new Error(`Invalid SCAN_USER_ID: ${rawUserId}`);
@@ -79,7 +82,9 @@ async function run() {
         score: job.score 
       };
       const scoreStr = job.score > 0 ? `[Score: ${job.score}]` : `[Score: 0]`;
-      console.log(`${String(job.id).padStart(5)}  (rank ${String(idx).padStart(3)})  ${scoreStr.padEnd(12)} ${job.company.substring(0,18).padEnd(19)} | ${job.title}`);
+      const safeCompany = String(job.company ?? '').substring(0, 18).padEnd(19);
+      const safeTitle = String(job.title ?? '');
+      console.log(`${String(job.id).padStart(5)}  (rank ${String(idx).padStart(3)})  ${scoreStr.padEnd(12)} ${safeCompany} | ${safeTitle}`);
     });
 
     console.log('-------------------');

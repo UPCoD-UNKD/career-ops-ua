@@ -4,7 +4,13 @@ import sql from './db/client.mjs';
 import fs from 'fs';
 import yaml from 'js-yaml';
 
-const userId = process.env.SCAN_USER_ID || process.argv[2] || 1;
+// Require explicit SCAN_USER_ID in production; allow argv or default only for local dev
+const rawUserId = process.env.SCAN_USER_ID || process.argv[2];
+if (!rawUserId) {
+  console.error('Error: SCAN_USER_ID environment variable is required.');
+  process.exit(1);
+}
+const userId = rawUserId;
 
 function normalizePortalId(value) {
   const raw = String(value || '').trim().toLowerCase();
@@ -110,6 +116,9 @@ const stats = {
 };
 
 // Greenhouse API
+// SSRF guard: only allow known Greenhouse API hostnames
+const GREENHOUSE_ALLOWED_HOSTS = /^(boards-api\.greenhouse\.io|api\.greenhouse\.io|[a-z0-9-]+\.greenhouse\.io)$/i;
+
 async function scanGreenhouse() {
   const ghCompanies = companies.filter(c => c.api && c.enabled !== false);
   console.log(`\n🌿 Greenhouse API — ${ghCompanies.length} companies`);
@@ -117,6 +126,20 @@ async function scanGreenhouse() {
 
   for (const comp of ghCompanies) {
     try {
+      // Validate API URL before fetching (SSRF protection)
+      let apiHost;
+      try {
+        apiHost = new URL(comp.api).hostname;
+      } catch {
+        stats.greenhouse.errors++;
+        process.stdout.write(`  ✗ ${comp.name}: Invalid API URL\n`);
+        continue;
+      }
+      if (!GREENHOUSE_ALLOWED_HOSTS.test(apiHost)) {
+        stats.greenhouse.errors++;
+        process.stdout.write(`  ✗ ${comp.name}: API host '${apiHost}' not in allowlist\n`);
+        continue;
+      }
       const res = await fetch(comp.api);
       if (!res.ok) { stats.greenhouse.errors++; continue; }
       const data = await res.json();

@@ -56,7 +56,15 @@ jobs:
           RUN_ID: ${{ github.event.inputs.run_id }}
           ACTION_SCRIPT: ${{ github.event.inputs.action_script }}
           ACTION_ARGS: ${{ github.event.inputs.action_args }}
-        run: node .github/scripts/run-scrapers.mjs
+        run: |
+          # Allowlist validation — only permit known scripts (CodeRabbit security fix)
+          ALLOWED_SCRIPTS="scratch-scan.mjs agentic-tailor.mjs rank-pipeline.mjs auto-apply.mjs add-job.mjs"
+          SCRIPT="${ACTION_SCRIPT:-scratch-scan.mjs}"
+          if ! echo "$ALLOWED_SCRIPTS" | grep -qw "$SCRIPT"; then
+            echo "Error: action_script '$SCRIPT' is not in the allowlist."
+            exit 1
+          fi
+          node .github/scripts/run-scrapers.mjs
 
       - name: Notify dashboard (completion)
         if: ${{ always() && github.event_name == 'workflow_dispatch' && github.event.inputs.user_id != '' }}
@@ -74,8 +82,17 @@ jobs:
             echo "Dashboard webhook not configured; skipping."
             exit 0
           fi
-          curl -sS -X POST "$DASHBOARD_WEBHOOK_URL" \
+          # Use jq for safe JSON serialization (handles quotes/newlines in args)
+          payload="$(jq -cn \
+            --arg user_id "$USER_ID" \
+            --arg run_id "$RUN_ID" \
+            --arg action_script "$ACTION_SCRIPT" \
+            --arg action_args "$ACTION_ARGS" \
+            --arg status "$JOB_STATUS" \
+            --arg run_url "$RUN_URL" \
+            '{user_id:$user_id,run_id:$run_id,action_script:$action_script,action_args:$action_args,status:$status,run_url:$run_url}')"
+          curl -fsS -X POST "$DASHBOARD_WEBHOOK_URL" \
             -H "content-type: application/json" \
             -H "x-worker-secret: $WORKER_WEBHOOK_SECRET" \
-            --data "{\"user_id\":\"$USER_ID\",\"run_id\":\"$RUN_ID\",\"action_script\":\"$ACTION_SCRIPT\",\"action_args\":\"$ACTION_ARGS\",\"status\":\"$JOB_STATUS\",\"run_url\":\"$RUN_URL\"}" \
+            --data "$payload" \
             && echo "Notified dashboard."
