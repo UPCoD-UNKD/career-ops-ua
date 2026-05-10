@@ -467,7 +467,7 @@ function generateATSScoreBar(score) {
   `;
 }
 
-// sync cv.md if profile.yml is newer
+// Notify if profile.yml is newer than cv.md — do NOT auto-mutate user-owned files (CodeRabbit fix)
 async function checkSync() {
   try {
     const syncScriptPath = path.join(process.cwd(), 'sync-profile.mjs');
@@ -479,8 +479,9 @@ async function checkSync() {
     try { cvStat = await stat(path.join(process.cwd(), 'cv.md')); } catch {}
 
     if (!cvStat || profileStat.mtime > cvStat.mtime) {
-      console.log('🔄 Profile change detected. Synchronizing cv.md...');
-      execSync(`"${process.execPath}" "${syncScriptPath}"`);
+      console.warn('⚠️  Profile change detected: config/profile.yml is newer than cv.md.');
+      console.warn('    Run `node sync-profile.mjs` manually to update cv.md.');
+      // NOTE: We do NOT auto-run sync-profile.mjs here — cv.md is a user-layer file.
     }
   } catch (e) {
     console.warn('⚠️ Could not check profile sync:', e.message);
@@ -808,23 +809,23 @@ OUTPUT FORMAT (JSON ONLY):
     const maxPages = yearsExp <= 5 ? 1 : yearsExp <= 11 ? 2 : Math.min(4, Math.ceil(yearsExp / 5));
     console.log(`📄 Resume length: up to ${maxPages} page${maxPages > 1 ? 's' : ''}`);
 
-    // Prepare common replacements
+    // Prepare common replacements (all values HTML-escaped to prevent XSS)
     const c = profile.candidate;
     const commonReps = {
-      NAME: c.full_name,
-      EMAIL: c.email,
-      LOCATION: c.location,
-      PHONE: c.phone,
-      LINKEDIN_URL: `https://${c.linkedin}`,
-      LINKEDIN_DISPLAY: c.linkedin,
-      PORTFOLIO_URL: c.github ? `https://${c.github}` : '#',
-      PORTFOLIO_DISPLAY: c.github || 'Github',
-      DATE: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-      COMPANY_NAME: entry.company,
+      NAME: escapeHtml(c.full_name),
+      EMAIL: escapeHtml(c.email),
+      LOCATION: escapeHtml(c.location),
+      PHONE: escapeHtml(c.phone),
+      LINKEDIN_URL: escapeHtml(`https://${c.linkedin}`),
+      LINKEDIN_DISPLAY: escapeHtml(c.linkedin),
+      PORTFOLIO_URL: c.github ? escapeHtml(`https://${c.github}`) : '#',
+      PORTFOLIO_DISPLAY: escapeHtml(c.github || 'Github'),
+      DATE: escapeHtml(new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })),
+      COMPANY_NAME: escapeHtml(entry.company),
       LANG: 'en',
-      YEARS_EXP: `${yearsExp}`,
-      MAX_PAGES: `${maxPages}`,
-      PROFESSIONAL_HEADLINE: profile.narrative?.headline || 'Professional'
+      YEARS_EXP: escapeHtml(`${yearsExp}`),
+      MAX_PAGES: escapeHtml(`${maxPages}`),
+      PROFESSIONAL_HEADLINE: escapeHtml(profile.narrative?.headline || 'Professional')
     };
 
     // 1. GENERATE RESUME - Show ALL experience entries, just limit bullets per job based on page budget
@@ -876,7 +877,10 @@ OUTPUT FORMAT (JSON ONLY):
     // 2. GENERATE COVER LETTER
     const clReps = {
       ...commonReps,
-      COVER_LETTER_TEXT: result.cover_letter.split('\n').map(p => p.trim() ? `<p>${p}</p>` : '').join('')
+      COVER_LETTER_TEXT: result.cover_letter
+        .split('\n')
+        .map(p => p.trim() ? `<p>${escapeHtml(p)}</p>` : '')
+        .join('')
     };
 
     let clHtml = fs.readFileSync('templates/cover-letter.html', 'utf8');

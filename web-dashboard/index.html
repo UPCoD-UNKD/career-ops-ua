@@ -806,8 +806,7 @@ function streamJob(jobId) {
     }
     intentionalClose = false;
     closeES();
-    cmdRunning = false;
-    document.getElementById('kill-btn')?.setAttribute('disabled', '');
+    resetCmdUi();
   };
 }
 
@@ -830,13 +829,13 @@ async function execShell(shellCmd) {
     body = await resp.json();
   } catch (e) {
     termLine(`✗ server error: ${e.message}`, 'term-err');
-    cmdRunning = false;
+    resetCmdUi();
     return;
   }
 
   if (!body.ok) {
     termLine(`✗ ${body.error}`, 'term-err');
-    cmdRunning = false;
+    resetCmdUi();
     return;
   }
 
@@ -871,8 +870,14 @@ async function runCmd(cmd) {
 async function killCmd() {
   await fetch('/api/kill', { method: 'POST' }).catch(() => {});
   closeES();
+  resetCmdUi();
+}
+
+// Reset ALL terminal UI state — called from kill, error, and failed-start paths
+function resetCmdUi() {
   cmdRunning = false;
   document.getElementById('kill-btn')?.setAttribute('disabled', '');
+  CMDS.forEach(c => document.getElementById(`btn-${c}`)?.classList.remove('running'));
 }
 
 
@@ -1166,76 +1171,8 @@ function updateClock() {
 updateClock();
 setInterval(updateClock, 1000);
 
-async function loadData() {
-  loadAnalytics();
-  const resp = await fetch('/api/data');
-  const { apps, pipeline, metrics } = await resp.json();
+// loadData() is defined below — single declaration (CodeRabbit: removed earlier duplicate)
 
-  // Metrics bar
-  const mb = document.getElementById('metrics-bar');
-  mb.innerHTML = [
-    { label: 'tracked',   value: metrics.total,           color: 'var(--blue)' },
-    { label: 'applied',   value: metrics.applied,         color: 'var(--green)' },
-    { label: 'evaluating',value: metrics.evaluated,       color: 'var(--sapphire)' },
-    { label: 'interview', value: metrics.interview,       color: 'var(--mauve)' },
-    { label: 'offers',    value: metrics.offer,           color: 'var(--teal)' },
-    { label: 'avg score', value: metrics.avgScore + '/5', color: 'var(--yellow)' },
-    { label: 'pipeline',  value: metrics.pendingPipeline, color: 'var(--peach)' },
-    { label: 'scanned',   value: metrics.latestScanJobs,  color: 'var(--overlay0)' },
-  ].map(m => `
-    <div class="metric">
-      <div class="metric-label">${m.label}</div>
-      <div class="metric-value" style="color:${m.color}">${m.value}</div>
-    </div>
-  `).join('');
-
-  // Apps table
-  document.getElementById('apps-meta').textContent = `${apps.length} total`;
-  const tbody = document.getElementById('apps-tbody');
-  if (!apps.length) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">no applications tracked yet.</div></td></tr>`;
-  } else {
-    tbody.innerHTML = apps.map(a => `
-      <tr onclick="window.open('${a.url}', '_blank')">
-        <td style="color:var(--overlay0);font-size:11px">${a.id || '#'}</td>
-        <td>
-          <div class="company-cell">
-            <div class="company-sigil">${getInitials(a.company)}</div>
-            <div>
-              <div class="company-name">${a.company}</div>
-              <div class="company-role">${a.role || 'Software Engineer'}</div>
-            </div>
-          </div>
-        </td>
-        <td>${a.score > 0 ? `<span class="score-tag ${scoreClass(a.score)}">${a.score.toFixed(1)}</span>` : '<span style="color:var(--overlay0)">—</span>'}</td>
-        <td><span class="status-tag ${stClass(a.status)}">${a.status}</span></td>
-        <td style="text-align:center">${a.has_pdf ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--overlay0)">✗</span>'}</td>
-        <td style="color:var(--subtext0);font-size:11px">${new Date(a.applied_at || Date.now()).toLocaleDateString()}</td>
-      </tr>
-    `).join('');
-  }
-
-  // Pipeline
-  document.getElementById('pipe-meta').textContent = `${metrics.pendingPipeline} pending`;
-  const pl = document.getElementById('pipeline-list');
-  if (!pipeline.length) {
-    pl.innerHTML = `<div class="empty-state">pipeline is empty.</div>`;
-  } else {
-    pl.innerHTML = pipeline.map((p,i) => `
-      <div class="pipeline-item" onclick="window.open('${p.url}', '_blank')" style="cursor:pointer">
-        <span class="p-prefix">${String(i+1).padStart(2,'0')}.</span>
-        <div>
-          <div class="p-co">${p.company}</div>
-          <div class="p-title">${p.title.length > 55 ? p.title.substring(0,55)+'…' : p.title}</div>
-        </div>
-      </div>
-    `).join('');
-  }
-}
-
-// Init
-loadData();
-setInterval(loadData, 20000);
 
 // Tab switching
 const VIEWS = ['pipeline','scan','cv','reports','analytics','terminal'];
@@ -1377,28 +1314,7 @@ function renderScanTab() {
   });
 }
 
-async function renderReportsTab() {
-  try {
-    const resp = await fetch('/api/fs-data');
-    const { reports } = await resp.json();
-    const list = document.getElementById('reports-list');
-    
-    if (reports.length === 0) {
-      list.innerHTML = `<div class="empty-state">no reports found in reports/.</div>`;
-    } else {
-      list.innerHTML = reports.map(r => `
-        <div style="padding:16px;background:var(--base);border:1px solid var(--surface0);border-radius:8px;display:flex;align-items:center;gap:16px;cursor:pointer" onclick="window.open('/reports/${r.name}')">
-          <div style="width:40px;height:40px;background:var(--surface0);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📊</div>
-          <div style="flex:1">
-            <div style="font-weight:600">${r.name}</div>
-            <div style="font-size:11px;color:var(--subtext0);margin-top:3px">generated ${new Date(r.mtime).toLocaleString()}</div>
-          </div>
-          <span class="status-tag st-Evaluated">Doc</span>
-        </div>
-      `).join('');
-    }
-  } catch (err) { console.error('Reports load failed:', err); }
-}
+// (duplicate renderReportsTab removed — CodeRabbit fix)
 
 async function loadData() {
   try {

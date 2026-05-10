@@ -71,11 +71,17 @@ async function main() {
   console.log('═══════════════════════════════════════════');
 
   const specificUserId = process.env.SCAN_USER_ID;
+  let failed = 0;
 
   if (specificUserId) {
-    // Manual trigger for a specific user
+    // Manual trigger for a specific user — propagate exit code to Actions
     console.log(`\n🎯 Targeting specific user: ${specificUserId}`);
-    await runScraper(specificUserId);
+    try {
+      const code = await runScraper(specificUserId);
+      if (code !== 0) failed++;
+    } catch {
+      failed++;
+    }
   } else {
     // Cron mode: scan all active tenants
     const activeUsers = await sql`
@@ -88,7 +94,6 @@ async function main() {
       console.log(`\n📡 Found ${activeUsers.length} active tenant(s). Running scrapers sequentially...\n`);
       
       let success = 0;
-      let failed = 0;
 
       for (const tenant of activeUsers) {
         try {
@@ -108,7 +113,8 @@ async function main() {
   }
 
   await sql.end();
-  process.exit(0);
+  // Exit non-zero if any tenant failed so GitHub Actions marks the job as failed
+  process.exit(failed > 0 ? 1 : 0);
 }
 
 main().catch((e) => {
