@@ -1053,6 +1053,17 @@
 - [!] https://www.workatastartup.com/jobs/70784 | Helicone | Founding Engineer | San Francisco, CA — verify — error: posting closed (workatastartup.com HTTP 404 + YC Helicone page shows 0 open jobs 2026-05-10); archived
 - [!] https://www.workatastartup.com/jobs/68959 | Solve Intelligence | AI Engineer | location verify — error: posting closed (Solve Intelligence YC page shows no AI Engineer role; only Growth/AE/Designer/Growth Engineer roles open 2026-05-10); archived
 
+### 2026-05-11
+<!-- Overnight 2026-05-11 first pass: scan.mjs Level 1/2 (0 new — most ATS endpoints HTTP 503) + Level 3 WebSearch (Ashby + Greenhouse + Lever + Workable + Breezy + Himalayas + workatastartup) -->
+- [!] https://jobs.ashbyhq.com/julius/83d88b90-1b7f-476c-a0e8-10b1cb71639e | Julius AI | Software Engineer - Product (New Grad) | San Francisco, CA — On-site — moved to Procesadas (#692) 2026-05-11 (3.8/5 — YC + Bessemer AI agent platform 1M+ users; $130-150K + benefits; New Grad explicit + paid work trial; React/Next.js/Tailwind + Python 1:1 with Manga Lens + Dream Decoder + Agentic Pixel; SF relocation from Kent OH; verify F-1 OPT sponsorship; PDF generated)
+- [!] https://himalayas.app/companies/netbox-labs/jobs/ai-solutions-engineer | NetBox Labs | AI Solutions Engineer | Remote — United States — moved to Procesadas (#693) 2026-05-11 (1.8/5 — pre-sales SE selling NetBox to AI customers; 3+y enterprise selling floor; off-archetype filter slip; SKIP)
+- [!] https://vetsez.breezy.hr/p/16bc3061d8d301-ai-ml-platform-engineer-remote-opportunity | VetsEZ | AI/ML Platform Engineer (Remote Opportunity) | Remote — United States — error: posting closed (Breezy returns "Sorry, this position is no longer accepting candidates" on 2026-05-11); archived
+- [!] https://himalayas.app/companies/fortifyiq/jobs/data-ai-engineer-1462034366 | FortifyIQ | Data & AI Engineer | Worldwide remote — duplicate of #148 (already evaluated 2026-04-25 at 3.3/5); not re-evaluated per CLAUDE.md "no new entry if company+role exists"
+- [!] https://www.workatastartup.com/jobs/86442 | Karumi | AI/ML Applied Engineer | New York, NY / San Francisco, CA — On-site — moved to Procesadas (#694) 2026-05-11 (2.5/5 — YC F25 voice-AI agent for live video demos; $120-170K + 0.40-1.00% equity; 6+y floor 3.5y gap; browser+LLM 1:1 with Manga Lens but no voice AI; verify F-1 OPT; SKIP unless floor flexible)
+- [!] https://himalayas.app/companies/oowlish-technology/jobs/ai-solutions-engineer-python-cloud | Oowlish Technology | AI Solutions Engineer (Python + Cloud) | Brazil — Remote (LATAM staff aug) — moved to Procesadas (#695) 2026-05-11 (1.8/5 — multimodal AWS Bedrock stack 1:1 with Dream Decoder + Agentic Pixel; but Brazil-payroll workforce model = F-1 OPT US-based geo veto; SKIP)
+- [!] https://jobs.lever.co/jobgether/d2bd8459-cf37-4cab-919f-69bb5e76e356 | Jobgether | Forward Deployed Engineer (partner posting) | India — Remote — moved to Procesadas (#696) 2026-05-11 (1.7/5 — aggregator for anonymous partner; AI agent deployment stack 1:1 with Healthcare RAG + Agentic Claims; India-resident hard veto for F-1 OPT US-based; SKIP)
+- [!] https://jobs.ashbyhq.com/aim4hire/8e955fa6-9164-483d-a190-33520c9b9250 | Aim4Hire | AI Engineer (anonymous VC-backed TX client) | Austin TX / Remote — moved to Procesadas (#697) 2026-05-11 (2.2/5 — recruiter agency for anonymous client; RAG+multi-agent+fine-tuning stack 1:1 with Healthcare RAG+Agentic Claims+Manga Lens but 8+y Python+3+y ML floor = 5.5y gap; SKIP)
+
 
 ## Procesadas
 
@@ -1453,3 +1464,7 @@
 
 - [x] #688 | https://jobs.ashbyhq.com/ravenna/c4f3cfdd-353c-47b5-ac25-3c8359d2b590 | Ravenna | Forward Deployed Engineer | Remote — United States | 3.5/5 | PDF ✅
 - [x] #691 | https://www.workatastartup.com/jobs/86648 | Legion Health | Founding Engineer (AI-Native Mental Health Care) | San Francisco, CA — On-site | 4.4/5 | PDF ✅
+
+### 2026-05-11
+
+- [x] #692 | https://jobs.ashbyhq.com/julius/83d88b90-1b7f-476c-a0e8-10b1cb71639e | Julius AI | Software Engineer - Product (New Grad) | San Francisco, CA — On-site | 3.8/5 | PDF ✅
