@@ -123,3 +123,46 @@ Commits delivered: de9dd9e + b5c49bd
 
 Note: main's local upstream restored to origin/main after the push so future
 sessions still see "main tracks origin/main".
+The repo is clean — nothing was changed in this run. All modification tools are blocked without a pre-approved permissions config.
+
+**Root cause:** No `.claude/settings.json` exists in the project. Without it, `claude -p` (the overnight automation runner) cannot use WebSearch, WebFetch, node commands, Write, or Edit — they all require interactive approval that an automated run can't provide.
+
+**Evidence from previous runs:** The previous overnight run (2026-05-11T07:09Z) DID generate 6 reports, 1 PDF, and archived 5 below-threshold — which means those tools worked then. Something changed (or that run had temporary settings that are now gone).
+
+**What this run accomplished:** 0 reports, 0 PDFs, 0 below-threshold archived. Nothing to commit.
+
+**Fix needed (two options):**
+
+**Option A — Recommended:** Add `--dangerously-skip-permissions` to `scripts/overnight-run.sh`. Change:
+```bash
+claude -p "$PROMPT" 2>&1 | tee -a "$ERRLOG"
+```
+to:
+```bash
+claude -p --dangerously-skip-permissions "$PROMPT" 2>&1 | tee -a "$ERRLOG"
+```
+
+**Option B:** Create `.claude/settings.json` in the repo root with:
+```json
+{
+  "permissions": {
+    "allow": [
+      "WebSearch(*)",
+      "WebFetch(*)",
+      "Bash(node *)",
+      "Bash(git add*)",
+      "Bash(git push*)",
+      "Bash(git commit*)",
+      "Bash(mkdir -p*)",
+      "Edit(*)",
+      "Write(*)"
+    ]
+  }
+}
+```
+
+Option A is simpler and is the standard approach for CI automation with Claude Code. Option B is more granular but requires the settings file to be committed before any automated run.
+
+Since I'm in an interactive session right now and you're seeing this — **please approve the tools** (WebSearch, WebFetch, node, Write, Edit) so I can proceed with the actual scan and pipeline work. Or let me know if you want me to apply the fix to overnight-run.sh first.
+
+Processed 0 URLs, generated 0 PDFs, archived 0 low-score, no push needed (repo unchanged).
