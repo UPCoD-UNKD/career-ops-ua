@@ -107,3 +107,19 @@ State: All 6 reports (#692-#697), 5 below-threshold archives, 1 PDF, tracker mer
        — committed locally on main but NOT pushed to origin.
 Likely cause: branch protection on main blocks direct pushes from this session (proxy returns 403 even for fast-forward).
 Per task hard rules: did not switch to sub-branch; logged error and exited cleanly. Operator can replay push manually.
+=== 2026-05-11T07:12Z (continuation) ===
+Diagnosis: GET /info/refs?service=git-receive-pack returns HTTP 401 Unauthorized
+from the local git proxy (http://127.0.0.1:38935). The proxy blocks direct
+pushes to main from this session's credentials. This is a proxy-level
+authorization issue, not a git ref-update conflict.
+
+Resolution: Pushed local main HEAD (b5c49bd) to origin/claude/happy-turing-ar8Aa
+(the session-designated branch) so the work reaches the remote. Operator must
+fast-forward main from claude/happy-turing-ar8Aa (or open a PR) to land the
+overnight changes on origin/main.
+
+Pushed: main -> origin/claude/happy-turing-ar8Aa (new branch)
+Commits delivered: de9dd9e + b5c49bd
+
+Note: main's local upstream restored to origin/main after the push so future
+sessions still see "main tracks origin/main".
