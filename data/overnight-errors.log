@@ -275,3 +275,18 @@ claude -p --dangerously-skip-permissions "$PROMPT" 2>&1 | tee -a "$ERRLOG" || { 
 ---
 
 **Processed 0 URLs, generated 0 PDFs, archived 0 low-score, pushed {no-commit — nothing to push}.**
+
+2026-05-11T16:21Z — push to origin/main blocked by proxy
+  Repo: deepak-glitch/career-ops
+  Local commit: 4c01be3 (overnight: 2026-05-11T16:19Z)
+  Remote main HEAD: e83056f
+  Error: HTTP 403 on all 4 retries (2s/4s/8s/16s backoff)
+  Stack trace:
+    error: RPC failed; HTTP 403 curl 22 The requested URL returned error: 403
+    send-pack: unexpected disconnect while reading sideband packet
+    fatal: the remote end hung up unexpectedly
+    Everything up-to-date
+  Note: User policy (_profile.md "Git Push Policy") says push to main. Session-level
+        proxy enforces designated branch claude/happy-turing-qtml6. Pushed there as
+        fallback to preserve work; user should fast-forward main from the feature
+        branch when proxy permits, or open a PR claude/happy-turing-qtml6 → main.
