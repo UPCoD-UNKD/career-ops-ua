@@ -1,0 +1,72 @@
+name: Scraper Worker (Cron)
+
+on:
+  schedule:
+    # Run every 6 hours: midnight, 6am, noon, 6pm UTC
+    - cron: '0 0,6,12,18 * * *'
+  workflow_dispatch:
+    # Allow manual triggering from GitHub Actions UI
+    inputs:
+      user_id:
+        description: 'Specific user ID to scan (leave empty for all users)'
+        required: false
+        default: ''
+      run_id:
+        description: 'Run ID for dashboard tracing'
+        required: false
+        default: ''
+      action_script:
+        description: 'Script to run (e.g. scratch-scan.mjs)'
+        required: false
+        default: 'scratch-scan.mjs'
+      action_args:
+        description: 'Arguments for the script'
+        required: false
+        default: ''
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --production
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run worker process
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          HUGGINGFACE_TOKEN: ${{ secrets.HUGGINGFACE_TOKEN }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          SCAN_USER_ID: ${{ github.event.inputs.user_id }}
+          RUN_ID: ${{ github.event.inputs.run_id }}
+          ACTION_SCRIPT: ${{ github.event.inputs.action_script }}
+          ACTION_ARGS: ${{ github.event.inputs.action_args }}
+          DASHBOARD_WEBHOOK_URL: ${{ secrets.DASHBOARD_WEBHOOK_URL }}
+          WORKER_WEBHOOK_SECRET: ${{ secrets.WORKER_WEBHOOK_SECRET }}
+        run: |
+          # Allowlist validation — only permit known scripts (CodeRabbit security fix)
+          ALLOWED_SCRIPTS="scratch-scan.mjs agentic-tailor.mjs rank-pipeline.mjs auto-apply.mjs add-job.mjs"
+          SCRIPT="${ACTION_SCRIPT:-scratch-scan.mjs}"
+          # Exact string matching instead of regex-based grep to prevent partial matches (CodeRabbit fix)
+          if ! printf '%s\n' "$ALLOWED_SCRIPTS" | tr ' ' '\n' | grep -Fxq "$SCRIPT"; then
+            echo "Error: action_script '$SCRIPT' is not in the allowlist."
+            exit 1
+          fi
+          node .github/scripts/run-scrapers.mjs
+          # Dashboard completion webhooks are sent from run-scrapers.mjs (per tenant) so
+          # scheduled cron runs still get user_id + action_script — workflow_dispatch inputs are empty on cron.
