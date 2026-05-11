@@ -150,7 +150,6 @@ a:hover { text-decoration: underline; }
   text-transform: uppercase;
 }
 .topbar .brand .name { color: var(--fg); font-weight: 600; }
-.topbar .brand .dot  { color: var(--accent); }
 .topbar .stats {
   display: flex; gap: 16px;
   font-size: 11px;
@@ -706,6 +705,18 @@ a:hover { text-decoration: underline; }
 .main-split[data-eval="min"] .panel-eval .report,
 .main-split[data-eval="min"] .panel-eval .chiprow,
 .main-split[data-eval="min"] .panel-eval [data-file-editor] { display: none; }
+
+/* Files panel (three-column layout) */
+.panel-files { transition: flex-basis 200ms ease; border-right: 1px solid var(--line); display: flex; flex-direction: column; }
+
+.main-split[data-files="open"] .panel-pipe { flex: 1 1 16%; }
+.main-split[data-files="open"] .panel-files { flex: 0 0 66.6%; }
+.main-split[data-files="open"] .panel-eval { flex: 1 1 auto; min-width: 160px; }
+
+/* Pipeline minimised + files open: files keep 2/3, eval gets the rest */
+.main-split[data-files="open"][data-pipe="min"] .panel-pipe { flex: 0 0 36px; overflow: hidden; }
+.main-split[data-files="open"][data-pipe="min"] .panel-files { flex: 0 0 66.6%; }
+.main-split[data-files="open"][data-pipe="min"] .panel-eval { flex: 1 1 auto; }
 
 /* Pie / donut for status mix widget */
 .statcard.pie { position: relative; }

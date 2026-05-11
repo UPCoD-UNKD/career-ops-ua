@@ -63,7 +63,7 @@
 	<StateBar states={$states} />
 
 	<!-- Main split -->
-	<div class="main-split" data-pipe={$pipeSize} data-eval={$evalSize}>
+	<div class="main-split" data-pipe={$pipeSize} data-eval={$evalSize} data-files={$view === 'files' ? 'open' : 'closed'}>
 
 		<!-- Pipeline panel -->
 		<div class="panel panel-pipe">
@@ -87,6 +87,19 @@
 			<PipelineList offers={$offers} />
 		</div>
 
+		<!-- Files panel (visible when view === 'files') -->
+		{#if $view === 'files'}
+			<div class="panel panel-files">
+				<div class="panel-header">
+					<span class="title">Files</span>
+					<div class="right">
+						<button class="icon-btn" onclick={() => view.set('report')} title="Close files">✕</button>
+					</div>
+				</div>
+				<FileEditor files={$files} />
+			</div>
+		{/if}
+
 		<!-- Evaluation panel -->
 		<div class="panel panel-eval" style="display:flex;flex-direction:column;min-width:0">
 			{#if loading}
@@ -98,10 +111,8 @@
 					<div>⚠ {error}</div>
 					<div style="color:var(--fg-3);font-size:11px">Make sure the Go server is running: cd dashboard && go run ./cmd/server -path ..</div>
 				</div>
-			{:else if $view === 'report'}
-				<ReportPanel offer={activeOffer()} />
 			{:else}
-				<FileEditor files={$files} />
+				<ReportPanel offer={activeOffer()} />
 			{/if}
 		</div>
 	</div>
