@@ -1,6 +1,7 @@
 // scanner - check greenhouse, ashby, lever, workable for new jobs
 
 import sql from './db/client.mjs';
+import { ensureJobsColumns, JOBS_COLUMNS_SCAN } from '../../db/ensure-jobs-columns.mjs';
 
 const rawUserId = process.env.SCAN_USER_ID || process.argv[2] || 1;
 const userId = Number.parseInt(String(rawUserId), 10);
@@ -164,6 +165,12 @@ async function importScraper(moduleName) {
   }
   console.warn(`⚠ Scraper module not found: ${moduleName}.mjs`);
   return null;
+}
+
+try {
+  await ensureJobsColumns(sql, JOBS_COLUMNS_SCAN);
+} catch (e) {
+  console.warn('⚠ Could not ensure jobs table columns:', e.message);
 }
 
 // load already seen urls from db
@@ -517,15 +524,6 @@ async function run() {
 
   if (totalAdded > 0) {
     console.log(`\n📦 UPSERTing ${totalAdded} new jobs to PostgreSQL...`);
-    try {
-      await sql`
-        ALTER TABLE jobs
-          ADD COLUMN IF NOT EXISTS canonical_url TEXT,
-          ADD COLUMN IF NOT EXISTS jd_text TEXT;
-      `;
-    } catch {
-      // ignore
-    }
     for (const job of newJobs) {
       await sql`
         INSERT INTO jobs (url, canonical_url, company, title, source, user_id)

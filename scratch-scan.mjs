@@ -1,6 +1,7 @@
 // scanner - check greenhouse, ashby, lever, workable for new jobs
 
 import sql from './db/client.mjs';
+import { ensureJobsColumns, JOBS_COLUMNS_SCAN } from './db/ensure-jobs-columns.mjs';
 import fs from 'fs';
 import yaml from 'js-yaml';
 
@@ -68,6 +69,12 @@ try {
   }
 }
 const companies = config.tracked_companies || [];
+
+try {
+  await ensureJobsColumns(sql, JOBS_COLUMNS_SCAN);
+} catch (e) {
+  console.warn('⚠ Could not ensure jobs table columns:', e.message);
+}
 
 // load already seen urls from db
 const seenUrls = new Set();
@@ -365,15 +372,6 @@ async function run() {
 
   if (totalAdded > 0) {
     console.log(`\n📦 UPSERTing ${totalAdded} new jobs to PostgreSQL...`);
-    try {
-      await sql`
-        ALTER TABLE jobs
-          ADD COLUMN IF NOT EXISTS canonical_url TEXT,
-          ADD COLUMN IF NOT EXISTS jd_text TEXT;
-      `;
-    } catch {
-      // ignore
-    }
     for (const job of newJobs) {
       job.user_id = parseInt(userId);
       await sql`

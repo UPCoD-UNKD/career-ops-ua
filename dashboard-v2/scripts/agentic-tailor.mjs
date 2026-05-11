@@ -5,6 +5,7 @@ import { execSync } from 'child_process';
 import { createRequire } from 'module';
 import { pathToFileURL } from 'url';
 import sql from './db/client.mjs';
+import { ensureJobsColumns, JOBS_COLUMNS_TAILOR } from '../../db/ensure-jobs-columns.mjs';
 
 let hf = null;
 let hfUnavailable = false;
@@ -700,14 +701,8 @@ OUTPUT FORMAT (JSON ONLY):
 
     // Persist to Neon DB so it can be viewed on the Vercel dashboard!
     try {
-      await sql`
-        ALTER TABLE jobs
-          ADD COLUMN IF NOT EXISTS resume_html TEXT,
-          ADD COLUMN IF NOT EXISTS cover_letter_html TEXT,
-          ADD COLUMN IF NOT EXISTS canonical_url TEXT,
-          ADD COLUMN IF NOT EXISTS jd_text TEXT;
-      `;
-      
+      await ensureJobsColumns(sql, JOBS_COLUMNS_TAILOR);
+
       // We assume entry.id exists if it came from DB, else we try to find it by URL
       if (entry.id) {
         await sql`
