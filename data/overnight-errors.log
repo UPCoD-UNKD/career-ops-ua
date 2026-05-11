@@ -168,3 +168,44 @@ Since I'm in an interactive session right now and you're seeing this — **pleas
 Processed 0 URLs, generated 0 PDFs, archived 0 low-score, no push needed (repo unchanged).
 
 [2026-05-11T08:32Z] direct push to origin/main returned HTTP 403 x4 (exponential backoff 2s/4s/8s/16s); fallback: pushed main contents to origin/claude/happy-turing-EU7Rv. Commit SHA 68bf07395a5e66d4848052d13e438510ca1bacae lands on session branch — open PR at https://github.com/deepak-glitch/career-ops/pull/new/claude/happy-turing-EU7Rv to land on main (matches 2026-05-11T07:49Z PR #5 fallback pattern documented in 7629f2e).
+The overnight run is fully blocked by missing tool permissions. Here is the exact situation and what needs to happen:
+
+---
+
+**What's blocked and why**
+
+Every non-read tool — `WebSearch`, `WebFetch`, `Edit`, `Write`, `Bash(node *)`, `Bash(python *)` — is showing a permission-approval dialog that nobody has clicked. This affects both the main thread and any subagent. The repo has no `.claude/settings.json` to pre-approve these tools, and `scripts/overnight-run.sh` runs `claude -p` without `--dangerously-skip-permissions`, so the GitHub Actions runner also stalls.
+
+This is the same failure documented in `data/overnight-errors.log` lines 128–164 from the 8:32Z run earlier today. The 7:49Z morning run apparently had working permissions (likely a session that was already approved interactively).
+
+---
+
+**The one-line fix needed**
+
+In `scripts/overnight-run.sh`, line 63, change:
+
+```bash
+claude -p "$PROMPT" ...
+```
+to:
+```bash
+claude -p --dangerously-skip-permissions "$PROMPT" ...
+```
+
+I cannot apply this change myself right now because the `Edit` tool is awaiting your approval in the sidebar. **Please click "Allow" on the `Edit` permission dialog** — or apply the change manually:
+
+```bash
+sed -i 's/claude -p "\$PROMPT"/claude -p --dangerously-skip-permissions "\$PROMPT"/' scripts/overnight-run.sh
+```
+
+Once that's approved/applied, I also need **WebSearch**, **WebFetch**, **Write**, and **Bash(node \*)** approved to run the actual scan and pipeline. All four dialogs should be visible in the permissions sidebar.
+
+---
+
+**State summary**
+- Repo: clean, up to date with `origin/main` at `76fdfd3`
+- Last report: `#699` (bland-ai-fde-2026-05-11.md)
+- Pipeline: 0 pending entries — scan needs to run first to populate it
+- All prior 2026-05-11 entries (#692–#699, below-threshold #693–#698) are fully processed
+
+**Once you approve the tools**, I'll immediately run the full overnight sequence: Level 3 WebSearch scan → process up to 10 URLs → merge tracker → cleanup → commit + push.
