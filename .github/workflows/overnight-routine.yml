@@ -26,7 +26,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     permissions:
-      contents: write       # needed to push
+      contents: write        # needed to push branches
+      pull-requests: write   # needed to open + auto-merge the PR
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -67,16 +68,29 @@ jobs:
           echo "First attempt failed — retrying once..."
           bash scripts/overnight-run.sh
 
-      - name: Push results
+      - name: Push results and open auto-merge PR
         if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "overnight: $(date -u +%Y-%m-%dT%H:%MZ) scan+pipeline+cleanup"
-            # Retry push with backoff
-            for i in 1 2 3 4; do
-              git push origin main && break || sleep $((2**i))
-            done
-          else
+          if git diff --cached --quiet; then
             echo "No changes to push."
+            exit 0
           fi
+
+          STAMP=$(date -u +%Y-%m-%dT%H%MZ)
+          BRANCH="overnight/${STAMP}"
+          git checkout -b "$BRANCH"
+          git commit -m "overnight: $(date -u +%Y-%m-%dT%H:%MZ) scan+pipeline+cleanup"
+
+          # Push the overnight branch (retry with backoff on transient network errors).
+          for i in 1 2 3 4; do
+            git push -u origin "$BRANCH" && break || sleep $((2**i))
+          done
+
+          # Open the PR and auto-merge it (squash, delete branch after merge).
+          # --auto needs "Allow auto-merge" enabled in repo settings; if no required
+          # checks exist the merge happens immediately.
+          gh pr create --base main --head "$BRANCH" --fill
+          gh pr merge "$BRANCH" --squash --auto --delete-branch
