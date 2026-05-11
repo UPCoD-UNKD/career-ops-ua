@@ -1053,6 +1053,15 @@
 - [!] https://www.workatastartup.com/jobs/70784 | Helicone | Founding Engineer | San Francisco, CA — verify — error: posting closed (workatastartup.com HTTP 404 + YC Helicone page shows 0 open jobs 2026-05-10); archived
 - [!] https://www.workatastartup.com/jobs/68959 | Solve Intelligence | AI Engineer | location verify — error: posting closed (Solve Intelligence YC page shows no AI Engineer role; only Growth/AE/Designer/Growth Engineer roles open 2026-05-10); archived
 
+### 2026-05-11
+<!-- Overnight 2026-05-11: scan.mjs (0 new) + Level 3 WebSearch (Ashby + Greenhouse + workatastartup small-ATS + non-standard) -->
+- [!] https://jobs.ashbyhq.com/coralai/68662a9f-8c80-430d-92d6-bfd679e6ebb3 | Coral AI | ML Engineer - New York | New York City, NY — On-site (or Bengaluru) — moved to Procesadas (#692) 2026-05-11 (3.8/5 — healthcare-AI OCR/NLP/voice; 2-5y fits; Python+PyTorch+AWS/GCP/Azure+Docker 1:1; Lightspeed-backed multi-$M ARR; NYC relocation from Kent OH; PDF generated)
+- [!] https://jobs.ashbyhq.com/qualified-health-pbc/376e24b1-764f-4a71-8bf9-a94356ec4ded | Qualified Health | Healthcare AI Solutions Engineer | Remote — United States — moved to Procesadas (#693) 2026-05-11 (2.8/5 — Remote-US $130-180K; 5+y data-engineering floor binding gap; PySpark+Azure Databricks heavy off-archetype; SKIP)
+- [!] https://jobs.ashbyhq.com/qualified-health-pbc/88dc8b6a-8aaf-4f0a-8c1a-a0249d647dd4 | Qualified Health | Epic Forward Deployed Engineer | Remote — US + 30% travel — moved to Procesadas (#694) 2026-05-11 (1.6/5 — HARD VETO Epic implementation consulting requires 5+y Epic certs + clinical informatics; zero Epic history; SKIP)
+- [!] https://job-boards.greenhouse.io/assemblyai/jobs/4693817005 | AssemblyAI | Forward Deployed Engineer, Onboarding | Remote — New York (US-based) — moved to Procesadas (#695) 2026-05-11 (3.5/5 — voice AI/ASR/WebSocket FDE; $150-200K OTE; 2+y fits; Python+JS/Node 1:1; voice domain new but adjacent via Suvidha transcripts; PDF generated)
+- [!] https://job-boards.greenhouse.io/wonderschool/jobs/6622628003 | Wonderschool | Forward Deployed Engineer - Applied AI | Multi-state remote-US (Gallup NM / Michigan / Missouri / SF / West Virginia) — moved to Procesadas (#696) 2026-05-11 (3.2/5 — Palantir-FDSE-inspired founder/builder 1:1 with E-Farming+Manga Lens+Agentic Pixel; Python/JS+AI tools; childcare domain novel; comp not disclosed; PDF generated)
+- [!] https://www.workatastartup.com/jobs/77385 | Casca | Forward Deployed Engineer | (verify) — error: posting closed (workatastartup HTTP 404 + YC Casca page shows no FDE listing — only Founding Deployment Strategist / PM / Staff SWE 2026-05-11); archived
+
 
 ## Procesadas
 
@@ -1453,3 +1462,9 @@
 
 - [x] #688 | https://jobs.ashbyhq.com/ravenna/c4f3cfdd-353c-47b5-ac25-3c8359d2b590 | Ravenna | Forward Deployed Engineer | Remote — United States | 3.5/5 | PDF ✅
 - [x] #691 | https://www.workatastartup.com/jobs/86648 | Legion Health | Founding Engineer (AI-Native Mental Health Care) | San Francisco, CA — On-site | 4.4/5 | PDF ✅
+
+### 2026-05-11
+
+- [x] #692 | https://jobs.ashbyhq.com/coralai/68662a9f-8c80-430d-92d6-bfd679e6ebb3 | Coral AI | ML Engineer - New York | New York City, NY — On-site (or Bengaluru) | 3.8/5 | PDF ✅
+- [x] #695 | https://job-boards.greenhouse.io/assemblyai/jobs/4693817005 | AssemblyAI | Forward Deployed Engineer, Onboarding | Remote — New York (US-based) | 3.5/5 | PDF ✅
+- [x] #696 | https://job-boards.greenhouse.io/wonderschool/jobs/6622628003 | Wonderschool | Forward Deployed Engineer - Applied AI | Multi-state remote-US (Gallup NM / MI / MO / SF / WV) | 3.2/5 | PDF ✅
