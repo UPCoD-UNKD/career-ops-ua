@@ -229,6 +229,7 @@ career-ops/
 
 ## Також у відкритому коді
 
+- **[esupport.org.ua-cv](https://github.com/ARogovsky/esupport.org.ua-cv)** — Україномовна адаптація портфоліо-сайту, підтримує AWS Bedrock та Azure OpenAI. Сайт: [esupport.org.ua](https://esupport.org.ua/)
 - **[cv-santiago](https://github.com/santifer/cv-santiago)** — Портфоліо-сайт (santifer.io) з AI-чатботом, LLMOps-дашбордом та кейсами. Якщо вам потрібне портфоліо для демонстрації під час пошуку роботи, форкніть його та зробіть своїм.
 
 ## Про автора
