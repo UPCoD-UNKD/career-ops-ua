@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.8.0](https://github.com/UPCoD-UNKD/career-ops-ua/compare/career-ops-v1.7.0...career-ops-v1.8.0) (2026-05-12)
+
+
+### Features
+
+* Ukrainian language and market support ([f84edac](https://github.com/UPCoD-UNKD/career-ops-ua/commit/f84edac3b2fdd72679c65e140f884e1c2e29501a))
+
+
+### Bug Fixes
+
+* **release:** sync VERSION file to 1.7.0 ([8e554cc](https://github.com/UPCoD-UNKD/career-ops-ua/commit/8e554cc4437c3a58e813378abb9b35e2e08a007e))
+
 ## [1.7.0](https://github.com/santifer/career-ops/compare/career-ops-v1.6.0...career-ops-v1.7.0) (2026-05-06)
 
 
